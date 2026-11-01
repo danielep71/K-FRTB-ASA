@@ -7,6 +7,10 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- Prepared a reviewed wiki update for the first recorded desktop Excel run,
+  with its exact candidate, one-host scope and remaining manual checks. The
+  patch is under `docs/wiki-updates/`; wiki publication remains separate
+  (#32).
 - Dependabot security updates are on. The settings document, its evidence and
   CI record the change and how a security update PR, which opens against
   main, is retargeted to the active release branch (#191).
