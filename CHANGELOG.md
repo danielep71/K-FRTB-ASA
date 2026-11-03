@@ -7,6 +7,12 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The methodology records my review of the 59 FAQs of MAR21-MAR23 in the
+  Basel Framework MAR standard. The curvature input contract states the
+  relative commodity shock and the permitted CSR floor at zero, and the input
+  conventions, on the README sheet too, state that every variant of a
+  currency is one FX risk factor. The one gap the review found, GIRR vega
+  for inflation and cross-currency basis, is #209 (#210).
 - The first desktop Excel run is recorded in
   `docs/evidence/2026-10-31-excel-run-323260b.md`, on `323260b`. Both builds,
   both compiles, the regression test (52 of 52) and both round trips passed,
