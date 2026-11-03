@@ -13,8 +13,8 @@
 
     The script also writes export-manifest.json into the folder: the file name
     and SHA-256 of the workbook, hashed before it is opened and again after it
-    is closed, and the VB_Name, file and SHA-256 of every exported component, a
-    form's .frx included. compare_vba_export.py --workbook checks the workbook
+    is closed, and the VB_Name, file, component type and SHA-256 of every
+    exported component, a form's .frx included. compare_vba_export.py --workbook checks the workbook
     and the files against it. The manifest is a record, not a signature.
 
     Unlike M_Dev.Dev_ExportModules, the export never writes into the
@@ -113,9 +113,12 @@ try {
         }
         $target = Join-Path $outFullPath ($component.Name + $extension)
         $component.Export($target)
+        # The type tells a document module (100), whose export carries no
+        # VB_Base line, from a class module (2)
         $components.Add([ordered]@{
                 name   = $component.Name
                 file   = $component.Name + $extension
+                type   = [int]$component.Type
                 sha256 = Get-Sha256 -Path $target
             })
         # A form's binary properties go to a .frx beside its .frm.
@@ -124,6 +127,7 @@ try {
             $components.Add([ordered]@{
                     name   = $component.Name
                     file   = $component.Name + '.frx'
+                    type   = [int]$component.Type
                     sha256 = Get-Sha256 -Path $resource
                 })
         }

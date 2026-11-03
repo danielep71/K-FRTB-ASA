@@ -57,6 +57,8 @@ values that `M_Setup` embeds changes, `regression_items` changes in the same
 pull request. `python tools/check_excel_evidence.py --check-policy`, run by
 `tests/test_excel_evidence.py`, fails otherwise.
 
+<a id="stages"></a>
+
 ## 🧭 Stages
 
 | Stage | Kind | Depends on | Log | A pass needs |
@@ -73,6 +75,52 @@ The other checks of #28 have no machine-readable log. These are the Excel-only
 presentation, the invalid-row variant and the regional-settings cases. Record
 them in `session.log`, and in the issue with their screenshots; the validator
 does not judge them.
+
+<a id="recorded-run"></a>
+
+## ▶️ Recorded run
+
+`tools\Record-FRTB-ExcelRun.cmd` records the run in one step. Use desktop
+Excel for Windows, with Git and Python 3 on PATH, and turn on *Trust access to
+the VBA project object model* (**File → Options → Trust Center → Trust Center
+Settings → Macro Settings**).
+
+1. Check out the candidate and confirm the tree is clean:
+
+   ```powershell
+   git fetch origin
+   git switch --detach FULL_SHA
+   ```
+
+2. Close Excel and double-click `tools\Record-FRTB-ExcelRun.cmd`. It writes
+   the bundle `test-results\excel-run-SHORTSHA\` (ignored by Git):
+   * `session.log`: the candidate, the start and finish times, the operator
+     and the environment, read from Excel and the registry;
+   * the build, compile, export and comparison of both workbooks, with the
+     logs of the [stages](#stages); the compile runs **Debug → Compile
+     VBAProject** through the VBA editor and records the references;
+   * `host.json`, written by `tools/record_excel_run.py` from the logs only.
+
+   It then runs the validator and writes the reports next to the bundle, in
+   `test-results\excel-run-SHORTSHA-validation\`. A failing stage keeps its
+   log, and the stages that depend on it are `NOT_RUN`. If a compile error is
+   found, Excel shows it in a message box: note it, click **OK**, and the run
+   goes on.
+3. Do the remaining #28 checks by hand, in `dist\K-FRTB-SA-development.xlsm`,
+   with their screenshots.
+4. Zip the bundle and the validation folder, attach them to #28 with the
+   results of step 3, and add the dated record under `docs/evidence/`.
+
+If you turned on the VBA project access only for the run, start it from
+PowerShell and say so:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\Record-FRTB-ExcelRun.ps1 -TrustChange "VBA project access turned on for the run and off after it"
+```
+
+The launcher exits 0 when the record is a valid pass, 1 for any other
+outcome and 2 when the record could not be written. The manual procedure
+below gives the same bundle by hand.
 
 <a id="manual-procedure"></a>
 
@@ -291,7 +339,7 @@ INCOMPLETE`. Keep non-passing bundles too, until the finding is resolved.
 
 * Source and log digests are identity controls. They do not prove what a
   workbook contained, and they do not authenticate the operator.
-* The `CANDIDATE=` line is typed by the operator. It stops a log of one
+* The `CANDIDATE=` line is written by the recorder, or typed in a manual run. It stops a log of one
   commit from being cited, by mistake, for another; it does not stop a
   deliberate forgery.
 * A pass covers the recorded host only: its Excel version, bitness and

@@ -35,7 +35,10 @@ def test_template_saved_presentation():
         assert ws.sheet_view.showGridLines is False, ws.title
         expected_tab = "FF1F3864" if ws.title == "README" else "FF548235" if ws.title == "Test_Expected" else "FF2E75B6" if ws.title in ("Results", "Log") or ws.title.startswith("Out_") else "FFBF9000"
         assert ws.sheet_properties.tabColor.rgb == expected_tab, ws.title
-        assert ws.freeze_panes == ("A4" if ws.title == "README" else "D7" if ws.title in ("Control", "Test_Expected") or ws.title.startswith("P_") else "D6"), ws.title
+        wide = ws.title.startswith(("In_", "Out_")) or ws.title == "Log"
+        expected_freeze = ("A4" if ws.title == "README" else "D6" if wide else "A6" if ws.title == "Results"
+                           else "A7")
+        assert ws.freeze_panes == expected_freeze, ws.title
         assert ws.page_setup.orientation == "landscape", ws.title
         assert ws.page_setup.fitToWidth == 1 and ws.page_setup.fitToHeight == 0
         assert ws.sheet_properties.pageSetUpPr.fitToPage
@@ -99,7 +102,7 @@ def test_signature_detects_layout_changes(tmp_path):
         "height": (control, 'ht="26.1"', 'ht="40"'),
         "tab": (control, tab_color, '<tabColor rgb="FF00FF00"/>'),
         "gridlines": (control, 'showGridLines="0"', 'showGridLines="1"'),
-        "freeze": (control, 'topLeftCell="D7"', 'topLeftCell="D8"'),
+        "freeze": (control, 'topLeftCell="A7"', 'topLeftCell="A8"'),
         "print": (control, 'orientation="landscape"', 'orientation="portrait"'),
         "fill": ("xl/styles.xml", "FF265A99", "FF265A98"),
         "number_format": ("xl/styles.xml", 'formatCode="0.0##%"', 'formatCode="0.00%"'),
