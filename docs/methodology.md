@@ -55,6 +55,11 @@ instruments for each risk factor.
 | COM | 1-11 | Commodity | Delivery location | 0-30y |
 | FX | Currency | (= bucket) | n/a | n/a |
 
+The FX bucket is the currency's ISO code. Onshore and offshore, and
+deliverable and non-deliverable variants of a currency are one risk factor
+(MAR21.14(4) and its FAQ): enter KRW, not KRO, for every Korean won
+sensitivity.
+
 Vega risk factors are the underlying and the option maturity (0.5, 1, 3, 5,
 10y). GIRR vega has three sub-types (MAR21.8(4) and its FAQ4):
 
@@ -77,7 +82,8 @@ shocks (#29, item 6):
 | Risk class | Shock to the curvature risk factor | Delta deducted for each instrument |
 | --- | --- | --- |
 | FX, EQ | Relative shift equal to the delta risk weight of the risk factor (MAR21.98) | Its delta sensitivity to the risk factor |
-| GIRR, CSR_NS, COM | Parallel shift of all tenors of every curve of the risk factor by the highest delta risk weight of the bucket; for GIRR, the 0.25-year weight (MAR21.99) | The sum of its delta sensitivities to all tenors of the relevant curves |
+| GIRR, CSR_NS | Parallel shift of all tenors of every curve of the risk factor by the highest delta risk weight of the bucket; for GIRR, the 0.25-year weight (MAR21.99) | The sum of its delta sensitivities to all tenors of the relevant curves |
+| COM | Relative shift of the constructed curve: every tenor price multiplied by (1 + RW) up and (1 - RW) down, RW the delta risk weight of the commodity's bucket, with no term-structure decomposition (MAR21.99 and its first FAQ, MAR21.23 FAQ1). Gold at 20%: each price times 1.2 and 0.8 | The sum of its delta sensitivities to all tenors and delivery locations |
 
 - **Sign.** CVRs are positive for a loss (MAR21.5(1)):
   `CVR_k+ = -sum_i [V_i(x_k^(RW+)) - V_i(x_k) - RW_k * s_ik]` and
@@ -91,6 +97,10 @@ shocks (#29, item 6):
   `RefReportingCcy` accepts TRUE, FALSE or blank (FALSE), as a Boolean cell
   or as text in any case; any other value rejects the row, including YES,
   NO, Y, N, 1 and 0.
+- **CSR floor.** When the downward shock would make a credit spread
+  negative, the bank may floor the CSR curvature risk factor at zero after
+  the shock. It then caps the risk weight used in `CVR-` at the level of the
+  risk factor, and leaves the risk weight in `CVR+` uncapped (MAR21.99 FAQ2).
 - **sqrt(2) discretions.** MAR21.98 and MAR21.99 do not say whether the
   sqrt(2) divisions of MAR21.44 (GIRR) and MAR21.88 (FX) also reduce the
   curvature shock. The workbook takes no position: the upstream pricing must
@@ -226,6 +236,25 @@ and led to these corrections in this version:
 | Vega and curvature correlations | Name only for CSR (no bond/CDS basis), commodity only for commodity (no location) |
 | CSR and commodity curvature risk factors | Bond and CDS curves of an issuer, and delivery locations of a commodity, form one risk factor |
 | FX specified pairs | First-order crosses of the specified pairs qualify |
+
+On 2026-11-01 I reviewed the 59 FAQs of MAR21, MAR22 and MAR23 in the Basel
+Framework MAR standard with FAQs (bis.org, generated 31 October 2026); the
+FAQ version of the January 2019 standard (BCBS d457) is no longer published
+separately, and its FAQs are part of that text. The implementation already
+follows the FAQs on the equity vega liquidity horizons (MAR21.92), the
+correlation of inflation curves in one currency (MAR21.47), the bond-CDS
+basis (MAR21.9, MAR21.54), the absence of a floor on GIRR and CSR risk
+weights (MAR21.8, MAR21.9), the vega correlation (MAR21.94), the cash-equity
+maturity (MAR22.16) and conflicting ratings (MAR22.24). The others concern
+how a bank computes sensitivities or classifies instruments, which the
+workbook takes as inputs. The review led to:
+
+| Item | Change |
+| --- | --- |
+| Commodity curvature shock (MAR21.23 FAQ1, MAR21.99 FAQ1) | The [curvature input contract](#curvature-input-contract-mar215-mar2198-mar2199) states the relative shift (#210) |
+| CSR curvature floor (MAR21.99 FAQ2) | The contract states the permitted floor at zero and its risk-weight cap (#210) |
+| FX currency variants (MAR21.14 FAQ2) | One risk factor per currency, whatever the variant (#210) |
+| GIRR vega for inflation and cross-currency basis (MAR21.8 FAQ4) | `INFLATION` and `XCCY` vega risk factors along the option maturity only (#209) |
 
 <a id="interpretations-and-simplifications-to-review"></a>
 

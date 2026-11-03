@@ -449,7 +449,7 @@ Private Sub BuildReadme()
     WriteSectionHeading ws, r, "Input conventions", 2
     r = WriteGuideRows(ws, r + 1, Array( _
         "Risk classes", "GIRR, CSR_NS (credit spread, non-securitization), EQ, COM, FX. CSR securitization and the correlation trading portfolio are not implemented and are rejected.", _
-        "Buckets", "GIRR and FX: currency code. CSR_NS 1-18, EQ 1-13, COM 1-11 as in MAR21.51, MAR21.72 and MAR21.82 (see the P_* sheets).", _
+        "Buckets", "GIRR and FX: ISO currency code, one for all variants of a currency (KRW, not KRO). CSR_NS 1-18, EQ 1-13, COM 1-11 as in MAR21.51, MAR21.72 and MAR21.82 (see the P_* sheets).", _
         "Qualifier", "GIRR: curve name. CSR_NS and EQ: issuer or index. COM: commodity. FX: the currency.", _
         "Sub-type", "GIRR: YIELD, INFLATION or XCCY. CSR_NS delta: BOND or CDS. EQ delta: SPOT or REPO. COM delta: delivery location.", _
         "Tenors", "GIRR 0.25-30y, CSR 0.5-10y, COM 0-30y; vega option and GIRR underlying maturities 0.5, 1, 3, 5, 10y. GIRR INFLATION and XCCY vega: option maturity only.", _
