@@ -120,15 +120,18 @@ def _bool(v) -> bool:
 
 
 def _flag(v):
-    """An optional yes/no input: False when blank, None when not recognized."""
+    """An optional TRUE/FALSE input: False when blank, None for anything else.
+
+    Only a Boolean or the text TRUE or FALSE is accepted; aliases such as YES,
+    N or 1 are rejected (#144).
+    """
     if v is None or (isinstance(v, str) and not v.strip()):
         return False
     if isinstance(v, bool):
         return v
-    if isinstance(v, (int, float)):
-        return {1: True, -1: True, 0: False}.get(v)
-    s = _text(v)
-    return True if s in ("TRUE", "YES", "Y", "1", "-1") else False if s in ("FALSE", "NO", "N", "0") else None
+    if isinstance(v, str):
+        return {"TRUE": True, "FALSE": False}.get(_text(v))
+    return None
 
 
 FIRST_COL = 2  # tables start in column C (0-based index 2)
@@ -225,10 +228,28 @@ def params_from_workbook(wb) -> Params:
     return p
 
 
+def _cell_value(cell):
+    """A cell's value, with a number formatted as TRUE/FALSE read as a Boolean.
+
+    LibreOffice saves a Boolean cell as a number whose format shows TRUE or
+    FALSE; the VBA reads such a cell as the flag it shows (CellBool, #144). A
+    plain number keeps its value, so 1 or 0 is not a flag.
+    """
+    v = cell.value
+    if isinstance(v, bool) or not isinstance(v, (int, float)):
+        return v
+    sections = [s.strip() for s in (cell.number_format or "").split(";")]
+    if len(sections) < 2:
+        return v
+    shown = sections[0] if v > 0 else sections[1] if v < 0 else sections[2] if len(sections) > 2 else sections[0]
+    shown = shown.strip('"').strip().upper()
+    return {"TRUE": True, "FALSE": False}.get(shown, v)
+
+
 def _input_rows(ws, ncols):
     out = []
-    for r in ws.iter_rows(min_row=FIRST_DATA_ROW, min_col=FIRST_COL + 1, values_only=True):
-        r = list(r) + [None] * ncols
+    for cells in ws.iter_rows(min_row=FIRST_DATA_ROW, min_col=FIRST_COL + 1):
+        r = [_cell_value(c) for c in cells] + [None] * ncols
         if r[0] in (None, "") and r[1] in (None, ""):
             break
         out.append(r[:ncols])
@@ -379,9 +400,19 @@ def vega_risk_factors(p: Params, rows):
         if not _in(topt, mats):
             continue
         if rc == "GIRR":
-            if not _in(tund, mats):
+            sub = sub or "YIELD"
+            if sub == "YIELD":
+                # one vega surface per currency: option x underlying maturity
+                if not _in(tund, mats):
+                    continue
+                q = ""
+            elif sub in ("INFLATION", "XCCY"):
+                # option maturity only (MAR21.8 FAQ4): an underlying maturity is an input error
+                if not (r[6] is None or (isinstance(r[6], str) and r[6].strip() == "")):
+                    continue
+                tund = 0.0
+            else:
                 continue
-            q, sub = "", ""
         else:
             tund = 0.0
             if rc in ("CSR_NS", "EQ", "COM"):
@@ -490,8 +521,24 @@ def _name_rho(p: Params, rc, bucket, a: RF, b: RF) -> float:
     return 1.0
 
 
+def _girr_vega_rho(p: Params, a: RF, b: RF) -> float:
+    """Delta correlation of the GIRR delta risk factors two vega risk factors
+    correspond to (MAR21.94, MAR21.46-MAR21.49): the underlying maturity for
+    two yield surfaces, otherwise the sub-type and curve correlations."""
+    g = p.girr
+    if a.sub == b.sub == "YIELD":
+        return _mat_rho(p, a.t2, b.t2)
+    if a.sub == b.sub and a.qual == b.qual:
+        return 1.0
+    if "XCCY" in (a.sub, b.sub):
+        return g["RHO_XCCY"]
+    if a.sub == b.sub == "INFLATION":
+        return g["RHO_DIFF_CURVE"]
+    return g["RHO_INFLATION"]
+
+
 def vega_rho(p: Params, rc, bucket, a: RF, b: RF) -> float:
-    und = _mat_rho(p, a.t2, b.t2) if rc == "GIRR" else _name_rho(p, rc, bucket, a, b)
+    und = _girr_vega_rho(p, a, b) if rc == "GIRR" else _name_rho(p, rc, bucket, a, b)
     return min(_mat_rho(p, a.t1, b.t1) * und, 1.0)
 
 

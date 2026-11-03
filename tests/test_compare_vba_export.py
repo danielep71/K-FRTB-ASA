@@ -31,6 +31,17 @@ THIS_WORKBOOK = (
 )
 
 
+# A sheet module as the VBE's Export writes it: no VB_Base line, so only
+# the manifest's component type marks it as a document module.
+SHEET1 = (
+    b"VERSION 1.0 CLASS\r\nBEGIN\r\n  MultiUse = -1  'True\r\nEND\r\n"
+    b'Attribute VB_Name = "Sheet1"\r\n'
+    b"Attribute VB_GlobalNameSpace = False\r\nAttribute VB_Creatable = False\r\n"
+    b"Attribute VB_PredeclaredId = True\r\nAttribute VB_Exposed = True\r\n"
+    b"Attribute VB_TemplateDerived = False\r\nAttribute VB_Customizable = True\r\n"
+)
+
+
 def committed_modules(mode):
     folders = tool.MODE_FOLDERS[mode]
     listing = subprocess.run(["git", "-C", str(ROOT), "ls-tree", "--name-only", "HEAD", *[f"{f}/" for f in folders]],
@@ -79,10 +90,13 @@ def workbook(folder, name, project=b"vba project"):
     return path
 
 
-def write_manifest(folder, book):
+def write_manifest(folder, book, types=None):
     components = [{"name": tool.parse(path.read_bytes(), path.name).name, "file": path.name,
                    "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
                   for path in sorted(folder.iterdir()) if path.suffix in tool.SUFFIXES]
+    for item in components:
+        if types and item["file"] in types:
+            item["type"] = types[item["file"]]
     record = {"format": tool.EXPORT_FORMAT,
               "workbook": {"file": book.name, "sha256": hashlib.sha256(book.read_bytes()).hexdigest()},
               "components": components}
@@ -163,6 +177,45 @@ def test_a_document_module_with_only_option_lines_passes(export):
     folder = export("production", THIS_WORKBOOK + b"Option Explicit\r\n\r\n")
     code, output = run_tool(folder, "production")
     assert code == 0, output
+
+
+def test_a_sheet_exported_without_vb_base_is_a_document_by_its_manifest_type(export, tmp_path):
+    folder = export("development")
+    (folder / "Sheet1.cls").write_bytes(SHEET1 + b"Option Explicit\r\n")
+    book = workbook(tmp_path, "K-FRTB-SA.xlsm")
+    write_manifest(folder, book, {"ThisWorkbook.cls": 100, "Sheet1.cls": 100, "CORE_SBM.bas": 1})
+    code, output = run_tool(folder, "development", "--workbook", str(book))
+    assert code == 0, output
+    assert "RESULT=PASS" in output and "binding=VERIFIED" in output
+
+
+def test_a_sheet_without_vb_base_or_manifest_type_is_not_in_the_source(export, tmp_path):
+    folder = export("development")
+    (folder / "Sheet1.cls").write_bytes(SHEET1)
+    book = workbook(tmp_path, "K-FRTB-SA.xlsm")
+    write_manifest(folder, book)
+    code, output = run_tool(folder, "development", "--workbook", str(book))
+    assert code == 1, output
+    assert "not in the source for this mode: Sheet1 (Sheet1.cls)" in output
+
+
+def test_a_manifest_document_type_cannot_hide_code(export, tmp_path):
+    folder = export("development")
+    (folder / "Sheet1.cls").write_bytes(SHEET1 + b"Sub Hidden()\r\nEnd Sub\r\n")
+    book = workbook(tmp_path, "K-FRTB-SA.xlsm")
+    write_manifest(folder, book, {"Sheet1.cls": 100})
+    code, output = run_tool(folder, "development", "--workbook", str(book))
+    assert code == 1, output
+    assert "document module Sheet1 (Sheet1.cls) holds code that is not in the source" in output
+
+
+def test_a_component_type_that_is_not_an_integer_fails_the_binding(export, tmp_path):
+    folder = export("development")
+    book = workbook(tmp_path, "K-FRTB-SA.xlsm")
+    write_manifest(folder, book, {"ThisWorkbook.cls": "100"})
+    code, output = run_tool(folder, "development", "--workbook", str(book))
+    assert code == 1, output
+    assert "a component type is not an integer" in output
 
 
 def test_a_matching_manifest_verifies_the_binding(export, tmp_path):
@@ -265,6 +318,8 @@ def test_exporter_writes_the_format_and_manifest_the_tool_reads():
     assert "$excel.Workbooks.Open($workbookFullPath, 0, $true)" in script
     assert "$excel.AutomationSecurity = $msoAutomationSecurityForceDisable" in script
     assert "The workbook changed while it was exported" in script
+    # The manifest records each component's type, which marks a document module.
+    assert "type   = [int]$component.Type" in script
 
 
 @pytest.mark.skipif(not (os.environ.get("PWSH") or shutil.which("pwsh")), reason="PowerShell 7 (pwsh) is not installed")

@@ -314,13 +314,27 @@ Private Sub LoadVega()
         If ok Then
             Select Case rc
                 Case RC_GIRR
-                    ' One vega surface per currency: option x underlying maturity
-                    If Not IsValidVegaMaturity(undMat) Then
-                        LogMessage "ERROR", src, "GIRR underlying maturity " & undMat & " is not a regulatory vertex; row skipped"
-                        ok = False
-                    End If
-                    qual = ""
-                    subType = ""
+                    If subType = "" Then subType = "YIELD"
+                    Select Case subType
+                        Case "YIELD"
+                            ' One vega surface per currency: option x underlying maturity
+                            If Not IsValidVegaMaturity(undMat) Then
+                                LogMessage "ERROR", src, "GIRR underlying maturity " & undMat & " is not a regulatory vertex; row skipped"
+                                ok = False
+                            End If
+                            qual = ""
+                        Case "INFLATION", "XCCY"
+                            ' Inflation and cross-currency basis vega: the option
+                            ' maturity only, one risk factor per curve (MAR21.8 FAQ4)
+                            If Not IsBlank(TableCell(ws, r, 7).Value) Then
+                                LogMessage "ERROR", src, "GIRR " & subType & " vega takes no underlying maturity; row skipped"
+                                ok = False
+                            End If
+                            undMat = 0#
+                        Case Else
+                            LogMessage "ERROR", src, "GIRR sub-type must be YIELD, INFLATION or XCCY; row skipped"
+                            ok = False
+                    End Select
                 Case RC_CSR, RC_EQ, RC_COM
                     ' Vega risk factors are the underlying name and the option
                     ' maturity: no bond/CDS basis or delivery location (MAR21.94 FAQ)
@@ -366,14 +380,14 @@ Private Sub LoadCurvature()
             LogMessage "ERROR", src, "CVR up and CVR down must both be numeric; row skipped"
             ok = False
         End If
-        If ok And Not IsBlankOrBool(TableCell(ws, r, 8).Value) Then
+        If ok And Not IsBlankOrBoolCell(TableCell(ws, r, 8)) Then
             LogMessage "ERROR", src, "RefReportingCcy must be TRUE, FALSE or blank; row skipped"
             ok = False
         End If
         If ok Then
             up = ToDouble(TableCell(ws, r, 6).Value, 0#)
             dn = ToDouble(TableCell(ws, r, 7).Value, 0#)
-            refCcy = ToBool(TableCell(ws, r, 8).Value, False)
+            refCcy = CellBool(TableCell(ws, r, 8))
             Select Case rc
                 Case RC_GIRR
                     ' All curves of a currency are shifted together: one risk factor per bucket
@@ -482,12 +496,30 @@ Private Function UnderlyingCorrelation(ByVal rc As String, ByVal bucket As Strin
 End Function
 
 
+' Delta correlation of the GIRR delta risk factors two vega risk factors
+' correspond to (MAR21.94, MAR21.46-49): the underlying maturity between two
+' yield surfaces, otherwise the sub-type and curve correlations.
+Private Function GirrVegaUnderlyingCorrelation(ByVal i As Long, ByVal j As Long) As Double
+    If mSub(i) = "YIELD" And mSub(j) = "YIELD" Then
+        GirrVegaUnderlyingCorrelation = MaturityCorrelation(mT2(i), mT2(j))
+    ElseIf mSub(i) = mSub(j) And mQual(i) = mQual(j) Then
+        GirrVegaUnderlyingCorrelation = 1#
+    ElseIf mSub(i) = "XCCY" Or mSub(j) = "XCCY" Then
+        GirrVegaUnderlyingCorrelation = GirrRhoXccy()
+    ElseIf mSub(i) = "INFLATION" And mSub(j) = "INFLATION" Then
+        GirrVegaUnderlyingCorrelation = GirrRhoDiffCurve()
+    Else
+        GirrVegaUnderlyingCorrelation = GirrRhoInflation()
+    End If
+End Function
+
+
 ' Vega (MAR21.93-95): min(rho_option_maturity x rho_underlying, 1).
 Private Function VegaCorrelation(ByVal rc As String, ByVal bucket As String, _
                                  ByVal i As Long, ByVal j As Long) As Double
     Dim rhoUnd As Double
     If rc = RC_GIRR Then
-        rhoUnd = MaturityCorrelation(mT2(i), mT2(j))
+        rhoUnd = GirrVegaUnderlyingCorrelation(i, j)
     Else
         rhoUnd = UnderlyingCorrelation(rc, bucket, i, j)
     End If

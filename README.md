@@ -13,7 +13,7 @@
 [![Framework](https://img.shields.io/badge/Framework-Basel_MAR21--MAR23-1f3a5f?style=for-the-badge)](docs/methodology.md)
 [![Status](https://img.shields.io/badge/Status-Prototype_0.2.0-D93F0B?style=for-the-badge)](#status)
 [![Reconciliation](https://img.shields.io/badge/Reconciliation-LibreOffice_checked-2ea44f?style=for-the-badge)](docs/validation.md)
-[![Excel evidence](https://img.shields.io/badge/Excel_evidence-pending-6E7781?style=for-the-badge)](docs/validation.md#not-validated)
+[![Excel evidence](https://img.shields.io/badge/Excel_evidence-recorded_323260b-2ea44f?style=for-the-badge)](docs/evidence/2026-10-31-excel-run-323260b.md)
 [![License](https://img.shields.io/badge/License-MIT-2ea44f?style=for-the-badge)](LICENSE)
 
 <br>
@@ -117,8 +117,8 @@ need to **check** an FRTB-SA number:
 | Sensitivities-based method (SBM) | Prototype: GIRR, CSR non-securitization, equity, commodity, FX; delta, vega, curvature |
 | Default risk charge (DRC) | Prototype: non-securitizations |
 | Residual risk add-on (RRAO) | Prototype |
-| Independent benchmarks and runtime evidence | Python reference reconciled with the VBA run in LibreOffice; Excel evidence pending |
-| Excel round trip and evidence tooling | Read-only VBA export, source comparison and evidence validator implemented and tested offline; no Excel run yet (#28, #30) |
+| Independent benchmarks and runtime evidence | Python reference reconciled with the VBA run in LibreOffice; desktop Excel run recorded on `323260b` ([evidence](docs/evidence/2026-10-31-excel-run-323260b.md)) |
+| Excel round trip and evidence tooling | One-step recorder, read-only VBA export, source comparison and evidence validator; both round trips passed in Excel on `323260b` (#28, #30) |
 | Market risk and CVA method maps | Five diagrams in [`docs/assets/market-risk/`](docs/assets/market-risk/README.md) (#98, #102) |
 | Issue-only milestones | PR milestones removed automatically (#104) |
 

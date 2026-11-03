@@ -109,7 +109,9 @@ def normalize(path: Path) -> None:
         _child(props, "pageSetUpPr", fitToPage="1")
 
         frozen_rows = 3 if name == "README" else 6 if name in ("Control", "Test_Expected") or name.startswith("P_") else 5
-        frozen_cols = 0 if name == "README" else 3
+        # The wide input, output and Log tables keep their key columns in
+        # view; the narrow tables of the other sheets freeze rows only.
+        frozen_cols = 3 if name.startswith(("In_", "Out_")) or name == "Log" else 0
         for view in root.findall(f"{_tag('sheetViews')}/{_tag('sheetView')}"):
             view.set("showGridLines", "0")
             view.set("topLeftCell", "A1")

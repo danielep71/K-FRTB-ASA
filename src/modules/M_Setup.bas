@@ -394,7 +394,9 @@ End Sub
 
 
 ' Hides gridlines and freezes the panes below the table header on every
-' sheet; needs each sheet to be active once.
+' sheet; needs each sheet to be active once. The wide input, output and Log
+' sheets also keep their key columns in view; the narrow tables of Results,
+' Control, Test_Expected and the parameter sheets freeze rows only.
 Private Sub ApplyWindowSettings()
     Dim names As Variant, i As Long, ws As Object
     names = ManagedSheets()
@@ -408,10 +410,10 @@ Private Sub ApplyWindowSettings()
             ws.Cells(LAYOUT_FIRST_DATA_ROW, LAYOUT_FIRST_COL + 1).Select
             Application.ActiveWindow.FreezePanes = True
         ElseIf ws.Name = SH_RESULTS Then
-            ws.Cells(LAYOUT_FIRST_DATA_ROW, LAYOUT_FIRST_COL + 1).Select
+            ws.Cells(LAYOUT_FIRST_DATA_ROW, 1).Select
             Application.ActiveWindow.FreezePanes = True
         ElseIf ws.Name = SH_CONTROL Or ws.Name = SH_TEST Or Left$(ws.Name, 2) = "P_" Then
-            ws.Cells(LAYOUT_HEADER_ROW + 2, LAYOUT_FIRST_COL + 1).Select
+            ws.Cells(LAYOUT_HEADER_ROW + 2, 1).Select
             Application.ActiveWindow.FreezePanes = True
         Else
             ws.Cells(4, 1).Select
@@ -447,10 +449,10 @@ Private Sub BuildReadme()
     WriteSectionHeading ws, r, "Input conventions", 2
     r = WriteGuideRows(ws, r + 1, Array( _
         "Risk classes", "GIRR, CSR_NS (credit spread, non-securitization), EQ, COM, FX. CSR securitization and the correlation trading portfolio are not implemented and are rejected.", _
-        "Buckets", "GIRR and FX: currency code. CSR_NS 1-18, EQ 1-13, COM 1-11 as in MAR21.51, MAR21.72 and MAR21.82 (see the P_* sheets).", _
+        "Buckets", "GIRR and FX: ISO currency code, one for all variants of a currency (KRW, not KRO). CSR_NS 1-18, EQ 1-13, COM 1-11 as in MAR21.51, MAR21.72 and MAR21.82 (see the P_* sheets).", _
         "Qualifier", "GIRR: curve name. CSR_NS and EQ: issuer or index. COM: commodity. FX: the currency.", _
         "Sub-type", "GIRR: YIELD, INFLATION or XCCY. CSR_NS delta: BOND or CDS. EQ delta: SPOT or REPO. COM delta: delivery location.", _
-        "Tenors", "GIRR 0.25-30y, CSR 0.5-10y, COM 0-30y; vega option and GIRR underlying maturities 0.5, 1, 3, 5, 10y.", _
+        "Tenors", "GIRR 0.25-30y, CSR 0.5-10y, COM 0-30y; vega option and GIRR underlying maturities 0.5, 1, 3, 5, 10y. GIRR INFLATION and XCCY vega: option maturity only.", _
         "Amounts", "Sensitivities as defined in MAR21.19-26 (for example GIRR: PV change for 1bp / 0.0001). Vega: vega x implied volatility. Curvature: CVR up and CVR down per risk factor; RefReportingCcy TRUE marks FX options that reference the reporting currency (MAR21.98).", _
         "DRC", "Signed notional and market value (negative for shorts), maturity in years (cash equity: 0.25 or at least 1, MAR22.16), bucket CORP, SOV or LGM, credit quality AAA ... DEFAULTED, seniority EQUITY, NON_SENIOR, SENIOR or COVERED."))
 
@@ -497,7 +499,7 @@ Private Sub BuildControl()
     Dim ws As Object, r As Long
     Set ws = GetSheet(SH_CONTROL)
     ApplyFrame ws, "Control", "Run settings and actions.", 6
-    SetWidths ws, Array(34, 14, 95, 16)
+    SetWidths ws, Array(34, 14, 125, 16)
     r = PutTable(ws, LAYOUT_HEADER_ROW, "SETTINGS", "Run settings", Array("Code", "Value", "Description", "Reference"))
     PutRow ws, r, Array("REPORTING_CCY", "EUR", "Reporting currency; FX sensitivities are against this currency", "MAR21.14")
     PutRow ws, r + 1, Array("GIRR_SPECIFIED_CCY_DISCRETION", False, "TRUE: GIRR delta risk weights (tenor, inflation and cross-currency basis) divided by sqrt(2) for the specified currencies and the reporting currency", "MAR21.44")
@@ -565,7 +567,7 @@ Private Sub BuildInputSheets()
     BuildInputSheet SH_IN_DELTA, "Delta sensitivities in the reporting currency; rows with the same risk factor are netted (MAR21.4(2)).", _
         Array("ID", "RiskClass", "Bucket", "Qualifier", "SubType", "Tenor", "Sensitivity", "Comment"), _
         Array(10, 11, 9, 18, 13, 9, 16, 34), 7
-    BuildInputSheet SH_IN_VEGA, "Vega x implied volatility per option maturity (and GIRR underlying maturity), MAR21.25.", _
+    BuildInputSheet SH_IN_VEGA, "Vega x implied volatility per option maturity (and GIRR YIELD underlying maturity; GIRR INFLATION and XCCY: none), MAR21.25 and MAR21.8 FAQ4.", _
         Array("ID", "RiskClass", "Bucket", "Qualifier", "SubType", "OptionMaturity", "UnderlyingMaturity", "Sensitivity", "Comment"), _
         Array(10, 11, 9, 18, 13, 15, 18, 16, 34), 8
     BuildInputSheet SH_IN_CURV, "Curvature risk CVR up and CVR down per risk factor, net across instruments, positive for a loss and before the FX divisor; shocks per MAR21.98-99 (MAR21.5).", _
