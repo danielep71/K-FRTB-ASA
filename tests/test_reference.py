@@ -236,6 +236,44 @@ def test_vega_girr_underlying_maturity(p):
     assert capital["GIRR"]["MEDIUM"] == approx(math.sqrt(a * a + b * b + 2 * rho * a * b))
 
 
+
+def test_vega_girr_inflation_and_xccy_risk_factors(p):
+    # MAR21.8 FAQ4: inflation and cross-currency basis vega along the option maturity only
+    rows = [
+        ["1", "GIRR", "EUR", None, None, 1, 5, 400_000],            # yield surface (blank sub-type)
+        ["2", "GIRR", "EUR", "HICP", "INFLATION", 1, None, 300_000],
+        ["3", "GIRR", "EUR", "FR_CPI", "INFLATION", 5, None, -100_000],
+        ["4", "GIRR", "EUR", "EURUSD", "XCCY", 1, None, 200_000],
+    ]
+    rfs = ref.vega_risk_factors(p, rows)
+    assert sorted(f.sub for f in rfs) == ["INFLATION", "INFLATION", "XCCY", "YIELD"]
+    capital, _, _ = ref.sbm_component(p, "VEGA", rfs)
+    y, i1, i2, x = 400_000.0, 300_000.0, -100_000.0, 200_000.0   # vega RW for GIRR is 100%
+    opt_1_5 = math.exp(-0.01 * 4 / 1)
+    pairs = (0.4 * y * i1                     # yield x inflation: 40% (MAR21.48), same option maturity
+             + opt_1_5 * 0.4 * y * i2
+             + opt_1_5 * 0.999 * i1 * i2)     # two inflation curves: 99.9% (MAR21.47 FAQ)
+    # cross-currency basis: 0% with every other GIRR risk factor (MAR21.49)
+    expected = math.sqrt(y * y + i1 * i1 + i2 * i2 + x * x + 2 * pairs)
+    assert capital["GIRR"]["MEDIUM"] == approx(expected)
+
+
+def test_vega_girr_same_inflation_curve_correlates_by_option_maturity_only(p):
+    rows = [["1", "GIRR", "EUR", "HICP", "INFLATION", 1, None, 300_000],
+            ["2", "GIRR", "EUR", "HICP", "INFLATION", 5, None, -100_000]]
+    capital, _, _ = ref.sbm_component(p, "VEGA", ref.vega_risk_factors(p, rows))
+    rho = math.exp(-0.01 * 4 / 1)
+    a, b = 300_000.0, -100_000.0
+    assert capital["GIRR"]["MEDIUM"] == approx(math.sqrt(a * a + b * b + 2 * rho * a * b))
+
+
+def test_vega_girr_invalid_rows_are_skipped(p):
+    rows = [["1", "GIRR", "EUR", "HICP", "INFLATION", 1, 5, 300_000],  # inflation takes no underlying maturity
+            ["2", "GIRR", "EUR", "", "XCCY", 1, 0, 200_000],          # nor does the cross-currency basis
+            ["3", "GIRR", "EUR", "", "CDS", 1, 5, 100_000],           # unknown GIRR sub-type
+            ["4", "GIRR", "EUR", "", "YIELD", 1, None, 100_000]]      # a yield surface needs it
+    assert ref.vega_risk_factors(p, rows) == []
+
 # --------------------------------------------------------------------------
 # Curvature
 # --------------------------------------------------------------------------

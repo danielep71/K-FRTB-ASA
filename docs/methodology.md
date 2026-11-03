@@ -61,7 +61,13 @@ deliverable and non-deliverable variants of a currency are one risk factor
 sensitivity.
 
 Vega risk factors are the underlying and the option maturity (0.5, 1, 3, 5,
-10y); GIRR vega also uses the underlying residual maturity on the same grid.
+10y). GIRR vega has three sub-types (MAR21.8(4) and its FAQ4):
+
+* `YIELD`, the default: one surface per currency, by option maturity and
+  underlying residual maturity on the same grid;
+* `INFLATION`, one risk factor per inflation curve (the qualifier), and
+  `XCCY`, the cross-currency basis: the option maturity only. A row of either
+  with an underlying maturity is rejected (#209).
 Curvature risk factors are one per currency for GIRR (all curves shifted
 together; no inflation or cross-currency basis curvature) and FX, one per
 issuer for CSR (bond and CDS curves together), one per issuer for equity and
@@ -146,7 +152,12 @@ correlation for CSR and equity, the commodity correlation for commodity.
 ```
 vega:       rho_kl = min(rho_option_maturity x rho_underlying, 1)
             rho_option_maturity = exp(-1% |Tk - Tl| / min(Tk, Tl))
-            GIRR: rho_underlying uses the underlying residual maturity, same formula, no floor
+            GIRR, two YIELD surfaces: rho_underlying uses the underlying residual
+              maturity, same formula, no floor
+            GIRR, other pairs: rho_underlying is the delta correlation of the
+              corresponding risk factors: 1 for the same curve, 99.9% between two
+              inflation curves, 40% between yield and inflation, 0% with XCCY
+              (MAR21.46-MAR21.49)
 curvature:  rho_kl = (rho_underlying)^2,  gamma_bc = (gamma_bc)^2
 ```
 
@@ -243,7 +254,7 @@ workbook takes as inputs. The review led to:
 | Commodity curvature shock (MAR21.23 FAQ1, MAR21.99 FAQ1) | The [curvature input contract](#curvature-input-contract-mar215-mar2198-mar2199) states the relative shift (#210) |
 | CSR curvature floor (MAR21.99 FAQ2) | The contract states the permitted floor at zero and its risk-weight cap (#210) |
 | FX currency variants (MAR21.14 FAQ2) | One risk factor per currency, whatever the variant (#210) |
-| GIRR vega for inflation and cross-currency basis (MAR21.8 FAQ4) | Not supported yet; tracked in #209 |
+| GIRR vega for inflation and cross-currency basis (MAR21.8 FAQ4) | `INFLATION` and `XCCY` vega risk factors along the option maturity only (#209) |
 
 <a id="interpretations-and-simplifications-to-review"></a>
 

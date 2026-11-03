@@ -298,6 +298,44 @@ def test_fx_curvature_divisor_all(lo_default_path, tmp_path):
     assert fx["GBP"][0] == pytest.approx(15_000 / 1.5) and fx["USD"][1] == pytest.approx(-35_000 / 1.5)
 
 
+
+GIRR_VEGA_ROWS = [
+    # MAR21.8 FAQ4: inflation and cross-currency basis vega along the option maturity only (#209)
+    ["V1", "GIRR", "EUR", "HICP", "INFLATION", 1, None, 300_000],
+    ["V2", "GIRR", "EUR", "FR_CPI", "INFLATION", 5, None, -100_000],
+    ["V3", "GIRR", "EUR", "EURUSD", "XCCY", 1, None, 200_000],
+    ["V4", "GIRR", "USD", "CPI", "INFLATION", 3, None, 150_000],
+    ["V5", "GIRR", "EUR", "HICP", "INFLATION", 1, 5, 1_000],       # an underlying maturity: rejected
+    ["V6", "GIRR", "EUR", "", "BASIS", 1, 5, 1_000],              # unknown sub-type: rejected
+]
+
+
+def test_girr_vega_inflation_and_xccy_reconcile(lo_default_run, lo_default_path, tmp_path):
+    wb = openpyxl.load_workbook(lo_default_path)
+    ws = wb["In_Vega"]
+    r = FIRST_DATA_ROW
+    while ws.cell(r, FIRST_COL).value not in (None, ""):
+        r += 1
+    for values in GIRR_VEGA_ROWS:
+        for c, v in enumerate(values, start=FIRST_COL):
+            ws.cell(r, c).value = v
+        r += 1
+    source = tmp_path / "girr-vega-in.xlsx"
+    wb.save(source)
+    out = tmp_path / "girr-vega-out.xlsx"
+    assert lo_runner.run(out, ["M_Main.RunFRTB_Silent"], input_book=source) == []
+    result = openpyxl.load_workbook(out, data_only=True)
+    assert reconcile(result) == []
+    errors = sorted(r[2] for r in log_rows(result, "ERROR"))
+    assert errors == ["GIRR INFLATION vega takes no underlying maturity; row skipped",
+                      "GIRR sub-type must be YIELD, INFLATION or XCCY; row skipped"], errors
+    # the valid rows are read as new risk factors: GIRR vega changes in every scenario
+    def girr_vega(book):
+        return {r[2]: r[3] for r in sheet_rows(book, "Out_RiskClass") if r[:2] == ("GIRR", "VEGA")}
+    before, after = girr_vega(lo_default_run), girr_vega(result)
+    assert set(after) == {"LOW", "MEDIUM", "HIGH"}
+    assert all(after[s] != pytest.approx(before[s]) for s in after)
+
 # --------------------------------------------------------------------------
 # Empty inputs
 # --------------------------------------------------------------------------

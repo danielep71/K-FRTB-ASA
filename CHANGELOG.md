@@ -7,6 +7,13 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- GIRR vega takes inflation and cross-currency basis risk factors along the
+  option maturity only (MAR21.8 FAQ4): `In_Vega` accepts the sub-types
+  `YIELD` (the default), `INFLATION` and `XCCY`, and rejects an underlying
+  maturity on the last two or any other sub-type. Their correlations are the
+  option maturity correlation times the delta correlation of the
+  corresponding risk factors (MAR21.94). The sample results and the 52
+  regression values are unchanged (#209).
 - The methodology records my review of the 59 FAQs of MAR21-MAR23 in the
   Basel Framework MAR standard. The curvature input contract states the
   relative commodity shock and the permitted CSR floor at zero, and the input
