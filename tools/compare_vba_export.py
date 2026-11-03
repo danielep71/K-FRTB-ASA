@@ -13,7 +13,10 @@ ignores line endings, trailing blank lines, and the letter case of code
 outside string literals and comments: VBA names are case-insensitive, and
 the VBE re-cases identifiers on import. The re-cased lines are counted.
 Document modules (ThisWorkbook and the sheets) are not part of the source.
-They must hold no code beyond Option lines. Everything else must match.
+They must hold no code beyond Option lines. Everything else must match. The
+VBE's Export leaves the VB_Base attribute out of a document module, so the
+tool takes the component type the exporter records in export-manifest.json
+(100, a document module) and accepts a VB_Base line as well.
 
 Source parity says nothing about which workbook the files came from. The
 exporter writes export-manifest.json with the SHA-256 of the workbook it
@@ -58,9 +61,12 @@ SUFFIXES = (".bas", ".cls", ".frm")
 # A form's binary properties, which the VBE exports beside its .frm: not
 # compared with the source, but bound to the workbook like the components.
 RESOURCE_SUFFIX = ".frx"
+# vbext_ct_Document: the VBComponent type of ThisWorkbook and the sheets
+DOCUMENT_TYPE = 100
 VB_NAME = re.compile(r'^Attribute VB_Name = "([^"]+)"$')
 # The Excel Workbook, Worksheet and Chart classes a document module names in
-# its VB_Base attribute; an ordinary class module has no VB_Base.
+# its VB_Base attribute; an ordinary class module has no VB_Base. The VBE's
+# Export omits the line, so an export is read with its manifest's types.
 DOCUMENT_BASE = re.compile(r'^Attribute VB_Base = "0\{0002082[01]-|^Attribute VB_Base = "0\{00020819-')
 REM = re.compile(r"rem(?=\s|$)", re.IGNORECASE)
 # Lines the VBE writes before the code of a class or form: the VERSION line,
@@ -188,14 +194,19 @@ def first_difference(source: tuple[str, ...], export: tuple[str, ...]) -> str:
 
 
 def compare(expected: dict[str, tuple[str, Component]],
-            exported: dict[str, tuple[str, Component]]) -> tuple[list[str], int]:
+            exported: dict[str, tuple[str, Component]],
+            documents: frozenset[str] = frozenset()) -> tuple[list[str], int]:
     """The differences between the source and the export, empty when they
-    match, and the number of lines that differ only in letter case."""
+    match, and the number of lines that differ only in letter case.
+
+    ``documents`` holds the lower-case file names the manifest records as
+    document modules. Such a module must still hold no code, so a wrong type
+    in the manifest cannot hide code from the comparison."""
     findings = [f"missing from the export: {expected[key][1].name} ({expected[key][0]})"
                 for key in sorted(set(expected) - set(exported))]
     for key in sorted(set(exported) - set(expected)):
         file, component = exported[key]
-        if not component.document:
+        if not (component.document or file.lower() in documents):
             findings.append(f"not in the source for this mode: {component.name} ({file})")
         elif any(line.strip() and not OPTION_LINE.match(line) for line in component.body):
             findings.append(f"document module {component.name} ({file}) holds code that is not in the source")
@@ -226,6 +237,7 @@ class ExportRecord:
     workbook_name: str
     workbook_sha256: str
     files: dict[str, tuple[str, str, str]]  # lower-case file -> (file, VB_Name, sha256)
+    documents: frozenset[str] = frozenset()  # lower-case files of type DOCUMENT_TYPE
 
 
 def load_export_manifest(path: Path) -> ExportRecord:
@@ -241,7 +253,12 @@ def load_export_manifest(path: Path) -> ExportRecord:
                  for item in record["components"]}
         if len(files) != len(record["components"]):
             raise ValueError("a file is listed twice")
-        return ExportRecord(name, record["workbook"]["sha256"].lower(), files)
+        types = {item["file"].lower(): item.get("type") for item in record["components"]}
+        if any(value is not None and (isinstance(value, bool) or not isinstance(value, int))
+               for value in types.values()):
+            raise ValueError("a component type is not an integer")
+        documents = frozenset(file for file, value in types.items() if value == DOCUMENT_TYPE)
+        return ExportRecord(name, record["workbook"]["sha256"].lower(), files, documents)
     except (ValueError, KeyError, TypeError, AttributeError) as error:
         raise ValueError(f"{EXPORT_MANIFEST} is not a valid export manifest: {error}") from error
 
@@ -312,6 +329,18 @@ def check_binding(folder: Path, workbook: Path | None) -> tuple[str, list[str], 
     return ("VERIFIED" if workbook is not None else "UNVERIFIED"), [], notes
 
 
+def manifest_documents(folder: Path) -> frozenset[str]:
+    """The files the manifest records as document modules; none without a
+    valid manifest, whose absence or fault the binding reports."""
+    path = folder / EXPORT_MANIFEST
+    if not path.is_file():
+        return frozenset()
+    try:
+        return load_export_manifest(path).documents
+    except ValueError:
+        return frozenset()
+
+
 def binding_note(binding: str, folder: Path, workbook: Path | None) -> str:
     if binding == "VERIFIED":
         return f"{EXPORT_MANIFEST} records this workbook and every exported file"
@@ -342,7 +371,7 @@ def main(arguments: list[str] | None = None) -> int:
             raise ValueError(f"workbook not found: {options.workbook}")
         expected = expected_components(options.root, sha, options.mode)
         exported = exported_components(options.export)
-        findings, recased = compare(expected, exported)
+        findings, recased = compare(expected, exported, manifest_documents(options.export))
         binding, binding_findings, binding_notes = check_binding(options.export, options.workbook)
         template = sha256(committed(options.root, sha, TEMPLATE))
         workbook_digest = sha256(options.workbook.read_bytes()) if options.workbook is not None else ""

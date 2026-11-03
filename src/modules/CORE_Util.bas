@@ -15,8 +15,8 @@ Attribute VB_Name = "CORE_Util"
 '   data rows continue to the next tag or used-range end. Blank keys and
 '   internal blank rows raise rather than silently truncating the table.
 '   Keyed lookups on Collections: KeyExists, KeyIndex, AddKey.
-'   Conversions: IsBlank, IsBlankOrNumber, IsBlankOrBool, ToDouble, IsNumber, ToBool,
-'   ToText, BucketLabel, MaxD, MinD, NearlyEqual, TenorKey, ParseNumberList,
+'   Conversions: IsBlank, IsBlankOrNumber, IsBlankOrBool, IsBlankOrBoolCell,
+'   CellBool, ToDouble, IsNumber, ToBool, ToText, BucketLabel, MaxD, MinD, NearlyEqual, TenorKey, ParseNumberList,
 '   InNumberList.
 '   Sorting: BucketLess, SortLabels.
 '   Formatting: WriteTableHeader, FormatDataRows, HeaderCaption, FormatBorders,
@@ -420,15 +420,66 @@ Public Function IsBlankOrNumber(ByVal v As Variant) As Boolean
 End Function
 
 
-' True for a blank cell or a value ToBool recognizes: an optional flag must
-' not read an unknown value as FALSE.
+' True for a blank cell, a Boolean, or the text TRUE or FALSE (any case,
+' surrounding spaces ignored). An optional flag accepts nothing else: aliases
+' such as YES, N or 1 are rejected, not read as a flag (#144).
 Public Function IsBlankOrBool(ByVal v As Variant) As Boolean
     If IsBlank(v) Then
         IsBlankOrBool = True
     ElseIf IsError(v) Then
         IsBlankOrBool = False
+    ElseIf VarType(v) = vbBoolean Then
+        IsBlankOrBool = True
+    ElseIf VarType(v) = vbString Then
+        Select Case UCase$(Trim$(v))
+            Case "TRUE", "FALSE"
+                IsBlankOrBool = True
+            Case Else
+                IsBlankOrBool = False
+        End Select
     Else
-        IsBlankOrBool = (ToBool(v, True) = ToBool(v, False))
+        IsBlankOrBool = False
+    End If
+End Function
+
+
+' The same rule for a cell. A workbook saved by LibreOffice stores a Boolean
+' cell as a number formatted to show TRUE or FALSE, which Excel reads as that
+' number: such a cell is accepted only when it shows TRUE or FALSE. A cell
+' holding a plain 1 or 0 is still rejected (#144).
+Public Function IsBlankOrBoolCell(ByVal cell As Object) As Boolean
+    Dim v As Variant
+    v = cell.Value
+    If IsBlankOrBool(v) Then
+        IsBlankOrBoolCell = True
+    ElseIf IsError(v) Then
+        IsBlankOrBoolCell = False
+    ElseIf IsNumeric(v) And VarType(v) <> vbString Then
+        Select Case UCase$(Trim$(CStr(cell.Text)))
+            Case "TRUE", "FALSE"
+                IsBlankOrBoolCell = True
+            Case Else
+                IsBlankOrBoolCell = False
+        End Select
+    Else
+        IsBlankOrBoolCell = False
+    End If
+End Function
+
+' The flag a cell shows, under the IsBlankOrBoolCell rule: FALSE when blank.
+' A number is read from what the cell shows, so a Boolean-formatted 2 that
+' shows TRUE is TRUE, as the check accepted it (#144).
+Public Function CellBool(ByVal cell As Object) As Boolean
+    Dim v As Variant
+    v = cell.Value
+    If IsBlank(v) Or IsError(v) Then
+        CellBool = False
+    ElseIf VarType(v) = vbBoolean Then
+        CellBool = CBool(v)
+    ElseIf VarType(v) = vbString Then
+        CellBool = (UCase$(Trim$(v)) = "TRUE")
+    Else
+        CellBool = (UCase$(Trim$(CStr(cell.Text))) = "TRUE")
     End If
 End Function
 

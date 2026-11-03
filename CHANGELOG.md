@@ -7,6 +7,33 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- GIRR vega takes inflation and cross-currency basis risk factors along the
+  option maturity only (MAR21.8 FAQ4): `In_Vega` accepts the sub-types
+  `YIELD` (the default), `INFLATION` and `XCCY`, and rejects an underlying
+  maturity on the last two or any other sub-type. Their correlations are the
+  option maturity correlation times the delta correlation of the
+  corresponding risk factors (MAR21.94). The sample results and the 52
+  regression values are unchanged (#209).
+- The methodology records my review of the 59 FAQs of MAR21-MAR23 in the
+  Basel Framework MAR standard. The curvature input contract states the
+  relative commodity shock and the permitted CSR floor at zero, and the input
+  conventions, on the README sheet too, state that every variant of a
+  currency is one FX risk factor. The one gap the review found, GIRR vega
+  for inflation and cross-currency basis, is #209 (#210).
+- The first desktop Excel run is recorded in
+  `docs/evidence/2026-10-31-excel-run-323260b.md`, on `323260b`. Both builds,
+  both compiles, the regression test (52 of 52) and both round trips passed,
+  and the validator reports PASS. The checks by eye, the host and the log
+  digests are in the record, with five screenshots under
+  `docs/assets/screenshots/`. The README badge, the website note and
+  `docs/validation.md` now state this evidence and what it leaves untested
+  (#28).
+- `tools\Record-FRTB-ExcelRun.cmd` records the Excel run in one step. It
+  reads the environment from Excel and the registry into `session.log`,
+  builds, compiles, exports and compares both workbooks, and calls
+  `tools/record_excel_run.py`, which writes `host.json` from the logs only and
+  validates it. The manual procedure stays; only the checks a person must
+  judge are left by hand (#199).
 - Dependabot security updates are on. The settings document, its evidence and
   CI record the change and how a security update PR, which opens against
   main, is retargeted to the active release branch (#191).
@@ -106,6 +133,23 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- `Results`, `Control`, `Test_Expected` and the `P_*` sheets freeze only
+  their header rows, so no frozen line runs through their narrow tables; the
+  `In_*`, `Out_*` and `Log` sheets keep their key columns in view. The
+  Control Description column is wide enough for every description. Found in
+  the first Excel run; no value changes (#203).
+- The first recorded Excel run found three faults in the tools. The
+  recorder now calls the VBA editor through IDispatch, which Windows
+  PowerShell needs for its objects, and records the references before the
+  compile. `Export-FRTB-VBA.ps1` records each component's type in
+  `export-manifest.json`, and `compare_vba_export.py` takes the document
+  modules from it, because the VBE's export of `ThisWorkbook` and the sheets
+  has no `VB_Base` line (#201).
+- `RefReportingCcy` on `In_Curvature` accepts only TRUE, FALSE or blank, as
+  documented. Aliases such as YES, NO, Y, N, 1 and 0 were read as flags; they
+  now reject the row, in the VBA and the reference. A cell that LibreOffice
+  saves as a number formatted TRUE or FALSE is read as the flag it shows. The
+  LibreOffice variant logs four rejected flags (#144).
 - A DRC obligor whose positions name different buckets is logged as an error
   and skipped with all its positions, instead of taking the first position's
   bucket (MAR22.22). When its positions differ in credit quality, the worst

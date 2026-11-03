@@ -1,7 +1,7 @@
 # 🧪 Validation
 
 [![Reconciliation: LibreOffice vs reference](https://img.shields.io/badge/reconciliation-LibreOffice%20vs%20reference-2ea44f)](#automated-checks)
-[![Excel evidence: pending](https://img.shields.io/badge/Excel%20evidence-pending-6E7781)](#not-validated)
+[![Excel evidence: recorded](https://img.shields.io/badge/Excel%20evidence-recorded%20323260b-2ea44f)](evidence/2026-10-31-excel-run-323260b.md)
 [![Parameters: BIS checked](https://img.shields.io/badge/parameters-BIS%20checked-1f3a5f)](methodology.md#bis-check)
 
 This document states what is checked automatically, how, and what is not
@@ -59,24 +59,31 @@ macros and saves the result as `.xlsx`.
 
 ## ⚠️ Not validated
 
-* **Excel compilation and runtime.** No check here runs Excel.
-  LibreOffice's VBA support is not Excel's, and the lint is a heuristic, not
-  a compiler. Build the workbook with `tools\Build-Workbook.ps1 -RunTests`,
-  run **Debug → Compile VBAProject**, and record the result as manual
-  evidence in the format of [Excel evidence](EXCEL_EVIDENCE.md), which
-  `tools/check_excel_evidence.py` validates against the exact commit. No
-  record exists yet (#28).
-* **The build and sync scripts** `tools/Build-Workbook.ps1` and
-  `tools/Sync-FRTB-VBA.ps1`, and their `.cmd` launchers, have not been
-  executed in Excel. `tests/test_sync_script.py` runs the sync script's
-  file selection, name checks, line-ending conversion and module sets
-  offline in PowerShell 7; the Excel import, backup and save are untested.
-* **The Excel round trip** (#30): `tools/Export-FRTB-VBA.ps1` has not run
-  in Excel. `tools/compare_vba_export.py` is tested only on synthetic
-  exports, so no workbook has been compared with its source yet.
-* **Excel-only presentation**: buttons, autofilters, frozen panes, tab
-  colors and conditional styling were checked only as rendered by
-  LibreOffice; `Dev_ExportModules` and the message boxes were not run.
+* **Excel, beyond one recorded run.** No automated check here runs Excel.
+  [One run](evidence/2026-10-31-excel-run-323260b.md) on `323260b` is
+  recorded and validated (#28). On one host (Windows 11, Excel 16.0 64-bit,
+  comma decimal separator) it shows:
+  * the development and production builds of `tools\Build-Workbook.ps1`;
+  * **Debug → Compile VBAProject** with no error in both;
+  * the regression test, 52 of 52;
+  * both round trips through `tools/Export-FRTB-VBA.ps1` and
+    `tools/compare_vba_export.py`;
+  * the sample run, Clear outputs, a failed run and the `RefReportingCcy`
+    cases, checked by eye.
+
+  A change after that commit needs a new run. Other Excel versions, 32-bit
+  Excel and other regional settings are untested.
+* **The sync script** `tools/Sync-FRTB-VBA.ps1` and its `.cmd` launchers
+  have not been executed in Excel (#72). `tests/test_sync_script.py` runs
+  the script's file selection, name checks, line-ending conversion and module
+  sets offline in PowerShell 7; the Excel import, backup and save are
+  untested.
+* **Not yet run in Excel:**
+  * the invalid-row variant with every discretion on;
+  * numeric text typed with each decimal separator;
+  * the `-FromSource` and `-Template` builds;
+  * the build's Trust Center error path;
+  * `Dev_ExportModules`.
 * **Regulatory correctness.** The reference and the VBA share the same
   reading of MAR21-MAR23, so their agreement does not prove that reading is
   right. The [BIS check](methodology.md#bis-check), the hand-calculated
