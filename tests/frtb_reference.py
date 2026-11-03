@@ -400,9 +400,19 @@ def vega_risk_factors(p: Params, rows):
         if not _in(topt, mats):
             continue
         if rc == "GIRR":
-            if not _in(tund, mats):
+            sub = sub or "YIELD"
+            if sub == "YIELD":
+                # one vega surface per currency: option x underlying maturity
+                if not _in(tund, mats):
+                    continue
+                q = ""
+            elif sub in ("INFLATION", "XCCY"):
+                # option maturity only (MAR21.8 FAQ4): an underlying maturity is an input error
+                if not (r[6] is None or (isinstance(r[6], str) and r[6].strip() == "")):
+                    continue
+                tund = 0.0
+            else:
                 continue
-            q, sub = "", ""
         else:
             tund = 0.0
             if rc in ("CSR_NS", "EQ", "COM"):
@@ -511,8 +521,24 @@ def _name_rho(p: Params, rc, bucket, a: RF, b: RF) -> float:
     return 1.0
 
 
+def _girr_vega_rho(p: Params, a: RF, b: RF) -> float:
+    """Delta correlation of the GIRR delta risk factors two vega risk factors
+    correspond to (MAR21.94, MAR21.46-MAR21.49): the underlying maturity for
+    two yield surfaces, otherwise the sub-type and curve correlations."""
+    g = p.girr
+    if a.sub == b.sub == "YIELD":
+        return _mat_rho(p, a.t2, b.t2)
+    if a.sub == b.sub and a.qual == b.qual:
+        return 1.0
+    if "XCCY" in (a.sub, b.sub):
+        return g["RHO_XCCY"]
+    if a.sub == b.sub == "INFLATION":
+        return g["RHO_DIFF_CURVE"]
+    return g["RHO_INFLATION"]
+
+
 def vega_rho(p: Params, rc, bucket, a: RF, b: RF) -> float:
-    und = _mat_rho(p, a.t2, b.t2) if rc == "GIRR" else _name_rho(p, rc, bucket, a, b)
+    und = _girr_vega_rho(p, a, b) if rc == "GIRR" else _name_rho(p, rc, bucket, a, b)
     return min(_mat_rho(p, a.t1, b.t1) * und, 1.0)
 
 

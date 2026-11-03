@@ -7,6 +7,13 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- GIRR vega takes inflation and cross-currency basis risk factors along the
+  option maturity only (MAR21.8 FAQ4): `In_Vega` accepts the sub-types
+  `YIELD` (the default), `INFLATION` and `XCCY`, and rejects an underlying
+  maturity on the last two or any other sub-type. Their correlations are the
+  option maturity correlation times the delta correlation of the
+  corresponding risk factors (MAR21.94). The sample results and the 52
+  regression values are unchanged (#209).
 - The first desktop Excel run is recorded in
   `docs/evidence/2026-10-31-excel-run-323260b.md`, on `323260b`. Both builds,
   both compiles, the regression test (52 of 52) and both round trips passed,

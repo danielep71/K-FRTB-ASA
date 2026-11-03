@@ -452,7 +452,7 @@ Private Sub BuildReadme()
         "Buckets", "GIRR and FX: currency code. CSR_NS 1-18, EQ 1-13, COM 1-11 as in MAR21.51, MAR21.72 and MAR21.82 (see the P_* sheets).", _
         "Qualifier", "GIRR: curve name. CSR_NS and EQ: issuer or index. COM: commodity. FX: the currency.", _
         "Sub-type", "GIRR: YIELD, INFLATION or XCCY. CSR_NS delta: BOND or CDS. EQ delta: SPOT or REPO. COM delta: delivery location.", _
-        "Tenors", "GIRR 0.25-30y, CSR 0.5-10y, COM 0-30y; vega option and GIRR underlying maturities 0.5, 1, 3, 5, 10y.", _
+        "Tenors", "GIRR 0.25-30y, CSR 0.5-10y, COM 0-30y; vega option and GIRR underlying maturities 0.5, 1, 3, 5, 10y. GIRR INFLATION and XCCY vega: option maturity only.", _
         "Amounts", "Sensitivities as defined in MAR21.19-26 (for example GIRR: PV change for 1bp / 0.0001). Vega: vega x implied volatility. Curvature: CVR up and CVR down per risk factor; RefReportingCcy TRUE marks FX options that reference the reporting currency (MAR21.98).", _
         "DRC", "Signed notional and market value (negative for shorts), maturity in years (cash equity: 0.25 or at least 1, MAR22.16), bucket CORP, SOV or LGM, credit quality AAA ... DEFAULTED, seniority EQUITY, NON_SENIOR, SENIOR or COVERED."))
 
@@ -567,7 +567,7 @@ Private Sub BuildInputSheets()
     BuildInputSheet SH_IN_DELTA, "Delta sensitivities in the reporting currency; rows with the same risk factor are netted (MAR21.4(2)).", _
         Array("ID", "RiskClass", "Bucket", "Qualifier", "SubType", "Tenor", "Sensitivity", "Comment"), _
         Array(10, 11, 9, 18, 13, 9, 16, 34), 7
-    BuildInputSheet SH_IN_VEGA, "Vega x implied volatility per option maturity (and GIRR underlying maturity), MAR21.25.", _
+    BuildInputSheet SH_IN_VEGA, "Vega x implied volatility per option maturity (and GIRR YIELD underlying maturity; GIRR INFLATION and XCCY: none), MAR21.25 and MAR21.8 FAQ4.", _
         Array("ID", "RiskClass", "Bucket", "Qualifier", "SubType", "OptionMaturity", "UnderlyingMaturity", "Sensitivity", "Comment"), _
         Array(10, 11, 9, 18, 13, 15, 18, 16, 34), 8
     BuildInputSheet SH_IN_CURV, "Curvature risk CVR up and CVR down per risk factor, net across instruments, positive for a loss and before the FX divisor; shocks per MAR21.98-99 (MAR21.5).", _
