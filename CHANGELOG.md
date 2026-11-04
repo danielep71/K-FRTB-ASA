@@ -12,6 +12,13 @@ Unreleased describe integrated work, not a published version.
   research clause. Governance and the PR template require checks and review
   on the final head SHA, renewed after a content push, and `docs/CI.md`
   states that CodeQL runs as the default setup (#223).
+- The bug, feature and documentation forms require a target end date, and
+  offer an optional workaround or recovery (bug) and alternatives (feature).
+  Issue triage reports an issue in a closed milestone and a missing,
+  impossible or late target date, the body's planning line taking precedence
+  over the form field, and it now also runs on milestone events. Traffic
+  alerts write their schedule as `**Target completion date:**` planning
+  lines, so triage reads their date (#221).
 - GIRR vega takes inflation and cross-currency basis risk factors along the
   option maturity only (MAR21.8 FAQ4): `In_Vega` accepts the sub-types
   `YIELD` (the default), `INFLATION` and `XCCY`, and rejects an underlying
