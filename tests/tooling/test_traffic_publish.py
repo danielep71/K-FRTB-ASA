@@ -2,12 +2,12 @@
 """Offline publication and workflow tests; no GitHub credentials or network."""
 import importlib.util
 import os
-from pathlib import Path
 import re
 import shlex
 import subprocess
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]

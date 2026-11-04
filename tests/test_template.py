@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-import build_template
-import lo_runner
 import re
 import zipfile
 
 import openpyxl
+
+import build_template
+import lo_runner
 from conftest import require_libreoffice
 from test_vba_engine import FIRST_COL, log_rows, reconcile
 
@@ -61,6 +62,7 @@ def test_template_saved_presentation():
 
 def test_presentation_normalization_preserves_content_and_is_idempotent(tmp_path):
     import shutil
+
     import template_presentation
 
     path = tmp_path / "template.xlsx"

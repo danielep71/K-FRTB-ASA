@@ -14,13 +14,13 @@ It never receives the traffic App token (docs/TRAFFIC_HISTORY.md).
 import argparse
 import json
 import os
-from pathlib import Path
 import re
 import subprocess
 import sys
 import time
 import urllib.error
 import urllib.request
+from pathlib import Path
 
 BRANCH = "traffic-history"
 DATA = "data/"

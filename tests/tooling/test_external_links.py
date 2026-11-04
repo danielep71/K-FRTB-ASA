@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: MIT
 """Offline tests of tools/check_external_links.py: no request leaves the machine."""
 
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
 import urllib.error
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 import check_external_links as links

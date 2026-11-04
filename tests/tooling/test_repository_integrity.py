@@ -3,18 +3,17 @@
 
 import copy
 import json
-from pathlib import Path
-import sys
 import subprocess
+import sys
 import tempfile
 import unittest
 import unittest.mock
+from pathlib import Path
 
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 import check_repository as checker
-
 
 CONTROL_FILES = [".github/workflows/integrity.yml", ".github/workflows/pr-milestones.yml", ".github/dependabot.yml",
                  ".github/requirements.txt", "tests/requirements.txt"]

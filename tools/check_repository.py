@@ -3,16 +3,16 @@
 """Offline, tracked-file repository checks; no Excel or regulatory validation."""
 
 import argparse
-from datetime import datetime, timezone
 import html
 import json
 import os
-from pathlib import Path
 import re
-import unicodedata
 import subprocess
 import sys
 import time
+import unicodedata
+from datetime import datetime, timezone
+from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 import yaml

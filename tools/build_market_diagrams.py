@@ -25,8 +25,14 @@ from pathlib import Path
 import cairosvg
 
 DEFAULT_OUTPUT = Path(__file__).resolve().parents[1] / "docs" / "assets" / "market-risk"
-NAVY = "#17365F"; BLUE = "#24558D"; PALE = "#EAF1FA"; EDGE = "#B5CBE8"
-INK = "#31445C"; GREEN = "#218452"; MINT = "#EAF5EF"; LINK = "#7999BF"
+NAVY = "#17365F"
+BLUE = "#24558D"
+PALE = "#EAF1FA"
+EDGE = "#B5CBE8"
+INK = "#31445C"
+GREEN = "#218452"
+MINT = "#EAF5EF"
+LINK = "#7999BF"
 FONT = "Arial, DejaVu Sans, sans-serif"
 SUBSCRIPT = re.compile(r"_\{([^}]*)\}")
 
@@ -50,7 +56,9 @@ def markup(text, size):
 
 class Diagram:
     def __init__(self, name, title, subtitle, h):
-        self.name = name; self.h = h; self.p = []
+        self.name = name
+        self.h = h
+        self.p = []
         self.p.append(
             f'<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="{h}" viewBox="0 0 1600 {h}" '
             f'role="img" aria-labelledby="title desc"><title id="title">{escape(title)}</title>'
@@ -106,8 +114,10 @@ class Diagram:
             yy += 8
 
     def bar(self, y, n, title, note=""):
-        self.rect(32, y, 1536, 42, BLUE, BLUE, 3); self.rect(32, y, 48, 42, NAVY, NAVY, 3)
-        self.text(56, y + 29, str(n), 23, "white", True, "middle"); self.text(96, y + 29, title, 24, "white", True)
+        self.rect(32, y, 1536, 42, BLUE, BLUE, 3)
+        self.rect(32, y, 48, 42, NAVY, NAVY, 3)
+        self.text(56, y + 29, str(n), 23, "white", True, "middle")
+        self.text(96, y + 29, title, 24, "white", True)
         if note:
             self.text(1544, y + 29, note, 19, "#DBE7F7", False, "end")
 
@@ -155,8 +165,10 @@ def wrap(paragraph, width):
     for word in words:
         n = len(plain(word))
         if current and length + 1 + n > width:
-            lines.append(" ".join(current)); current, length = [], 0
-        current.append(word); length += n + (1 if length else 0)
+            lines.append(" ".join(current))
+            current, length = [], 0
+        current.append(word)
+        length += n + (1 if length else 0)
     if current:
         lines.append(" ".join(current))
     return lines
@@ -167,7 +179,8 @@ def wrap_width(paragraph, size, bold, width):
     lines, current = [], []
     for word in paragraph.split(" "):
         if current and text_width(" ".join(current + [word]), size, bold) > width:
-            lines.append(" ".join(current)); current = []
+            lines.append(" ".join(current))
+            current = []
         current.append(word)
     return lines + [" ".join(current)]
 
@@ -179,7 +192,8 @@ def boundary(x, y, cx, cy, half_w, half_h):
     return round(cx + dx * t), round(cy + dy * t)
 
 
-GREY = "#5A6B80"; FAINT = "#C3CEDC"
+GREY = "#5A6B80"
+FAINT = "#C3CEDC"
 
 
 def approaches(d, y, groups, era, earlier, notes):
@@ -188,7 +202,8 @@ def approaches(d, y, groups, era, earlier, notes):
     components); each component is (name, detail); each earlier rule is (x, w, text)."""
     for x, w, title, scope, separator, components in groups:
         d.block(x, y, w, 76, [(title, 22, True, "white"), (scope, 18, False, "#DBE7F7")], NAVY, NAVY)
-        n = len(components); cw = (w - 44 * (n - 1)) / n
+        n = len(components)
+        cw = (w - 44 * (n - 1)) / n
         centers = [round(x + cw / 2 + i * (cw + 44)) for i in range(n)]
         d.line([(round(x + w / 2), y + 76), (round(x + w / 2), y + 96)])
         if n > 1:
@@ -385,7 +400,8 @@ def cva_aggregation(out):
         "At or below EUR 100 billion of non-centrally cleared notional, CVA capital may equal 100% of CCR "
         "capital, with no hedge recognition (MAR50.9). With SA-CVA approval, carved-out netting sets use "
         "BA-CVA (MAR50.8)."], size=21)
-    d.arrow(410, 474, 410, 515); d.arrow(1190, 474, 1190, 515)
+    d.arrow(410, 474, 410, 515)
+    d.arrow(1190, 474, 1190, 515)
     d.bar(520, 2, "AGGREGATE UNDER THE CHOSEN APPROACH", "BA-CVA and SA-CVA are alternative routes")
     d.card(40, 586, 740, 290, "BA-CVA", [
         "Build the stand-alone counterparty risk amounts from the relevant exposure and maturity inputs.",
@@ -396,7 +412,8 @@ def cva_aggregation(out):
         "Map CVA and hedge sensitivities to risk classes, risk factors and buckets.",
         "Apply prescribed weights, hedge offsets and within-/across-bucket aggregation.",
         "Aggregate delta and vega requirements. This route has no curvature or default-risk component."])
-    d.arrow(410, 876, 410, 915); d.arrow(1190, 876, 1190, 915)
+    d.arrow(410, 876, 410, 915)
+    d.arrow(1190, 876, 1190, 915)
     d.card(40, 925, 740, 120, "BA-CVA CAPITAL REQUIREMENT", [
         "Apply the selected version and relevant regulatory adjustments."], dark=True, size=21)
     d.card(820, 925, 740, 120, "SA-CVA CAPITAL REQUIREMENT", [

@@ -8,9 +8,9 @@ host does not reliably expose through Excel's compatibility APIs.
 from __future__ import annotations
 
 import re
-from copy import deepcopy
 import tempfile
 import zipfile
+from copy import deepcopy
 from pathlib import Path
 from xml.etree import ElementTree as ET
 

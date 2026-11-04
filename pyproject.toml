@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: MIT
+# Configuration of the repository's quality gates (#219); no packaging.
+# tools/check_repository.py runs Ruff, mypy and actionlint with it, and the
+# versions are pinned with hashes in .github/requirements.txt (docs/CI.md).
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+src = ["tools", "tests", "tests/tooling"]
+extend-exclude = ["tests/modules", "src"]
+
+[tool.ruff.lint]
+# pycodestyle statements and syntax, Pyflakes, import order and McCabe complexity
+select = ["E4", "E7", "E9", "F", "I001", "C90"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_configs = true
+warn_unreachable = true
+mypy_path = ["tools", "tests"]
+explicit_package_bases = true
+files = ["tools"]
+
+# Tests: strict, with only the annotation requirement relaxed. Their bodies
+# are still type-checked (check_untyped_defs).
+[[tool.mypy.overrides]]
+module = ["conftest", "frtb_reference", "regulatory_defaults", "test_*", "tooling.*"]
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_untyped_calls = false
+check_untyped_defs = true
+
+# No type information exists for these: the LibreOffice UNO bridge comes from
+# the OS (python3-uno), and CairoSVG is not a pinned dependency
+# (tools/build_market_diagrams.py renders the diagrams only on request).
+[[tool.mypy.overrides]]
+module = ["uno", "unohelper", "com.*", "cairosvg"]
+ignore_missing_imports = true
