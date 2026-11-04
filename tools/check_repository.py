@@ -5,6 +5,7 @@
 import json
 from pathlib import Path
 import re
+import unicodedata
 import subprocess
 import sys
 from urllib.parse import unquote, urlsplit
@@ -57,9 +58,8 @@ def binary_paths(root, paths):
     return {result[index] for index in range(0, len(result), 3) if result[index + 2] == "unset"}
 
 
-def markdown_targets(text):
-    # Common inline links/images and reference definitions outside fenced code.
-    lines = []
+def _outside_fences(text):
+    """The lines of a Markdown text outside fenced code blocks."""
     fence = None
     for line in text.splitlines():
         match = re.match(r"^\s*(`{3,}|~{3,})", line)
@@ -68,8 +68,46 @@ def markdown_targets(text):
             fence = None if fence == marker else marker if fence is None else fence
             continue
         if fence is None:
-            lines.append(re.sub(r"`[^`]*`", "", line))
-    body = "\n".join(lines)
+            yield line
+
+
+def heading_slug(heading):
+    """GitHub's anchor for a heading: the rendered text lower-cased, every
+    character but letters, marks, digits, connector punctuation, spaces and
+    hyphens removed, and each space turned into a hyphen."""
+    text = re.sub(r"!?\[([^\]]*)\]\([^)]*\)", r"\1", heading)  # links and images: their text
+    text = re.sub(r"<[^>]+>", "", text)  # inline HTML tags
+    kept = []
+    for char in text.lower():
+        category = unicodedata.category(char)
+        if char in " -" or category[0] in "LMN" or category == "Pc":
+            kept.append(char)
+    return "".join(kept).replace(" ", "-")
+
+
+def markdown_anchors(text):
+    """The anchors a Markdown file defines, and its duplicated explicit ids.
+
+    Headings give GitHub's slugs, with -1, -2 ... for repeats; an HTML id or
+    name attribute gives an explicit anchor."""
+    anchors, counts, explicit, duplicates = set(), {}, set(), set()
+    for line in _outside_fences(text):
+        heading = re.match(r"^ {0,3}#{1,6}[ \t]+(.*?)(?:[ \t]+#+)?[ \t]*$", line)
+        if heading:
+            slug = heading_slug(heading[1])
+            seen = counts.get(slug, 0)
+            counts[slug] = seen + 1
+            anchors.add(slug if seen == 0 else f"{slug}-{seen}")
+        for found in re.findall(r"<[A-Za-z][^>]*?\s(?:id|name)\s*=\s*[\"']([^\"']+)[\"']", line):
+            if found in explicit:
+                duplicates.add(found)
+            explicit.add(found)
+    return anchors | explicit, duplicates
+
+
+def markdown_targets(text):
+    # Common inline links/images and reference definitions outside fenced code.
+    body = "\n".join(re.sub(r"`[^`]*`", "", line) for line in _outside_fences(text))
     targets = re.findall(r"\]\(\s*(<[^>]+>|[^\s)]+)(?:\s+[^)]*)?\)", body)
     targets += re.findall(r"^\s*\[[^\]]+\]:\s*(<[^>]+>|\S+)", body, re.MULTILINE)
     return [target.strip("<>") for target in targets]
@@ -78,6 +116,13 @@ def markdown_targets(text):
 def validate_files(root, paths, binary=frozenset()):
     errors = []
     tracked = set(paths)
+    anchor_cache = {}
+
+    def anchors_of(relative):
+        if relative not in anchor_cache:
+            anchor_cache[relative] = markdown_anchors((root / relative).read_text(encoding="utf-8"))[0]
+        return anchor_cache[relative]
+
     for name in paths:
         path = root / name
         try:
@@ -117,9 +162,18 @@ def validate_files(root, paths, binary=frozenset()):
                 if name.startswith(".github/workflows/"):
                     validate_workflow(document, Path(name).name)
             elif path.suffix == ".md":
+                anchors, duplicates = markdown_anchors(text)
+                anchor_cache[name] = anchors
+                if duplicates:
+                    raise ValueError(f"duplicate explicit anchor: {', '.join(sorted(duplicates))}")
                 for target in markdown_targets(text):
                     parsed = urlsplit(target)
-                    if parsed.scheme or parsed.netloc or not parsed.path:
+                    if parsed.scheme or parsed.netloc:
+                        continue
+                    fragment = unquote(parsed.fragment)
+                    if not parsed.path:
+                        if fragment and fragment not in anchors and fragment.lower() not in anchors:
+                            raise ValueError(f"link fragment not found in this file: {target}")
                         continue
                     destination = (root / parsed.path.lstrip("/")) if parsed.path.startswith("/") else path.parent / unquote(parsed.path)
                     destination = destination.resolve()
@@ -128,6 +182,10 @@ def validate_files(root, paths, binary=frozenset()):
                     relative = destination.relative_to(root.resolve()).as_posix()
                     if relative not in tracked and not any(item.startswith(relative.rstrip("/") + "/") for item in tracked):
                         raise ValueError(f"link target is not tracked: {target}")
+                    if fragment and relative.endswith(".md") and relative in tracked:
+                        known = anchors_of(relative)
+                        if fragment not in known and fragment.lower() not in known:
+                            raise ValueError(f"link fragment not found in {relative}: {target}")
         except (ValueError, TypeError, yaml.YAMLError) as error:
             errors.append(f"{name}: {error}")
     return errors

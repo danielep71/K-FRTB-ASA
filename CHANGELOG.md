@@ -7,6 +7,11 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- `tools/check_repository.py` checks the `#fragment` of every local Markdown
+  link against the anchors of its target, GitHub heading slugs and HTML ids,
+  and rejects duplicated explicit anchors. A new weekly and manual workflow,
+  `link-check.yml`, requests the external links and separates verified,
+  unverifiable and broken ones, outside the required checks (#218).
 - GIRR vega takes inflation and cross-currency basis risk factors along the
   option maturity only (MAR21.8 FAQ4): `In_Vega` accepts the sub-types
   `YIELD` (the default), `INFLATION` and `XCCY`, and rejects an underlying
