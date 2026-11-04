@@ -133,6 +133,10 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- The label sync and drift summaries put names, colors, paths and API
+  errors in code spans whose backtick fence outlasts any backtick in the
+  value, and turn CR, LF and CRLF into spaces, so an API value can no longer
+  end its span or break a table row (#217).
 - `Results`, `Control`, `Test_Expected` and the `P_*` sheets freeze only
   their header rows, so no frozen line runs through their narrow tables; the
   `In_*`, `Out_*` and `Log` sheets keep their key columns in view. The
