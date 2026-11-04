@@ -7,11 +7,12 @@ name: Issue triage
 run-name: "Issue triage — ${{ github.event_name }} by ${{ github.actor }}"
 
 # Audits every open issue against the rules issue forms cannot enforce:
-# assignee, exactly one priority, P1 only on bugs, a milestone, catalogue
-# labels, and `blocked` exactly while a named prerequisite is unresolved.
+# assignee, exactly one priority, P1 only on bugs, an open milestone, a real
+# target date no later than its due date, catalogue labels, and `blocked`
+# exactly while a named prerequisite is unresolved.
 # Read-only: it never changes an issue. A failed run is the triage signal;
 # I resolve each finding by hand (docs/LABELS.md, Metadata rules).
-# Issue events run the workflow from the default branch only.
+# Issue and milestone events run the workflow from the default branch only.
 
 on:
   issues:
@@ -26,6 +27,14 @@ on:
       - unassigned
       - milestoned
       - demilestoned
+  # A milestone's state or due date changes the planning rules of its issues.
+  milestone:
+    types:
+      - created
+      - opened
+      - edited
+      - closed
+      - deleted
   workflow_dispatch:
 
 permissions:

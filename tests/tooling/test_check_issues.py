@@ -25,11 +25,15 @@ ROOT = Path(__file__).resolve().parents[2]
 REPOSITORY = "example-org/sample-project"
 BLOCKED_LABEL = check_issues.BLOCKED
 READY = "## Dependencies and blocking status\n\n**Ready to start**: none.\n"
+PLANNED = "- **Target completion date:** 2026-11-13\n\n"
 
 
 def issue(number: int, *labels: str, state: str = "open", body: str = READY,
-          assignees: tuple[str, ...] = ("triage-person",), milestone: str | None = "v0.1.0") -> Issue:
-    return Issue(number, state, labels or ("P3",), assignees, milestone, body)
+          assignees: tuple[str, ...] = ("triage-person",), milestone: str | None = "v0.1.0",
+          planned: bool = True, milestone_state: str | None = "open",
+          milestone_due: str | None = "2026-11-22") -> Issue:
+    return Issue(number, state, labels or ("P3",), assignees, milestone,
+                 (PLANNED if planned else "") + body, milestone_state, milestone_due)
 
 
 def blocked_by(*numbers: int, heading: str = "## Dependencies and blocking status") -> str:
@@ -65,6 +69,44 @@ class MetadataTests(unittest.TestCase):
         findings = check_issues.audit([issue(1, "P3", "ready")], {1: "open"}, REPOSITORY,
                                       catalogue={"P3"}, assignee="triage-person")
         self.assertEqual([(f.number, f.rule) for f in findings], [(1, "catalogue")])
+
+
+class PlanningTests(unittest.TestCase):
+    def test_the_milestone_must_be_open(self) -> None:
+        self.assertEqual(rules([issue(1, milestone_state="closed")]), [(1, "milestone")])
+
+    def test_target_date_is_required_and_real(self) -> None:
+        self.assertEqual(rules([issue(1, planned=False)]), [(1, "target-date")])
+        for value in ("2026-02-30", "2026-13-01", "20261113", "soon", "2026-11-1"):
+            with self.subTest(value=value):
+                body = f"- **Target completion date:** {value}\n\n" + READY
+                self.assertEqual(rules([issue(1, planned=False, body=body)]), [(1, "target-date")])
+
+    def test_target_date_must_not_pass_the_due_date(self) -> None:
+        self.assertEqual(rules([issue(1, milestone_due="2026-11-12")]), [(1, "target-date")])
+        self.assertEqual(rules([issue(1, milestone_due="2026-11-13")]), [])
+        self.assertEqual(rules([issue(1, milestone_due=None)]), [])
+
+    def test_form_field_and_planning_line_precedence(self) -> None:
+        form = "### 📅 Target end date\n\n2026-11-20\n\n" + READY
+        self.assertEqual(rules([issue(1, planned=False, body=form)]), [])
+        self.assertEqual(rules([issue(1, planned=False, body="### Target end date\n\n_No response_\n\n" + READY)]),
+                         [(1, "target-date")])
+        self.assertEqual(rules([issue(1, planned=False, body="### Target end date\n\n" + READY)]),
+                         [(1, "target-date")])
+        # the planning line wins over the form field
+        both = "- **Target completion date:** 2026-11-30\n\n" + form
+        self.assertEqual(rules([issue(1, planned=False, body=both)]), [(1, "target-date")])
+        self.assertEqual(check_issues.target_date(both), "2026-11-30")
+
+    def test_milestone_fields_come_from_the_api(self) -> None:
+        item = {"number": 1, "state": "open", "labels": [], "assignees": [], "body": "",
+                "milestone": {"title": "v0.2.0", "state": "closed", "due_on": "2026-11-22T08:00:00Z"}}
+        parsed = check_issues.issue_from_api(item)
+        self.assertEqual((parsed.milestone_state, parsed.milestone_due), ("closed", "2026-11-22"))
+        item["milestone"] = {"title": "v0.3.0", "state": "open", "due_on": None}
+        parsed = check_issues.issue_from_api(item)
+        self.assertEqual((parsed.milestone_state, parsed.milestone_due), ("open", None))
 
 
 class DependencyTests(unittest.TestCase):
@@ -116,6 +158,20 @@ class DependencyTests(unittest.TestCase):
 class ConfigTests(unittest.TestCase):
     def test_repository_configuration_passes(self) -> None:
         self.assertEqual(check_issues.config_findings(ROOT), [])
+
+    def test_forms_must_require_a_target_end_date(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for part in (".github", "docs"):
+                shutil.copytree(ROOT / part, root / part)
+            form = root / ".github/ISSUE_TEMPLATE/02-feature.yml"
+            text = form.read_text(encoding="utf-8")
+            start = text.index("    id: target_end_date")
+            optional = text[:start] + text[start:].replace("required: true", "required: false", 1)
+            form.write_text(optional, encoding="utf-8")
+            self.assertIn("02-feature.yml must require target_end_date", check_issues.config_findings(root))
+            form.write_text(text.replace("    id: target_end_date", "    id: planned_date"), encoding="utf-8")
+            self.assertIn("02-feature.yml has no target_end_date field", check_issues.config_findings(root))
 
     def test_unsupported_overlays_are_rejected_instead_of_ignored(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -227,7 +283,7 @@ class MainTests(unittest.TestCase):
         items = [
             {"number": 1, "state": "open", "labels": [{"name": "P3"}],
              "assignees": [{"login": "triage-person"}], "milestone": None,
-             "body": READY + "Delivered in #2, a pull request.\n"},
+             "body": PLANNED + READY + "Delivered in #2, a pull request.\n"},
             {"number": 2, "state": "open", "labels": [], "assignees": [],
              "milestone": None, "body": READY, "pull_request": {}},
         ]

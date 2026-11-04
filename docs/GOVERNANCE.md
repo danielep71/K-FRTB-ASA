@@ -56,7 +56,11 @@ Current prototype and maintenance task PRs target **`release/v0.2.0`**,
 including Dependabot version updates. Milestone 3 task PRs target
 **`release/v0.3.0`**. Any later milestone needs its own explicitly approved
 integration branch. Task PRs are squash-merged after applicable
-checks pass and review findings are resolved. Do not commit development work
+checks pass and review findings are resolved, all on the PR's final head:
+record that head's SHA, its CI result and each review's kind, result and
+link, and merge with the expected head SHA. A push that changes content after
+a review needs a new review of the new head; a review of an earlier commit
+does not carry over (#223). Do not commit development work
 directly to main or the release branch. Check the base explicitly when opening
 a PR: GitHub's default branch remains main.
 

@@ -7,6 +7,18 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- SECURITY lists what each entry point reads, writes and deletes, the host
+  settings the scripts need and the data rules, and adds a good-faith
+  research clause. Governance and the PR template require checks and review
+  on the final head SHA, renewed after a content push, and `docs/CI.md`
+  states that CodeQL runs as the default setup (#223).
+- The bug, feature and documentation forms require a target end date, and
+  offer an optional workaround or recovery (bug) and alternatives (feature).
+  Issue triage reports an issue in a closed milestone and a missing,
+  impossible or late target date, the body's planning line taking precedence
+  over the form field, and it now also runs on milestone events. Traffic
+  alerts write their schedule as `**Target completion date:**` planning
+  lines, so triage reads their date (#221).
 - CI is reproducible: the integrity gate runs on exact Python and Node.js
   versions, both requirements files pin every package by hash and install
   from wheels only, each integrity run uploads a report bound to its commit,
