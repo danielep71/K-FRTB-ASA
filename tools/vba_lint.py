@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import re
 import sys
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -62,18 +63,18 @@ LABEL_RE = re.compile(r"^\s*([A-Za-z_]\w*):\s*$")
 class Proc:
     name: str
     public: bool
-    params: set = field(default_factory=set)
-    body: list = field(default_factory=list)  # (lineno, text)
+    params: set[str] = field(default_factory=set)
+    body: list[tuple[int, str]] = field(default_factory=list)  # (lineno, text)
 
 
 @dataclass
 class Module:
     name: str
     path: Path
-    procs: dict = field(default_factory=dict)
-    module_names: set = field(default_factory=set)
-    public_names: set = field(default_factory=set)
-    module_lines: list = field(default_factory=list)
+    procs: dict[str, Proc] = field(default_factory=dict)
+    module_names: set[str] = field(default_factory=set)
+    public_names: set[str] = field(default_factory=set)
+    module_lines: list[tuple[int, str]] = field(default_factory=list)
 
 
 def strip_code(line: str) -> str:
@@ -100,7 +101,7 @@ def strip_code(line: str) -> str:
     return "".join(out)
 
 
-def logical_lines(text: str):
+def logical_lines(text: str) -> Iterator[tuple[int, str]]:
     """Yield (first line number, code) with continuations joined."""
     buf, start = "", None
     for n, raw in enumerate(text.splitlines(), start=1):
@@ -136,7 +137,9 @@ def declared_names(decl_body: str) -> list[str]:
     return out
 
 
-def parse(path: Path) -> tuple[Module, list[str]]:
+def parse(  # noqa: C901 -- one pass over the lines; a branch per statement kind
+    path: Path,
+) -> tuple[Module, list[str]]:
     errors = []
     raw = path.read_bytes()
     if any(b > 127 for b in raw):
@@ -197,7 +200,7 @@ def parse(path: Path) -> tuple[Module, list[str]]:
     return mod, errors
 
 
-def check_proc(mod: Module, proc: Proc, all_public: dict, private_procs: dict) -> list[str]:
+def check_proc(mod: Module, proc: Proc, all_public: dict[str, str], private_procs: dict[str, str]) -> list[str]:
     errors = []
     locals_ = set(proc.params)
     labels = set()

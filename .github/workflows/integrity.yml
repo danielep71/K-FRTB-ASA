@@ -39,18 +39,33 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "24.22.2"
-      - name: Install the hashed configuration parser
+      # The parser, the quality tools, and the test packages mypy type-checks against.
+      - name: Install the hashed parser, quality tools and test packages
         run: |
           python --version
           node --version
           git --version
           python -m venv .venv-ci
-          .venv-ci/bin/python -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r .github/requirements.txt
+          .venv-ci/bin/python -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r .github/requirements.txt -r .github/requirements-quality.txt -r tests/requirements.txt
+      # actionlint is a Go binary: a pinned release, verified by SHA-256 before use.
+      - name: Install actionlint 1.7.12
+        env:
+          ACTIONLINT_VERSION: 1.7.12
+          ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+        run: |
+          archive="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          curl --fail --silent --show-error --location --retry 3 --output "$RUNNER_TEMP/$archive" \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/$archive"
+          echo "$ACTIONLINT_SHA256  $RUNNER_TEMP/$archive" | sha256sum --check --strict
+          mkdir -p "$RUNNER_TEMP/actionlint"
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP/actionlint" actionlint
+          echo "ACTIONLINT=$RUNNER_TEMP/actionlint/actionlint" >> "$GITHUB_ENV"
       # On a PR, GITHUB_SHA is the merge commit GitHub tests; the report also
       # names the PR head, and the report and artifact are named after it.
-      - name: Validate repository and run offline maintenance fixtures
+      - name: Validate repository, run the quality gates and offline maintenance fixtures
         env:
           REPORT_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          REQUIRE_QUALITY_TOOLS: "1"
         run: .venv-ci/bin/python tools/check_repository.py --report "integrity-report/integrity-${REPORT_HEAD_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json"
       # Uploaded whatever the result; a missing report fails the job.
       - name: Upload the integrity report

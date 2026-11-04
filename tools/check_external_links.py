@@ -22,16 +22,16 @@ weekly and manual workflow link-check.yml runs it; it is not a required check.
 from __future__ import annotations
 
 import argparse
-from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
 import os
-from pathlib import Path
 import subprocess
 import sys
 import time
-from typing import Callable
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Callable
 from urllib.parse import urlsplit, urlunsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))

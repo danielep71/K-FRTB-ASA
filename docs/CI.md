@@ -9,9 +9,13 @@ Install the hashed configuration parser in a local environment:
 
 ```sh
 python3 -m venv .venv-ci
-.venv-ci/bin/python -m pip install -r .github/requirements.txt
+.venv-ci/bin/python -m pip install -r .github/requirements.txt -r .github/requirements-quality.txt -r tests/requirements.txt
 .venv-ci/bin/python tools/check_repository.py
 ```
+
+The quality gates need the second and third files and
+[actionlint](#quality-gates-219). Without a tool, a local run skips its gate
+and prints `SKIP`; set `REQUIRE_QUALITY_TOOLS=1` to fail instead, as CI does.
 
 On Windows use `.venv-ci\Scripts\python` instead of `.venv-ci/bin/python`.
 Run from the repository root. Stage new source and documentation before running
@@ -131,6 +135,41 @@ timeout is 10 minutes.
   as well, so every package comes from its hashed wheel.
 - **External link check:** it installs the parser the same way, on the
   runner's Python; it is not a required check.
+
+### Quality gates (#219)
+
+The required check runs these before the label commands and the tooling
+tests, with the configuration of [`pyproject.toml`](../pyproject.toml):
+
+| Gate | Scope | Rules |
+| --- | --- | --- |
+| Ruff 0.17.3 | `tools/`, `tests/`, `.github/` | `E4`, `E7`, `E9`, `F`, `I001` (import order) and `C90` with a maximum complexity of 15 |
+| mypy 2.4.1 | `tools/` | `strict`, `warn_unused_configs` and `warn_unreachable` |
+| mypy 2.4.1 | `tests/` | the same, with only the annotation requirement relaxed: function bodies are still type-checked |
+| actionlint 1.7.12 | every workflow | its own syntax, expression and type checks |
+
+- **Exceptions:** a function above the complexity limit carries a
+  `# noqa: C901` with its reason. Six do: the independent FRTB reference's
+  `delta_risk_factors` and `sbm_component`, which follow the MAR21 steps in
+  order, the engine reconciliation, the evidence validator, the LibreOffice
+  runner and the VBA lint parser. No stubs exist for the LibreOffice UNO
+  bridge or CairoSVG, so mypy does not follow those imports.
+- **Versions:** Ruff, mypy and the PyYAML and openpyxl stubs are pinned with
+  hashes in `.github/requirements-quality.txt`, compiled from
+  `.github/requirements-quality.in`. The job also installs
+  `tests/requirements.txt`, so mypy checks the tests against NumPy, openpyxl
+  and pytest. It downloads the actionlint release archive and checks its
+  SHA-256 before use.
+- **actionlint integrations:** actionlint runs without ShellCheck and
+  pyflakes. Those tools would come unpinned from the runner image, so the
+  shell and Python inside `run:` steps are not linted.
+- **Missing tools:** the job sets `REQUIRE_QUALITY_TOOLS=1`, so a missing
+  tool fails the check. `tests/tooling/test_quality_gates.py` proves that each
+  gate fails: an unused import, a complexity breach, a type error, an
+  unreachable branch and an invalid workflow expression. It also shows that a
+  missing tool fails only when tools are required. The gate refuses an
+  integrity workflow that drops `REQUIRE_QUALITY_TOOLS` or the actionlint
+  checksum.
 
 The check name and app identity are required by the main and release
 rulesets, and main must be up to date before merging; issue #2 records the

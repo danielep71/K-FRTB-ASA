@@ -7,6 +7,11 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The required integrity check runs Ruff (pyflakes, import order and a
+  complexity limit of 15), mypy in strict mode with `warn_unreachable`, and
+  actionlint on every workflow. Their versions are pinned with hashes or a
+  verified checksum, and in CI a missing tool fails the check. The tooling
+  and the tests are annotated to pass them (#219).
 - SECURITY lists what each entry point reads, writes and deletes, the host
   settings the scripts need and the data rules, and adds a good-faith
   research clause. Governance and the PR template require checks and review

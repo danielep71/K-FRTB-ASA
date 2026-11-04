@@ -1,0 +1,6 @@
+# Quality gates of the repository tooling (#219): Ruff, mypy and the stubs it needs.
+# Compile with: pip-compile --generate-hashes --allow-unsafe .github/requirements-quality.in
+mypy==2.4.1
+ruff==0.17.3
+types-PyYAML==6.0.12.20261103
+types-openpyxl==3.1.5.20261017

@@ -11,9 +11,9 @@ import contextlib
 import io
 import json
 import shutil
+import sys
 import tempfile
 import unittest
-import sys
 import unittest.mock
 from pathlib import Path
 

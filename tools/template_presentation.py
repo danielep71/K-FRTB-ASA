@@ -8,9 +8,9 @@ host does not reliably expose through Excel's compatibility APIs.
 from __future__ import annotations
 
 import re
-from copy import deepcopy
 import tempfile
 import zipfile
+from copy import deepcopy
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
@@ -24,12 +24,18 @@ def _tag(name: str) -> str:
     return f"{{{NS}}}{name}"
 
 
-def _child(parent, name, **attributes):
+def _child(parent: ET.Element, name: str, **attributes: object) -> ET.Element:
     element = parent.find(_tag(name))
     if element is None:
         element = ET.SubElement(parent, _tag(name))
     element.attrib.update({key: str(value) for key, value in attributes.items()})
     return element
+
+
+def _group(match: re.Match[str] | None) -> str:
+    """Return the matched text; cell addresses always contain letters and digits."""
+    assert match is not None
+    return match.group()
 
 
 def _palette() -> dict[str, str]:
@@ -42,7 +48,7 @@ def _palette() -> dict[str, str]:
     return colors
 
 
-def _guide_borders(root, styles):
+def _guide_borders(root: ET.Element, styles: ET.Element) -> None:
     """Restore WriteGuideRows' dashed interiors and solid block outlines.
 
     LibreOffice applies the block's outer edge style to its interior too.
@@ -51,12 +57,13 @@ def _guide_borders(root, styles):
     """
     borders = styles.find(_tag("borders"))
     formats = styles.find(_tag("cellXfs"))
+    assert borders is not None and formats is not None  # required parts of styles.xml
     cells = {c.attrib["r"]: c for c in root.findall(f"{_tag('sheetData')}/{_tag('row')}/{_tag('c')}")}
-    def populated(address):
+    def populated(address: str) -> bool:
         cell = cells.get(address)
         return cell is not None and any(cell.find(_tag(t)) is not None for t in ("v", "is"))
     rows = {int(address[1:]) for address in cells if address.startswith("C") and address[1:].isdigit() and int(address[1:]) > 3 and populated(address) and populated("D" + address[1:])}
-    def intern(collection, element):
+    def intern(collection: ET.Element, element: ET.Element) -> int:
         serialized = ET.tostring(element)
         for index, existing in enumerate(collection):
             if ET.tostring(existing) == serialized:
@@ -88,7 +95,9 @@ def normalize(path: Path) -> None:
     for defined in list(names):
         if defined.get("name") in ("_xlnm.Print_Area", "_xlnm.Print_Titles"):
             names.remove(defined)
-    for index, sheet in enumerate(book.find(_tag("sheets"))):
+    sheets = book.find(_tag("sheets"))
+    assert sheets is not None  # required part of workbook.xml
+    for index, sheet in enumerate(sheets):
         name = sheet.attrib["name"]
         target = relations[sheet.attrib[f"{{{REL}}}id"]]
         target = "xl/" + target.lstrip("/").removeprefix("xl/")
@@ -133,13 +142,13 @@ def normalize(path: Path) -> None:
         # Bound printing to populated or intentionally styled cells, excluding
         # default column styles that may extend to the worksheet's last column.
         coordinates = [c.attrib["r"] for c in root.findall(f"{_tag('sheetData')}/{_tag('row')}/{_tag('c')}")]
-        def column_number(address):
+        def column_number(address: str) -> int:
             value = 0
-            for letter in re.match(r"[A-Z]+", address).group():
+            for letter in _group(re.match(r"[A-Z]+", address)):
                 value = value * 26 + ord(letter) - 64
             return value
-        last_col = re.match(r"[A-Z]+", max(coordinates, key=column_number)).group()
-        last_row = max(int(re.search(r"\d+", address).group()) for address in coordinates)
+        last_col = _group(re.match(r"[A-Z]+", max(coordinates, key=column_number)))
+        last_row = max(int(_group(re.search(r"\d+", address))) for address in coordinates)
         quoted = "'" + name.replace("'", "''") + "'"
         ET.SubElement(names, _tag("definedName"), name="_xlnm.Print_Titles", localSheetId=str(index)).text = f"{quoted}!$1:${frozen_rows}"
         # Outputs grow at run time, so do not freeze their print extent here.
@@ -148,7 +157,7 @@ def normalize(path: Path) -> None:
         parts[target] = ET.tostring(root, encoding="utf-8", xml_declaration=True)
     # definedNames precedes calcPr/external-link metadata in workbook order.
     book.remove(names)
-    sheets_index = list(book).index(book.find(_tag("sheets")))
+    sheets_index = list(book).index(sheets)
     book.insert(sheets_index + 1, names)
     parts["xl/workbook.xml"] = ET.tostring(book, encoding="utf-8", xml_declaration=True)
     parts["xl/styles.xml"] = ET.tostring(styles, encoding="utf-8", xml_declaration=True)

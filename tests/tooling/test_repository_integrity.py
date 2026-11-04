@@ -3,21 +3,22 @@
 
 import copy
 import json
-from pathlib import Path
-import sys
+import os
 import subprocess
+import sys
 import tempfile
 import unittest
 import unittest.mock
+from pathlib import Path
+from typing import Any
 
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 import check_repository as checker
 
-
 CONTROL_FILES = [".github/workflows/integrity.yml", ".github/workflows/pr-milestones.yml", ".github/dependabot.yml",
-                 ".github/requirements.txt", "tests/requirements.txt"]
+                 ".github/requirements.txt", ".github/requirements-quality.txt", "tests/requirements.txt"]
 
 
 class RepositoryIntegrityTests(unittest.TestCase):
@@ -224,6 +225,10 @@ class RepositoryIntegrityTests(unittest.TestCase):
             broken(lambda w, s: [step.update({"run": step["run"].replace("--require-hashes ", "")})
                                  for step in s if "pip install" in step.get("run", "")], "by hash")
             broken(lambda w, s: uses(s, "actions/upload-artifact").pop("if"), "always upload")
+            broken(lambda w, s: [step["env"].pop("REQUIRE_QUALITY_TOOLS") for step in s
+                                 if "tools/check_repository.py" in step.get("run", "")], "REQUIRE_QUALITY_TOOLS")
+            broken(lambda w, s: [step.update({"run": step["run"].replace("sha256sum --check", "true")}) for step in s
+                                 if "actionlint" in step.get("run", "")], "SHA-256 of the actionlint")
             broken(lambda w, s: uses(s, "actions/upload-artifact")["with"].update({"if-no-files-found": "warn"}),
                    "always upload")
             integrity.write_text(original)
@@ -251,21 +256,22 @@ class RepositoryIntegrityTests(unittest.TestCase):
     def test_report_commit_comes_from_the_checked_repository(self):
         source = Path(__file__).resolve().parents[2]
         expected = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source, text=True).strip()
-        environment = {key: value for key, value in checker.os.environ.items() if key != "GITHUB_SHA"}
-        with tempfile.TemporaryDirectory() as directory, unittest.mock.patch.dict(checker.os.environ, environment, clear=True):
+        environment = {key: value for key, value in os.environ.items() if key != "GITHUB_SHA"}
+        with tempfile.TemporaryDirectory() as directory, unittest.mock.patch.dict(os.environ, environment, clear=True):
             # called from outside any repository, it still names the checked one
             previous = Path.cwd()
             try:
-                checker.os.chdir(directory)
+                os.chdir(directory)
                 self.assertEqual(checker.checked_commit(source), expected)
                 self.assertEqual(checker.checked_commit(Path(directory)), "unknown")
             finally:
-                checker.os.chdir(previous)
+                os.chdir(previous)
 
     def test_report_is_bound_to_commit_run_and_attempt(self):
-        checks = [{"name": "one", "status": "PASS", "seconds": 0.1}, {"name": "two", "status": "FAIL", "detail": "exit code 1"}]
+        checks: list[dict[str, Any]] = [{"name": "one", "status": "PASS", "seconds": 0.1},
+                                        {"name": "two", "status": "FAIL", "detail": "exit code 1"}]
         environment = {"GITHUB_SHA": "a" * 40, "GITHUB_RUN_ID": "7", "GITHUB_RUN_ATTEMPT": "2", "REPORT_HEAD_SHA": "b" * 40}
-        with tempfile.TemporaryDirectory() as directory, unittest.mock.patch.dict(checker.os.environ, environment):
+        with tempfile.TemporaryDirectory() as directory, unittest.mock.patch.dict(os.environ, environment):
             path = Path(directory) / "reports" / "integrity.json"
             checker.write_report(path, checks, 1, {"python": "3.13.18"})
             report = json.loads(path.read_text(encoding="utf-8"))
@@ -285,7 +291,7 @@ class RepositoryIntegrityTests(unittest.TestCase):
             workflow_path.write_text((source / ".github/workflows/integrity.yml").read_text())
             milestone_path = root / ".github/workflows/pr-milestones.yml"
             milestone_path.write_text((source / ".github/workflows/pr-milestones.yml").read_text())
-            for name in (".github/requirements.txt", "tests/requirements.txt"):
+            for name in (".github/requirements.txt", ".github/requirements-quality.txt", "tests/requirements.txt"):
                 (root / name).parent.mkdir(parents=True, exist_ok=True)
                 (root / name).write_text((source / name).read_text())
             dependabot_path = root / ".github/dependabot.yml"

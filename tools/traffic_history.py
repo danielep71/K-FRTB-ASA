@@ -174,7 +174,7 @@ def parse_ranked(data: Any, name: str, fields: Sequence[str]) -> list[Row]:
     return rows
 
 
-def parse_repository(data: Any) -> dict[str, int]:
+def parse_repository(data: Any) -> dict[str, int | None]:
     if not isinstance(data, dict):
         raise TrafficError("repository: expected an object")
     return {column: count(data.get(field), f"repository.{field}")
