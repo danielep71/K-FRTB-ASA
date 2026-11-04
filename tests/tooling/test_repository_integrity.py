@@ -248,6 +248,20 @@ class RepositoryIntegrityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "--require-hashes"):
             checker.validate_workflow(workflow)
 
+    def test_report_commit_comes_from_the_checked_repository(self):
+        source = Path(__file__).resolve().parents[2]
+        expected = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source, text=True).strip()
+        environment = {key: value for key, value in checker.os.environ.items() if key != "GITHUB_SHA"}
+        with tempfile.TemporaryDirectory() as directory, unittest.mock.patch.dict(checker.os.environ, environment, clear=True):
+            # called from outside any repository, it still names the checked one
+            previous = Path.cwd()
+            try:
+                checker.os.chdir(directory)
+                self.assertEqual(checker.checked_commit(source), expected)
+                self.assertEqual(checker.checked_commit(Path(directory)), "unknown")
+            finally:
+                checker.os.chdir(previous)
+
     def test_report_is_bound_to_commit_run_and_attempt(self):
         checks = [{"name": "one", "status": "PASS", "seconds": 0.1}, {"name": "two", "status": "FAIL", "detail": "exit code 1"}]
         environment = {"GITHUB_SHA": "a" * 40, "GITHUB_RUN_ID": "7", "GITHUB_RUN_ATTEMPT": "2", "REPORT_HEAD_SHA": "b" * 40}

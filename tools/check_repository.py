@@ -424,10 +424,23 @@ def run_checks(root, checks):
     return 0
 
 
-def write_report(path, checks, code, versions):
+def checked_commit(root):
+    """The commit of the checked repository: GITHUB_SHA in CI, else its HEAD.
+
+    It never falls back to the caller's working directory; a failed lookup
+    is recorded as "unknown", not as an empty or unrelated commit."""
+    if os.environ.get("GITHUB_SHA"):
+        return os.environ["GITHUB_SHA"]
+    try:
+        found = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True, check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+    return found.stdout.strip() or "unknown"
+
+
+def write_report(path, checks, code, versions, root=Path(__file__).resolve().parents[1]):
     """The JSON report of one run, bound to its commit, run and attempt."""
-    commit = os.environ.get("GITHUB_SHA") or subprocess.run(
-        ["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+    commit = checked_commit(root)
     report = {
         # the commit tested (on a PR, GitHub's merge commit) and the head it was built from
         "commit": commit,
@@ -472,7 +485,7 @@ def main(argv=None):
         raise
     finally:
         if args.report:
-            write_report(args.report, checks, code, runtime_versions())
+            write_report(args.report, checks, code, runtime_versions(), root)
 
 
 if __name__ == "__main__":
