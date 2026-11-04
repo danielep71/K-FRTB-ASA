@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MIT
 """Offline, tracked-file repository checks; no Excel or regulatory validation."""
 
+import html
 import json
 from pathlib import Path
 import re
@@ -77,12 +78,24 @@ def heading_slug(heading):
     hyphens removed, and each space turned into a hyphen."""
     text = re.sub(r"!?\[([^\]]*)\]\([^)]*\)", r"\1", heading)  # links and images: their text
     text = re.sub(r"<[^>]+>", "", text)  # inline HTML tags
+    # emphasis delimiters: * anywhere, _ only at word edges (snake_case keeps its _)
+    text = re.sub(r"(\*{1,3})(?=\S)(.+?)(?<=\S)\1", r"\2", text)
+    text = re.sub(r"(?<!\w)(_{1,3})(?=\S)(.+?)(?<=\S)\1(?!\w)", r"\2", text)
+    text = html.unescape(text)  # character references: the character they render
     kept = []
     for char in text.lower():
         category = unicodedata.category(char)
         if char in " -" or category[0] in "LMN" or category == "Pc":
             kept.append(char)
     return "".join(kept).replace(" ", "-")
+
+
+def setext_text(line):
+    """Whether a line can be the text of a Setext heading: not blank and not
+    another block (heading, list item, quote, table row, HTML or a rule)."""
+    stripped = line.strip()
+    return bool(stripped) and not line.startswith("    ") and not re.match(
+        r"(#|[-*+][ \t]|\d+[.)][ \t]|>|\||<|(?:[-*_][ \t]*){3,}$)", stripped)
 
 
 def markdown_anchors(text):
@@ -93,10 +106,16 @@ def markdown_anchors(text):
     and "Scope-1" give scope, scope-1 and scope-1-1. An HTML id or name
     attribute outside code gives an explicit anchor."""
     counts, explicit, duplicates = {}, set(), set()
+    previous = ""
     for line in _outside_fences(text):
         heading = re.match(r"^ {0,3}#{1,6}[ \t]+(.*?)(?:[ \t]+#+)?[ \t]*$", line)
-        if heading:
-            base = slug = heading_slug(heading[1])
+        title = heading[1] if heading else None
+        # a Setext heading: a paragraph line underlined with = or -
+        if title is None and re.fullmatch(r" {0,3}(=+|-+)[ \t]*", line) and setext_text(previous):
+            title = previous.strip()
+        previous = line
+        if title is not None:
+            base = slug = heading_slug(title)
             while slug in counts:
                 counts[base] += 1
                 slug = f"{base}-{counts[base]}"

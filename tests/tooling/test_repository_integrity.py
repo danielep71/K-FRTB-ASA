@@ -78,6 +78,10 @@ class RepositoryIntegrityTests(unittest.TestCase):
         self.assertEqual(self.check_fixture({"guide.md": example}), [])
         self.assertTrue(self.check_fixture({"guide.md": example + "[Sample](#sample)\n"}))
 
+    def test_setext_headings_define_anchors(self):
+        anchors, _ = checker.markdown_anchors("Scope\n=====\n\nDetails here\n---\n\n- item\n---\n\n| a |\n| --- |\n")
+        self.assertEqual(anchors, {"scope", "details-here"})
+
     def test_repeated_heading_slugs_skip_taken_suffixes(self):
         # GitHub: Scope, Scope, Scope-1 give scope, scope-1, scope-1-1
         anchors, _ = checker.markdown_anchors("# Scope\n\n# Scope\n\n# Scope-1\n\n# Scope\n")
@@ -85,7 +89,9 @@ class RepositoryIntegrityTests(unittest.TestCase):
 
     def test_heading_slugs_follow_github(self):
         for heading, slug in [("🧭 Stages", "-stages"), ("Curvature input contract (MAR21.5, MAR21.98)", "curvature-input-contract-mar215-mar2198"),
-                              ("Link [text](https://x.y) and `code`", "link-text-and-code"), ("snake_case — dash", "snake_case--dash")]:
+                              ("Link [text](https://x.y) and `code`", "link-text-and-code"), ("snake_case — dash", "snake_case--dash"),
+                              ("__Scope__ and *notes*", "scope-and-notes"), ("Terms &amp; conditions", "terms--conditions"),
+                              ("**Bold** _it_ snake_case_name", "bold-it-snake_case_name")]:
             with self.subTest(heading=heading):
                 self.assertEqual(checker.heading_slug(heading), slug)
 
