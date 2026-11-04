@@ -1,0 +1,35 @@
+name: External link check
+
+# Weekly and manual check of the external links of the tracked Markdown
+# files (tools/check_external_links.py). It is not a required check: local
+# links and their anchors are checked offline by Repository integrity.
+
+on:
+  schedule:
+    - cron: "41 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: link-check
+  cancel-in-progress: false
+
+jobs:
+  external-links:
+    name: External links
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out without credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The checker reuses check_repository.py's Markdown helpers, which import PyYAML.
+      - name: Install the hashed configuration parser
+        run: |
+          python3 -m venv .venv-links
+          .venv-links/bin/python -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r .github/requirements.txt
+      - name: Request every external link; broken ones fail, unverifiable ones warn
+        run: .venv-links/bin/python tools/check_external_links.py

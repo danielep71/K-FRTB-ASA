@@ -19,6 +19,11 @@ Unreleased describe integrated work, not a published version.
   over the form field, and it now also runs on milestone events. Traffic
   alerts write their schedule as `**Target completion date:**` planning
   lines, so triage reads their date (#221).
+- `tools/check_repository.py` checks the `#fragment` of every local Markdown
+  link against the anchors of its target, GitHub heading slugs and HTML ids,
+  and rejects duplicated explicit anchors. A new weekly and manual workflow,
+  `link-check.yml`, requests the external links and separates verified,
+  unverifiable and broken ones, outside the required checks (#218).
 - CI is reproducible: the integrity gate runs on exact Python and Node.js
   versions, both requirements files pin every package by hash and install
   from wheels only, each integrity run uploads a report bound to its commit,

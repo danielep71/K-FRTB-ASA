@@ -42,15 +42,19 @@ after installation and all maintenance fixtures are offline.
   to Git's resolved `text` attribute from `.gitattributes`, including its
   macros and path overrides; the checker has no separate extension list.
 - Common inline Markdown links/images and reference definitions outside code
-  fences point to tracked repository files or directories. Anchors and remote
-  URLs are not fetched or validated; this is not a complete Markdown parser.
+  fences point to tracked repository files or directories. A `#fragment`, in
+  the same file or in another tracked Markdown file, must name one of its
+  anchors: a GitHub heading slug (with `-1`, `-2` for repeats) or an HTML `id`
+  or `name`; a file with a duplicated explicit anchor fails (#218). Remote URLs
+  are not fetched here; this is not a complete Markdown parser.
 - The universal workflow keeps its unconditional stable check and branch
   coverage. Dependabot covers the inspected ecosystems and intended branches.
 - The integrity workflow sets exact Python and Node.js versions, installs its
   Python packages by hash from wheels only, writes its report and always
   uploads it, and cancels only superseded PR runs. Both requirements files
   pin every package, including dependencies, with at least one hash. The PR
-  milestone workflow keeps one concurrency group per PR.
+  milestone workflow keeps one concurrency group per PR. Every workflow step
+  that runs `pip install` must use `--require-hashes --only-binary=:all:`.
 - The existing label self-tests, manifest validation and read-only drift
   fixtures run once through their authoritative scripts. The path-filtered
   label workflows remain responsible for their own live evidence and trusted
@@ -67,6 +71,17 @@ repository's security settings, not in a workflow file. Its configuration theref
 be rebuilt from a commit; [settings evidence](REPOSITORY_SETTINGS_EVIDENCE.md)
 records its last readback. A versioned CodeQL workflow would duplicate the
 scans, so none is added (#223).
+
+[External link check](../.github/workflows/link-check.yml) runs weekly on
+Mondays at 04:41 UTC and on manual dispatch, read-only and outside the required
+checks. After installing the hashed `.github/requirements.txt` (the checker
+reuses the gate's Markdown helpers, which import PyYAML),
+`tools/check_external_links.py` requests each `http(s)` link of the
+tracked Markdown files once, without its fragment, following redirects, with a
+25-second timeout, up to two retries and three requests at a time. A 2xx answer
+is verified; 403, 429, 5xx and network errors are unverifiable and reported as
+warnings, never as a pass; any other answer is broken and fails the run. Links
+to this repository on github.com are left to the local gate (#218).
 
 A failed prerequisite, validation error or failed child command exits nonzero.
 The fixture suite includes clean input as well as deliberate failures. It
@@ -113,6 +128,8 @@ timeout is 10 minutes.
   LibreOffice UNO bridge is built for it, so its Python version follows the
   runner image. It installs the hashed requirements with `--ignore-installed`
   as well, so every package comes from its hashed wheel.
+- **External link check:** it installs the parser the same way, on the
+  runner's Python; it is not a required check.
 
 The check name and app identity are required by the main and release
 rulesets, and main must be up to date before merging; issue #2 records the
