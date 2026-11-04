@@ -530,7 +530,10 @@ def alert(data: Path, milestone_due: str) -> dict[str, str] | None:
         return (f"| {name} | {current[key] or 'not recorded'} "
                 f"| {previous[key] or 'not recorded'} |")
 
-    target = (date.fromisoformat(day) + timedelta(days=ALERT_DAYS)).isoformat()
+    # ALERT_DAYS after the snapshot, but never after the milestone's due date,
+    # which issue triage requires of every target date
+    target = min(date.fromisoformat(day) + timedelta(days=ALERT_DAYS),
+                 date.fromisoformat(milestone_due)).isoformat()
     body = [
         "## Objective", "",
         f"Find out what drove the traffic recorded on {day}: "
