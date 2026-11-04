@@ -22,8 +22,11 @@ import sys
 import tempfile
 import zipfile
 from pathlib import Path
+from typing import Any
 
 import openpyxl
+from openpyxl.cell.cell import Cell, MergedCell
+from openpyxl.styles.colors import Color
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "tools"))
@@ -34,7 +37,7 @@ import template_presentation  # noqa: E402
 TEMPLATE = lo_runner.TEMPLATE
 
 
-def _strip(doc) -> None:
+def _strip(doc: Any) -> None:
     """Remove sheet controls and personal document properties."""
     sheets = doc.Sheets
     for i in range(sheets.Count):
@@ -56,7 +59,7 @@ def build(output: Path) -> None:
     template_presentation.normalize(output)
 
 
-def _color(c) -> str | None:
+def _color(c: Color | None) -> str | None:
     if c is None:
         return None
     if c.type == "rgb":
@@ -64,7 +67,7 @@ def _color(c) -> str | None:
     return f"{c.type}:{c.value}:{round(c.tint or 0, 4)}"
 
 
-def _cell_style(c) -> tuple:
+def _cell_style(c: Cell | MergedCell) -> tuple[object, ...]:
     f, fill, a, b = c.font, c.fill, c.alignment, c.border
     return (
         c.number_format,
@@ -75,34 +78,35 @@ def _cell_style(c) -> tuple:
     )
 
 
-def _attributes(element: str) -> dict:
+def _attributes(element: str) -> dict[str, str]:
     return dict(re.findall(r'([\w:]+)="([^"]*)"', element))
 
 
-def sheet_parts(path: Path) -> dict:
+def sheet_parts(path: Path) -> dict[str, str]:
     """Map each sheet name to its XML part inside the package."""
     with zipfile.ZipFile(path) as z:
         book = z.read("xl/workbook.xml").decode("utf-8")
         rels = z.read("xl/_rels/workbook.xml.rels").decode("utf-8")
-    targets = {}
+    targets: dict[str, str] = {}
     for element in re.findall(r"<Relationship [^>]*>", rels):
         a = _attributes(element)
         targets[a["Id"]] = "xl/" + a["Target"].lstrip("/").removeprefix("xl/")
     return {a["name"]: targets[a["r:id"]] for a in map(_attributes, re.findall(r"<sheet [^>]*>", book))}
 
 
-def _explicit_dimensions(path: Path) -> dict:
+def _explicit_dimensions(path: Path) -> dict[str, tuple[dict[int, float], dict[tuple[int, int], float]]]:
     """Row heights and column widths set explicitly, per sheet name.
 
     Automatic heights and widths depend on the fonts installed where the
     workbook was saved, so only entries flagged customHeight/customWidth
     are compared. openpyxl does not keep those flags, so read the XML.
     """
-    out = {}
+    out: dict[str, tuple[dict[int, float], dict[tuple[int, int], float]]] = {}
     with zipfile.ZipFile(path) as z:
         for name, part in sheet_parts(path).items():
             xml = z.read(part).decode("utf-8")
-            rows, cols = {}, {}
+            rows: dict[int, float] = {}
+            cols: dict[tuple[int, int], float] = {}
             for element in re.findall(r"<row [^>]*>", xml):
                 a = _attributes(element)
                 if a.get("customHeight") in ("true", "1") and "ht" in a:
@@ -115,19 +119,21 @@ def _explicit_dimensions(path: Path) -> dict:
     return out
 
 
-def signature(path: Path) -> dict:
+def signature(path: Path) -> dict[str, Any]:
     """Normalized content and layout of a workbook: values, cell styles,
     explicit column widths and row heights, merged ranges, tab colors,
     frozen panes, gridlines and autofilters of every sheet."""
     wb = openpyxl.load_workbook(path)
     dims = _explicit_dimensions(path)
-    sheets = {}
+    sheets: dict[str, dict[str, Any]] = {}
     for ws in wb.worksheets:
-        cells = {}
+        cells: dict[str, tuple[object, tuple[object, ...]]] = {}
         for row in ws.iter_rows():
             for c in row:
                 if c.value is not None or c.has_style:
                     cells[c.coordinate] = (c.value, _cell_style(c))
+        setup_pr = ws.sheet_properties.pageSetUpPr
+        assert setup_pr is not None  # openpyxl creates PageSetupProperties when the sheet has none
         sheets[ws.title] = {
             "cells": cells,
             "columns": dims.get(ws.title, ({}, {}))[1],
@@ -139,14 +145,14 @@ def signature(path: Path) -> dict:
             "autofilter": ws.auto_filter.ref,
             "print": (ws.page_setup.orientation, ws.page_setup.paperSize,
                       ws.page_setup.fitToWidth, ws.page_setup.fitToHeight,
-                      ws.sheet_properties.pageSetUpPr.fitToPage,
+                      setup_pr.fitToPage,
                       str(ws.print_area), ws.print_title_rows,
                       str(ws.oddHeader), str(ws.oddFooter)),
         }
     return {"order": wb.sheetnames, "sheets": sheets}
 
 
-def signature_differences(a: dict, b: dict, limit: int = 5) -> list[str]:
+def signature_differences(a: dict[str, Any], b: dict[str, Any], limit: int = 5) -> list[str]:
     """Describe the first differences between two signatures."""
     out = []
     if a["order"] != b["order"]:
@@ -195,7 +201,7 @@ def check() -> list[str]:
     return problems
 
 
-def main(argv) -> int:
+def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args(argv)

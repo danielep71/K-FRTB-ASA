@@ -325,6 +325,7 @@ def test_exporter_writes_the_format_and_manifest_the_tool_reads():
 @pytest.mark.skipif(not (os.environ.get("PWSH") or shutil.which("pwsh")), reason="PowerShell 7 (pwsh) is not installed")
 def test_exporter_parses_without_errors():
     pwsh = os.environ.get("PWSH") or shutil.which("pwsh")
+    assert pwsh is not None
     command = ("$e = $null; $t = $null; [void][System.Management.Automation.Language.Parser]::ParseFile("
                f"'{ROOT / 'tools' / 'Export-FRTB-VBA.ps1'}', [ref]$t, [ref]$e); "
                "if ($e) { $e | ForEach-Object { $_.ToString() }; exit 1 }")

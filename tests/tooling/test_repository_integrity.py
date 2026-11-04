@@ -2,16 +2,23 @@
 """Synthetic failures for the universal maintenance gate, without network."""
 
 import copy
-from pathlib import Path
-import sys
+import json
+import os
 import subprocess
+import sys
 import tempfile
 import unittest
+import unittest.mock
+from pathlib import Path
+from typing import Any
 
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 import check_repository as checker
+
+CONTROL_FILES = [".github/workflows/integrity.yml", ".github/workflows/pr-milestones.yml", ".github/dependabot.yml",
+                 ".github/requirements.txt", ".github/requirements-quality.txt", "tests/requirements.txt"]
 
 
 class RepositoryIntegrityTests(unittest.TestCase):
@@ -56,6 +63,46 @@ class RepositoryIntegrityTests(unittest.TestCase):
             with self.subTest(text=text):
                 self.assertTrue(self.check_fixture({"guide.md": text}))
         self.assertEqual(self.check_fixture({"guide.md": "```md\n[Example](absent.md)\n```\n"}), [])
+
+    def test_markdown_fragments_must_name_an_anchor(self):
+        child = "# 🧭 Scope (MAR21.5)\n\n## Notes\n\n## Notes\n\n<a id=\"explicit\"></a>\n"
+        valid = ("# Guide\n\n[Top](#guide) [Child](docs/child.md#-scope-mar215) [Repeat](docs/child.md#notes-1)\n"
+                 "[Explicit](docs/child.md#explicit) [Case](docs/child.md#Notes)\n")
+        self.assertEqual(self.check_fixture({"guide.md": valid, "docs/child.md": child}), [])
+        for text, fragment in [("[Gone](#nowhere)\n", "nowhere"), ("[Gone](docs/child.md#absent)\n", "absent"),
+                               ("[Third](docs/child.md#notes-2)\n", "notes-2")]:
+            with self.subTest(fragment=fragment):
+                errors = self.check_fixture({"guide.md": "# Guide\n\n" + text, "docs/child.md": child})
+                self.assertTrue(any("link fragment not found" in error and fragment in error for error in errors), errors)
+        errors = self.check_fixture({"guide.md": '<a id="twice"></a>\n<a name="twice"></a>\n'})
+        self.assertTrue(any("duplicate explicit anchor: twice" in error for error in errors), errors)
+        # a heading inside a fenced block defines no anchor, and a link there is not checked
+        fenced = "```md\n# Fake\n[Fake](#fake)\n```\n"
+        self.assertEqual(self.check_fixture({"guide.md": fenced}), [])
+        self.assertTrue(self.check_fixture({"guide.md": fenced + "[Fake](#fake)\n"}))
+        # an anchor shown as inline code is an example, not an anchor
+        example = "Write `<a id=\"sample\"></a>`, as in `<a id=\"sample\"></a>`.\n"
+        self.assertEqual(self.check_fixture({"guide.md": example}), [])
+        self.assertTrue(self.check_fixture({"guide.md": example + "[Sample](#sample)\n"}))
+
+    def test_setext_headings_define_anchors(self):
+        anchors, _ = checker.markdown_anchors("Scope\n=====\n\nDetails here\n---\n\n- item\n---\n\n| a |\n| --- |\n")
+        self.assertEqual(anchors, {"scope", "details-here"})
+
+    def test_repeated_heading_slugs_skip_taken_suffixes(self):
+        # GitHub: Scope, Scope, Scope-1 give scope, scope-1, scope-1-1
+        anchors, _ = checker.markdown_anchors("# Scope\n\n# Scope\n\n# Scope-1\n\n# Scope\n")
+        self.assertEqual(anchors, {"scope", "scope-1", "scope-1-1", "scope-2"})
+
+    def test_heading_slugs_follow_github(self):
+        for heading, slug in [("🧭 Stages", "-stages"), ("Curvature input contract (MAR21.5, MAR21.98)", "curvature-input-contract-mar215-mar2198"),
+                              ("Link [text](https://x.y) and `code`", "link-text-and-code"), ("snake_case — dash", "snake_case--dash"),
+                              ("__Scope__ and *notes*", "scope-and-notes"), ("Terms &amp; conditions", "terms--conditions"),
+                              ("**Bold** _it_ snake_case_name", "bold-it-snake_case_name"),
+                              ("The `<input>` field", "the-input-field"), ("`__init__` and `&amp;`", "__init__-and-amp"),
+                              ("__Bold `x` text__", "bold-x-text"), ("``a `b` c``", "a-b-c")]:
+            with self.subTest(heading=heading):
+                self.assertEqual(checker.heading_slug(heading), slug)
 
     @staticmethod
     def workflow_fixture():
@@ -132,7 +179,7 @@ class RepositoryIntegrityTests(unittest.TestCase):
         source = Path(__file__).resolve().parents[2]
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            for name in [".github/workflows/integrity.yml", ".github/workflows/pr-milestones.yml", ".github/dependabot.yml"]:
+            for name in CONTROL_FILES:
                 path = root / name
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text((source / name).read_text())
@@ -149,6 +196,91 @@ class RepositoryIntegrityTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Dependabot must cover"):
                 checker.validate_controls(root)
 
+    def test_reproducibility_controls(self):
+        source = Path(__file__).resolve().parents[2]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name in CONTROL_FILES:
+                (root / name).parent.mkdir(parents=True, exist_ok=True)
+                (root / name).write_text((source / name).read_text())
+            checker.validate_controls(root)
+            integrity = root / ".github/workflows/integrity.yml"
+            original = integrity.read_text()
+
+            def broken(change, message):
+                workflow = checker.load_yaml(original)
+                change(workflow, workflow["jobs"]["integrity"]["steps"])
+                integrity.write_text(yaml.safe_dump(workflow))
+                with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
+                    checker.validate_controls(root)
+
+            def uses(steps, action):
+                return next(step for step in steps if step.get("uses", "").startswith(action + "@"))
+
+            broken(lambda w, s: w["concurrency"].update({"cancel-in-progress": True}), "never push runs")
+            broken(lambda w, s: uses(s, "actions/setup-python")["with"].update({"python-version": "3.13"}),
+                   "exact python-version")
+            broken(lambda w, s: uses(s, "actions/setup-node")["with"].update({"node-version": "lts/*"}),
+                   "exact node-version")
+            broken(lambda w, s: [step.update({"run": step["run"].replace("--require-hashes ", "")})
+                                 for step in s if "pip install" in step.get("run", "")], "by hash")
+            broken(lambda w, s: uses(s, "actions/upload-artifact").pop("if"), "always upload")
+            broken(lambda w, s: [step["env"].pop("REQUIRE_QUALITY_TOOLS") for step in s
+                                 if "tools/check_repository.py" in step.get("run", "")], "REQUIRE_QUALITY_TOOLS")
+            broken(lambda w, s: [step.update({"run": step["run"].replace("sha256sum --check", "true")}) for step in s
+                                 if "actionlint" in step.get("run", "")], "SHA-256 of the actionlint")
+            broken(lambda w, s: uses(s, "actions/upload-artifact")["with"].update({"if-no-files-found": "warn"}),
+                   "always upload")
+            integrity.write_text(original)
+            milestones = root / ".github/workflows/pr-milestones.yml"
+            milestones.write_text(milestones.read_text().replace(
+                "github.event_name == 'pull_request_target' && format('pr-milestones-pr-{0}', "
+                "github.event.pull_request.number) || ", "").replace("${{ 'pr-milestones-scan' }}", "pr-milestones"))
+            with self.assertRaisesRegex(ValueError, "one concurrency group per PR"):
+                checker.validate_controls(root)
+            milestones.write_text((source / ".github/workflows/pr-milestones.yml").read_text())
+            requirements = root / "tests/requirements.txt"
+            requirements.write_text("numpy==2.5.4\n")
+            with self.assertRaisesRegex(ValueError, "exact pin and a hash"):
+                checker.validate_controls(root)
+
+    def test_every_workflow_installs_by_hash(self):
+        workflow = self.workflow_fixture()
+        steps = workflow["jobs"]["test"]["steps"]
+        steps.append({"run": "python -m pip install --require-hashes --only-binary=:all: -r requirements.txt"})
+        checker.validate_workflow(workflow)
+        steps[-1]["run"] = "python -m pip install -r requirements.txt"
+        with self.assertRaisesRegex(ValueError, "--require-hashes"):
+            checker.validate_workflow(workflow)
+
+    def test_report_commit_comes_from_the_checked_repository(self):
+        source = Path(__file__).resolve().parents[2]
+        expected = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source, text=True).strip()
+        environment = {key: value for key, value in os.environ.items() if key != "GITHUB_SHA"}
+        with tempfile.TemporaryDirectory() as directory, unittest.mock.patch.dict(os.environ, environment, clear=True):
+            # called from outside any repository, it still names the checked one
+            previous = Path.cwd()
+            try:
+                os.chdir(directory)
+                self.assertEqual(checker.checked_commit(source), expected)
+                self.assertEqual(checker.checked_commit(Path(directory)), "unknown")
+            finally:
+                os.chdir(previous)
+
+    def test_report_is_bound_to_commit_run_and_attempt(self):
+        checks: list[dict[str, Any]] = [{"name": "one", "status": "PASS", "seconds": 0.1},
+                                        {"name": "two", "status": "FAIL", "detail": "exit code 1"}]
+        environment = {"GITHUB_SHA": "a" * 40, "GITHUB_RUN_ID": "7", "GITHUB_RUN_ATTEMPT": "2", "REPORT_HEAD_SHA": "b" * 40}
+        with tempfile.TemporaryDirectory() as directory, unittest.mock.patch.dict(os.environ, environment):
+            path = Path(directory) / "reports" / "integrity.json"
+            checker.write_report(path, checks, 1, {"python": "3.13.18"})
+            report = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual((report["commit"], report["run_id"], report["run_attempt"], report["result"]),
+                         ("a" * 40, "7", "2", "FAIL"))
+        self.assertEqual(report["head_commit"], "b" * 40)
+        self.assertEqual(report["checks"], checks)
+        self.assertEqual(report["runtimes"], {"python": "3.13.18"})
+
     def test_dependabot_retirement_and_coverage_regressions(self):
         source = Path(__file__).resolve().parents[2]
         baseline = checker.load_yaml((source / ".github/dependabot.yml").read_text())
@@ -159,6 +291,9 @@ class RepositoryIntegrityTests(unittest.TestCase):
             workflow_path.write_text((source / ".github/workflows/integrity.yml").read_text())
             milestone_path = root / ".github/workflows/pr-milestones.yml"
             milestone_path.write_text((source / ".github/workflows/pr-milestones.yml").read_text())
+            for name in (".github/requirements.txt", ".github/requirements-quality.txt", "tests/requirements.txt"):
+                (root / name).parent.mkdir(parents=True, exist_ok=True)
+                (root / name).write_text((source / name).read_text())
             dependabot_path = root / ".github/dependabot.yml"
 
             def validate(document):

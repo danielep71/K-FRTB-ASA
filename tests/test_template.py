@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-import build_template
-import lo_runner
 import re
 import zipfile
 
 import openpyxl
+
+import build_template
+import lo_runner
 from conftest import require_libreoffice
 from test_vba_engine import FIRST_COL, log_rows, reconcile
 
@@ -34,6 +35,7 @@ def test_template_saved_presentation():
     for ws in wb:
         assert ws.sheet_view.showGridLines is False, ws.title
         expected_tab = "FF1F3864" if ws.title == "README" else "FF548235" if ws.title == "Test_Expected" else "FF2E75B6" if ws.title in ("Results", "Log") or ws.title.startswith("Out_") else "FFBF9000"
+        assert ws.sheet_properties.tabColor is not None, ws.title
         assert ws.sheet_properties.tabColor.rgb == expected_tab, ws.title
         wide = ws.title.startswith(("In_", "Out_")) or ws.title == "Log"
         expected_freeze = ("A4" if ws.title == "README" else "D6" if wide else "A6" if ws.title == "Results"
@@ -41,6 +43,7 @@ def test_template_saved_presentation():
         assert ws.freeze_panes == expected_freeze, ws.title
         assert ws.page_setup.orientation == "landscape", ws.title
         assert ws.page_setup.fitToWidth == 1 and ws.page_setup.fitToHeight == 0
+        assert ws.sheet_properties.pageSetUpPr is not None
         assert ws.sheet_properties.pageSetUpPr.fitToPage
         assert "Aptos" in str(ws.oddFooter)
     for name in ("Control", "In_Delta", "In_Vega", "In_Curvature", "In_DRC", "In_RRAO"):
@@ -61,6 +64,7 @@ def test_template_saved_presentation():
 
 def test_presentation_normalization_preserves_content_and_is_idempotent(tmp_path):
     import shutil
+
     import template_presentation
 
     path = tmp_path / "template.xlsx"
@@ -91,7 +95,9 @@ def test_signature_detects_layout_changes(tmp_path):
     base = build_template.signature(template)
     control = build_template.sheet_parts(template)["Control"]
     control_xml = zipfile.ZipFile(template).read(control).decode("utf-8")
-    tab_color = re.search(r"<tabColor[^>]*/>", control_xml).group(0)
+    tab_match = re.search(r"<tabColor[^>]*/>", control_xml)
+    assert tab_match is not None
+    tab_color = tab_match.group(0)
 
     unchanged = tmp_path / "unchanged.xlsx"
     _repack(template, unchanged, control, "", "")

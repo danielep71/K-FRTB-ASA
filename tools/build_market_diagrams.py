@@ -19,24 +19,31 @@ from __future__ import annotations
 import argparse
 import re
 import textwrap
+from collections.abc import Iterable, Sequence
 from html import escape
 from pathlib import Path
 
 import cairosvg
 
 DEFAULT_OUTPUT = Path(__file__).resolve().parents[1] / "docs" / "assets" / "market-risk"
-NAVY = "#17365F"; BLUE = "#24558D"; PALE = "#EAF1FA"; EDGE = "#B5CBE8"
-INK = "#31445C"; GREEN = "#218452"; MINT = "#EAF5EF"; LINK = "#7999BF"
+NAVY = "#17365F"
+BLUE = "#24558D"
+PALE = "#EAF1FA"
+EDGE = "#B5CBE8"
+INK = "#31445C"
+GREEN = "#218452"
+MINT = "#EAF5EF"
+LINK = "#7999BF"
 FONT = "Arial, DejaVu Sans, sans-serif"
 SUBSCRIPT = re.compile(r"_\{([^}]*)\}")
 
 
-def plain(text):
+def plain(text: str) -> str:
     """The text as it reads, without subscript markup (for wrapping)."""
     return SUBSCRIPT.sub(r"\1", text)
 
 
-def markup(text, size):
+def markup(text: str, size: float) -> str:
     """Escaped SVG text content; _{...} becomes a lowered, smaller tspan."""
     out, last, shift = [], 0, round(size * 0.28)
     for m in SUBSCRIPT.finditer(text):
@@ -49,8 +56,10 @@ def markup(text, size):
 
 
 class Diagram:
-    def __init__(self, name, title, subtitle, h):
-        self.name = name; self.h = h; self.p = []
+    def __init__(self, name: str, title: str, subtitle: str, h: int) -> None:
+        self.name = name
+        self.h = h
+        self.p: list[str] = []
         self.p.append(
             f'<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="{h}" viewBox="0 0 1600 {h}" '
             f'role="img" aria-labelledby="title desc"><title id="title">{escape(title)}</title>'
@@ -60,7 +69,8 @@ class Diagram:
         self.text(800, 55, title, 38, NAVY, True, "middle")
         self.text(800, 96, subtitle, 23, BLUE, False, "middle")
 
-    def text(self, x, y, t, size=22, color=INK, bold=False, anchor="start"):
+    def text(self, x: float, y: float, t: str, size: float = 22, color: str = INK, bold: bool = False,
+             anchor: str = "start") -> None:
         if anchor != "start" and SUBSCRIPT.search(t):
             # CairoSVG misplaces centered or end-anchored text whose tspans shift
             # the baseline, so such text is measured and drawn start-anchored.
@@ -69,16 +79,18 @@ class Diagram:
         self.p.append(f'<text x="{x}" y="{y}" font-family="{FONT}" font-size="{size}" fill="{color}" '
                       f'font-weight="{700 if bold else 400}" text-anchor="{anchor}">{markup(t, size)}</text>')
 
-    def rect(self, x, y, w, h, fill=PALE, stroke=EDGE, r=10, dash=False):
+    def rect(self, x: float, y: float, w: float, h: float, fill: str = PALE, stroke: str = EDGE, r: float = 10,
+             dash: bool = False) -> None:
         pattern = ' stroke-dasharray="7 5"' if dash else ""
         self.p.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{r}" fill="{fill}" '
                       f'stroke="{stroke}" stroke-width="2"{pattern}/>')
 
-    def line(self, points):
+    def line(self, points: Iterable[tuple[float, float]]) -> None:
         path = " L".join(f"{x} {y}" for x, y in points)
         self.p.append(f'<path d="M{path}" stroke="{LINK}" stroke-width="3" fill="none"/>')
 
-    def block(self, x, y, w, h, lines, fill=PALE, stroke=EDGE, dash=False):
+    def block(self, x: float, y: float, w: float, h: float, lines: Sequence[tuple[str, float, bool, str]],
+              fill: str = PALE, stroke: str = EDGE, dash: bool = False) -> None:
         """A box with centered, wrapped lines; each line is (text, size, bold, color)."""
         self.rect(x, y, w, h, fill, stroke, dash=dash)
         rows = [(part, size, bold, color) for text, size, bold, color in lines
@@ -90,11 +102,12 @@ class Diagram:
             yy += size * 1.3
             self.text(x + w / 2, round(yy - size * 0.32, 1), part, size, color, bold, "middle")
 
-    def arrow(self, x1, y1, x2, y2):
+    def arrow(self, x1: float, y1: float, x2: float, y2: float) -> None:
         self.p.append(f'<path d="M{x1} {y1} L{x2} {y2}" stroke="{LINK}" stroke-width="3" fill="none" '
                       f'marker-end="url(#arrow)"/>')
 
-    def card(self, x, y, w, h, title, body=(), dark=False, green=False, size=22):
+    def card(self, x: float, y: float, w: float, h: float, title: str, body: Iterable[str] = (), dark: bool = False,
+             green: bool = False, size: float = 22) -> None:
         self.rect(x, y, w, h, NAVY if dark else MINT if green else PALE, NAVY if dark else GREEN if green else EDGE)
         self.text(x + 22, y + 36, title, 25, "white" if dark else NAVY, True)
         yy = y + 70
@@ -105,17 +118,19 @@ class Diagram:
                 yy += size * 1.36
             yy += 8
 
-    def bar(self, y, n, title, note=""):
-        self.rect(32, y, 1536, 42, BLUE, BLUE, 3); self.rect(32, y, 48, 42, NAVY, NAVY, 3)
-        self.text(56, y + 29, str(n), 23, "white", True, "middle"); self.text(96, y + 29, title, 24, "white", True)
+    def bar(self, y: float, n: int, title: str, note: str = "") -> None:
+        self.rect(32, y, 1536, 42, BLUE, BLUE, 3)
+        self.rect(32, y, 48, 42, NAVY, NAVY, 3)
+        self.text(56, y + 29, str(n), 23, "white", True, "middle")
+        self.text(96, y + 29, title, 24, "white", True)
         if note:
             self.text(1544, y + 29, note, 19, "#DBE7F7", False, "end")
 
-    def foot(self, source, scope):
+    def foot(self, source: str, scope: str) -> None:
         self.text(36, self.h - 55, scope, 18, INK)
         self.text(36, self.h - 25, source, 17, BLUE)
 
-    def save(self, out):
+    def save(self, out: Path) -> None:
         data = ("".join(self.p) + "</svg>\n").encode()
         (out / (self.name + ".svg")).write_bytes(data)
         cairosvg.svg2png(bytestring=data, write_to=str(out / (self.name + ".png")))
@@ -130,12 +145,13 @@ FONT_FILES = {
 }
 
 
-def text_width(text, size, bold):
+def text_width(text: str, size: float, bold: bool) -> float:
     """Rendered width of text with subscript markup, from Arial metrics when available."""
-    from PIL import ImageFont  # a CairoSVG dependency
+    # Pillow is a CairoSVG dependency, not a pinned one; unused-ignore covers environments that have it.
+    from PIL import ImageFont
     path = next((f for f in FONT_FILES[bold] if Path(f).exists()), None)
     width, last = 0.0, 0
-    segments = []
+    segments: list[tuple[str, float]] = []
     for m in SUBSCRIPT.finditer(text):
         segments += [(text[last:m.start()], size), (m.group(1), round(size * 0.68))]
         last = m.end()
@@ -148,47 +164,62 @@ def text_width(text, size, bold):
     return width
 
 
-def wrap(paragraph, width):
+def wrap(paragraph: str, width: int) -> list[str]:
     """Wrap on the visible text, then restore any subscript markup per word."""
     words = paragraph.split(" ")
-    lines, current, length = [], [], 0
+    lines: list[str] = []
+    current: list[str] = []
+    length = 0
     for word in words:
         n = len(plain(word))
         if current and length + 1 + n > width:
-            lines.append(" ".join(current)); current, length = [], 0
-        current.append(word); length += n + (1 if length else 0)
+            lines.append(" ".join(current))
+            current, length = [], 0
+        current.append(word)
+        length += n + (1 if length else 0)
     if current:
         lines.append(" ".join(current))
     return lines
 
 
-def wrap_width(paragraph, size, bold, width):
+def wrap_width(paragraph: str, size: float, bold: bool, width: float) -> list[str]:
     """Wrap to a width in pixels, measured as rendered."""
-    lines, current = [], []
+    lines: list[str] = []
+    current: list[str] = []
     for word in paragraph.split(" "):
         if current and text_width(" ".join(current + [word]), size, bold) > width:
-            lines.append(" ".join(current)); current = []
+            lines.append(" ".join(current))
+            current = []
         current.append(word)
     return lines + [" ".join(current)]
 
 
-def boundary(x, y, cx, cy, half_w, half_h):
+def boundary(x: float, y: float, cx: float, cy: float, half_w: float, half_h: float) -> tuple[int, int]:
     """Where the segment from the node center (cx, cy) to (x, y) leaves the node."""
     dx, dy = x - cx, y - cy
     t = min(half_w / abs(dx) if dx else float("inf"), half_h / abs(dy) if dy else float("inf"))
     return round(cx + dx * t), round(cy + dy * t)
 
 
-GREY = "#5A6B80"; FAINT = "#C3CEDC"
+GREY = "#5A6B80"
+FAINT = "#C3CEDC"
 
 
-def approaches(d, y, groups, era, earlier, notes):
+def approaches(
+    d: Diagram,
+    y: float,
+    groups: Sequence[tuple[float, float, str, str, str, Sequence[tuple[str, str]]]],
+    era: str,
+    earlier: Iterable[tuple[float, float, str]],
+    notes: Iterable[str],
+) -> None:
     """One framework as a tree: approach headers, their components joined by a separator,
     the earlier rules aligned below and notes. Each group is (x, w, title, scope, separator,
     components); each component is (name, detail); each earlier rule is (x, w, text)."""
     for x, w, title, scope, separator, components in groups:
         d.block(x, y, w, 76, [(title, 22, True, "white"), (scope, 18, False, "#DBE7F7")], NAVY, NAVY)
-        n = len(components); cw = (w - 44 * (n - 1)) / n
+        n = len(components)
+        cw = (w - 44 * (n - 1)) / n
         centers = [round(x + cw / 2 + i * (cw + 44)) for i in range(n)]
         d.line([(round(x + w / 2), y + 76), (round(x + w / 2), y + 96)])
         if n > 1:
@@ -207,7 +238,7 @@ def approaches(d, y, groups, era, earlier, notes):
         d.text(40, y + 432 + i * 26, note, 18, INK)
 
 
-def framework(out):
+def framework(out: Path) -> None:
     d = Diagram("Market_risk_framework", "MARKET RISK AND CVA RISK",
                 "Two capital requirements, their approaches and the earlier Basel rules", 1530)
     d.text(800, 137, "K = own funds requirement       |       RWA = risk-weighted assets", 22, NAVY, False, "middle")
@@ -258,7 +289,8 @@ def framework(out):
     d.save(out)
 
 
-def hub(out, name, title, subtitle, center, caption, cards, source, scope):
+def hub(out: Path, name: str, title: str, subtitle: str, center: str, caption: str,
+        cards: Sequence[tuple[str, Sequence[str], str]], source: str, scope: str) -> None:
     """Six cards around a central node. Each card is (title, body, flow): 'in' feeds the
     node, 'calc' is a step the node performs, 'out' is a result (green)."""
     d = Diagram(name, title, subtitle, 920)
@@ -284,7 +316,7 @@ def hub(out, name, title, subtitle, center, caption, cards, source, scope):
     d.save(out)
 
 
-def frtb_uses(out):
+def frtb_uses(out: Path) -> None:
     hub(out, "FRTB_uses", "Where FRTB-SA fits in the capital framework",
         "A market-risk aggregation framework built around supplied risk measures",
         "K-FRTB-SA | SENSITIVITIES TO CAPITAL",
@@ -306,7 +338,7 @@ def frtb_uses(out):
         "separately.")
 
 
-def frtb_aggregation(out):
+def frtb_aggregation(out: Path) -> None:
     d = Diagram("FRTB_aggregation", "How FRTB-SA aggregates risk inputs",
                 "Three calculation branches; one standardized capital requirement", 1352)
     d.bar(140, 1, "ASSIGN INPUTS", "keep valuation and risk-input production upstream")
@@ -349,7 +381,7 @@ def frtb_aggregation(out):
     d.save(out)
 
 
-def cva_uses(out):
+def cva_uses(out: Path) -> None:
     hub(out, "CVA_uses", "Where CVA risk fits in the capital framework",
         "A separate charge for adverse changes in credit valuation adjustment",
         "K-CVA | REGULATORY CVA CAPITAL",
@@ -371,7 +403,7 @@ def cva_uses(out):
         "profile.")
 
 
-def cva_aggregation(out):
+def cva_aggregation(out: Path) -> None:
     d = Diagram("CVA_aggregation", "How CVA capital aggregates its inputs",
                 "Choose the applicable approach for each covered netting set", 1340)
     d.bar(140, 1, "DEFINE COVERAGE AND METHOD", "identify exemptions and eligible hedges first")
@@ -385,7 +417,8 @@ def cva_aggregation(out):
         "At or below EUR 100 billion of non-centrally cleared notional, CVA capital may equal 100% of CCR "
         "capital, with no hedge recognition (MAR50.9). With SA-CVA approval, carved-out netting sets use "
         "BA-CVA (MAR50.8)."], size=21)
-    d.arrow(410, 474, 410, 515); d.arrow(1190, 474, 1190, 515)
+    d.arrow(410, 474, 410, 515)
+    d.arrow(1190, 474, 1190, 515)
     d.bar(520, 2, "AGGREGATE UNDER THE CHOSEN APPROACH", "BA-CVA and SA-CVA are alternative routes")
     d.card(40, 586, 740, 290, "BA-CVA", [
         "Build the stand-alone counterparty risk amounts from the relevant exposure and maturity inputs.",
@@ -396,7 +429,8 @@ def cva_aggregation(out):
         "Map CVA and hedge sensitivities to risk classes, risk factors and buckets.",
         "Apply prescribed weights, hedge offsets and within-/across-bucket aggregation.",
         "Aggregate delta and vega requirements. This route has no curvature or default-risk component."])
-    d.arrow(410, 876, 410, 915); d.arrow(1190, 876, 1190, 915)
+    d.arrow(410, 876, 410, 915)
+    d.arrow(1190, 876, 1190, 915)
     d.card(40, 925, 740, 120, "BA-CVA CAPITAL REQUIREMENT", [
         "Apply the selected version and relevant regulatory adjustments."], dark=True, size=21)
     d.card(820, 925, 740, 120, "SA-CVA CAPITAL REQUIREMENT", [
@@ -411,7 +445,7 @@ def cva_aggregation(out):
     d.save(out)
 
 
-def main(argv=None):
+def main(argv: Sequence[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     args = parser.parse_args(argv)

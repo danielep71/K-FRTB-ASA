@@ -321,8 +321,22 @@ async function applyChanges(repository, token, changes) {
   }
 }
 
+// Text for one Markdown line or table cell: pipes escaped and every line
+// break (CR, LF or CRLF) turned into a space.
 function markdownEscape(value) {
-  return String(value).replaceAll("|", "\\|").replaceAll("\n", " ");
+  return String(value).replace(/\r\n|\r|\n/g, " ").replaceAll("|", "\\|");
+}
+
+// A code span that holds exactly the value: its backtick fence is longer
+// than any backtick run in the value, and a space pads a value that starts
+// or ends with a backtick (CommonMark code spans). A fixed single backtick
+// would let an API value end the span early.
+export function codeSpan(value) {
+  const text = markdownEscape(value);
+  const longest = Math.max(0, ...(text.match(/`+/g) ?? []).map(run => run.length));
+  const fence = "`".repeat(longest + 1);
+  const pad = text.startsWith("`") || text.endsWith("`") ? " " : "";
+  return `${fence}${pad}${text}${pad}${fence}`;
 }
 
 function renderLabelNames(labels) {
@@ -350,8 +364,8 @@ function renderSummary({
   const lines = [
     "# Repository label synchronization",
     "",
-    `- Mode: \`${mode}\`${dryRun ? " (dry run)" : ""}`,
-    `- Label manifest: \`${manifestPath ?? "unavailable"}\``,
+    `- Mode: ${codeSpan(mode)}${dryRun ? " (dry run)" : ""}`,
+    `- Label manifest: ${codeSpan(manifestPath ?? "unavailable")}`,
     `- Schema: **${manifest?.schema_version ?? "unavailable"}**`,
     `- Labels: **${resolvedLabels.length}**`,
     `- Prune: **${manifest ? (manifest.prune ? "enabled" : "disabled") : "unavailable"}**`,
@@ -366,7 +380,7 @@ function renderSummary({
     `- Labels (${resolvedLabels.length}): ${renderLabelNames(resolvedLabels)}`
   );
   if (error) {
-    lines.push("", "## Failure", "", `\`${markdownEscape(error)}\``);
+    lines.push("", "## Failure", "", codeSpan(error));
     if (partial) {
       lines.push("", "The failure happened during or after reconciliation: some changes may already be applied. Compare the live labels with the manifest.");
     }
@@ -378,7 +392,7 @@ function renderSummary({
     lines.push("", "| Action | Label | Detail |", "|---|---|---|");
     for (const change of changes) {
       const detail = change.action === "update" ? change.fields.join(", ") : change.action === "delete" ? "outside the manifest" : "missing live label";
-      lines.push(`| ${change.action} | \`${markdownEscape(change.name)}\` | ${markdownEscape(detail)} |`);
+      lines.push(`| ${change.action} | ${codeSpan(change.name)} | ${markdownEscape(detail)} |`);
     }
   }
   return `${lines.join("\n")}\n`;
@@ -556,6 +570,21 @@ async function runSelfTest(manifestPath) {
   await assert.rejects(() => listLabelAssociations("fixture/repo", "unused", "foo,bar", async () => [{ labels: null }]), /malformed/);
   await assert.rejects(() => listLabelAssociations("fixture/repo", "unused", "foo,bar", async () => ({})), /not an array/);
   await assert.rejects(() => listLabelAssociations("fixture/repo", "unused", "foo,bar", async () => Array.from({ length: 100 }, () => ({ labels: [] }))), /pagination exceeded/);
+
+
+  // Summary values from the API stay inside one code span (#217)
+  assert.equal(codeSpan("plain"), "`plain`");
+  assert.equal(codeSpan("a`b"), "``a`b``");
+  assert.equal(codeSpan("x``y"), "```x``y```");
+  assert.equal(codeSpan("`edge`"), "`` `edge` ``");
+  assert.equal(codeSpan("a|b"), "`a\\|b`");
+  assert.equal(codeSpan("line1\r\nline2\rline3\nline4"), "`line1 line2 line3 line4`");
+  const escapedSummary = renderSummary({ mode: "plan", manifest, manifestPath: "a`b.json", desiredLabels: desired,
+    changes: [{ action: "delete", name: "evil`name|x\r\ny", currentName: "evil`name|x\r\ny" }] });
+  assert.match(escapedSummary, /\| delete \| ``evil`name\\\|x y`` \| outside the manifest \|/);
+  assert.match(escapedSummary, /- Label manifest: ``a`b\.json``/);
+  assert.match(renderSummary({ mode: "reconcile", manifest, manifestPath: "m", desiredLabels: desired, changes: null,
+    error: "API said `no`\r\nretry" }), /\n``API said `no` retry``\n/);
 
   process.stdout.write("SELF-TEST PASS: retry delays, validation, deletion guard and reconciliation fixtures\n");
 }

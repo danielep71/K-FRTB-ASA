@@ -14,6 +14,10 @@ issues, must have:
 - The milestone that owns its work; current prototype and repository maintenance
   belong to **v0.2.0 — SA prototype** (milestone 2, approved in #51).
   Historical setup issues retain the closed **v0.1.0 — Repo setup** milestone.
+  An open issue's milestone must be open.
+- A target date, `YYYY-MM-DD`, no later than the milestone's due date: the
+  **Target end date** of the issue forms, or a `**Target completion date:**`
+  planning line in the body, which takes precedence (#221).
 - An objective, acceptance checklist, dependencies and required evidence.
 
 PRs retain the assignee and exactly one priority, and link to their owning
@@ -67,13 +71,15 @@ applicable green checks and any required runtime evidence; only mark acceptance
 checkboxes complete when that evidence exists.
 
 **Issue triage** ([workflow](../.github/workflows/issue-triage.yml),
-[check](../tools/check_issues.py)) audits every open issue on issue events
-and on manual dispatch: assignee `danielep71`, exactly one priority, P1 only
-with `bug`, a milestone, labels from the catalogue, and the dependency rule
-above. It is read-only: a failed run is the triage signal, and I resolve each
+[check](../tools/check_issues.py)) audits every open issue on issue events, on
+milestone events (a new due date or a closed milestone changes the rules of
+its issues) and on manual dispatch: assignee `danielep71`, exactly one
+priority, P1 only with `bug`, an open milestone, a real target date no later
+than its due date, labels from the catalogue, and the dependency rule above. It is read-only: a failed run is the triage signal, and I resolve each
 finding by hand. `python tools/check_issues.py --check-config`, run by
 `tools/check_repository.py`, checks offline that the forms, this guide and
-Dependabot agree with the catalogue. For an offline audit of exported issues:
+Dependabot agree with the catalogue, and that the three work forms require
+the target end date. For an offline audit of exported issues:
 `python tools/check_issues.py --input issues.json --repo-name danielep71/K-FRTB-SA`.
 The label workflows manage the catalogue only: they do not assign issues,
 choose priorities or milestones, or close issues. The bug form defaults to

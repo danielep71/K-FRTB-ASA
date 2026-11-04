@@ -7,6 +7,33 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The required integrity check runs Ruff (pyflakes, import order and a
+  complexity limit of 15), mypy in strict mode with `warn_unreachable`, and
+  actionlint on every workflow. Their versions are pinned with hashes or a
+  verified checksum, and in CI a missing tool fails the check. The tooling
+  and the tests are annotated to pass them (#219).
+- SECURITY lists what each entry point reads, writes and deletes, the host
+  settings the scripts need and the data rules, and adds a good-faith
+  research clause. Governance and the PR template require checks and review
+  on the final head SHA, renewed after a content push, and `docs/CI.md`
+  states that CodeQL runs as the default setup (#223).
+- The bug, feature and documentation forms require a target end date, and
+  offer an optional workaround or recovery (bug) and alternatives (feature).
+  Issue triage reports an issue in a closed milestone and a missing,
+  impossible or late target date, the body's planning line taking precedence
+  over the form field, and it now also runs on milestone events. Traffic
+  alerts write their schedule as `**Target completion date:**` planning
+  lines, so triage reads their date (#221).
+- `tools/check_repository.py` checks the `#fragment` of every local Markdown
+  link against the anchors of its target, GitHub heading slugs and HTML ids,
+  and rejects duplicated explicit anchors. A new weekly and manual workflow,
+  `link-check.yml`, requests the external links and separates verified,
+  unverifiable and broken ones, outside the required checks (#218).
+- CI is reproducible: the integrity gate runs on exact Python and Node.js
+  versions, both requirements files pin every package by hash and install
+  from wheels only, each integrity run uploads a report bound to its commit,
+  run and attempt, push runs are no longer cancelled by later pushes, and
+  PR milestone events have one concurrency group per PR (#220).
 - GIRR vega takes inflation and cross-currency basis risk factors along the
   option maturity only (MAR21.8 FAQ4): `In_Vega` accepts the sub-types
   `YIELD` (the default), `INFLATION` and `XCCY`, and rejects an underlying
@@ -133,6 +160,10 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- The label sync and drift summaries put names, colors, paths and API
+  errors in code spans whose backtick fence outlasts any backtick in the
+  value, and turn CR, LF and CRLF into spaces, so an API value can no longer
+  end its span or break a table row (#217).
 - `Results`, `Control`, `Test_Expected` and the `P_*` sheets freeze only
   their header rows, so no frozen line runs through their narrow tables; the
   `In_*`, `Out_*` and `Log` sheets keep their key columns in view. The

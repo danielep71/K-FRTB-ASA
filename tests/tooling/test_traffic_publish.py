@@ -2,16 +2,17 @@
 """Offline publication and workflow tests; no GitHub credentials or network."""
 import importlib.util
 import os
-from pathlib import Path
 import re
 import shlex
 import subprocess
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = importlib.util.spec_from_file_location("traffic_publish", ROOT / "tools/traffic_publish.py")
+assert SPEC is not None and SPEC.loader is not None
 publisher = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(publisher)
 WORKFLOW = ROOT / ".github/workflows/traffic-export.yml"

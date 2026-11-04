@@ -12,8 +12,10 @@ on:
 
 permissions: {}
 
+# One pending slot per PR, so the event of one PR cannot replace another's;
+# the scheduled, manual and push scans share their own group.
 concurrency:
-  group: pr-milestones
+  group: ${{ github.event_name == 'pull_request_target' && format('pr-milestones-pr-{0}', github.event.pull_request.number) || 'pr-milestones-scan' }}
   cancel-in-progress: false
 
 jobs:
