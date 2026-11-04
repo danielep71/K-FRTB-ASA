@@ -35,8 +35,8 @@ disallow_untyped_calls = false
 check_untyped_defs = true
 
 # No type information exists for these: the LibreOffice UNO bridge comes from
-# the OS (python3-uno), and CairoSVG is not a pinned dependency
+# the OS (python3-uno), and CairoSVG and Pillow are not pinned dependencies
 # (tools/build_market_diagrams.py renders the diagrams only on request).
 [[tool.mypy.overrides]]
-module = ["uno", "unohelper", "com.*", "cairosvg"]
+module = ["uno", "unohelper", "com.*", "cairosvg", "PIL", "PIL.*"]
 ignore_missing_imports = true

@@ -4,15 +4,19 @@
 
 import argparse
 import html
+import importlib.util
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
 import unicodedata
+from collections.abc import Collection, Iterable, Iterator
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, NoReturn
 from urllib.parse import unquote, urlsplit
 
 import yaml
@@ -31,8 +35,8 @@ ConfigLoader.add_implicit_resolver(
 )
 
 
-def unique_pairs(pairs):
-    result = {}
+def unique_pairs(pairs: Iterable[tuple[Any, Any]]) -> dict[Any, Any]:
+    result: dict[Any, Any] = {}
     for key, value in pairs:
         if key in result:
             raise ValueError(f"duplicate key: {key}")
@@ -40,22 +44,22 @@ def unique_pairs(pairs):
     return result
 
 
-def yaml_mapping(loader, node):
+def yaml_mapping(loader: yaml.SafeLoader, node: yaml.MappingNode) -> dict[Any, Any]:
     return unique_pairs((loader.construct_object(key), loader.construct_object(value)) for key, value in node.value)
 
 
 ConfigLoader.add_constructor("tag:yaml.org,2002:map", yaml_mapping)
 
 
-def load_yaml(text):
+def load_yaml(text: str) -> Any:
     return yaml.load(text, Loader=ConfigLoader)
 
 
-def reject_json_constant(value):
+def reject_json_constant(value: str) -> NoReturn:
     raise ValueError(f"non-standard JSON constant: {value}")
 
 
-def binary_paths(root, paths):
+def binary_paths(root: Path, paths: list[str]) -> set[str]:
     result = subprocess.check_output(
         ["git", "check-attr", "-z", "--stdin", "text"],
         input=("\0".join(paths) + "\0").encode(), cwd=root,
@@ -63,7 +67,7 @@ def binary_paths(root, paths):
     return {result[index] for index in range(0, len(result), 3) if result[index + 2] == "unset"}
 
 
-def _outside_fences(text):
+def _outside_fences(text: str) -> Iterator[str]:
     """The lines of a Markdown text outside fenced code blocks."""
     fence = None
     for line in text.splitlines():
@@ -76,7 +80,7 @@ def _outside_fences(text):
             yield line
 
 
-def heading_slug(heading):
+def heading_slug(heading: str) -> str:
     """GitHub's anchor for a heading: the rendered text lower-cased, every
     character but letters, marks, digits, connector punctuation, spaces and
     hyphens removed, and each space turned into a hyphen.
@@ -84,9 +88,9 @@ def heading_slug(heading):
     Code spans render their text literally, so they are set aside first and
     restored after links, HTML, emphasis and character references are
     resolved in the rest."""
-    spans = []
+    spans: list[str] = []
 
-    def set_aside(match):
+    def set_aside(match: re.Match[str]) -> str:
         spans.append(match[2].strip(" ") if match[2].strip(" ") else match[2])
         return chr(0xE000 + len(spans) - 1)  # a private-use placeholder
 
@@ -98,7 +102,7 @@ def heading_slug(heading):
     text = re.sub(r"(?<!\w)(_{1,3})(?=\S)(.+?)(?<=\S)\1(?!\w)", r"\2", text)
     text = html.unescape(text)  # character references: the character they render
     text = re.sub("[\uE000-\uF8FF]", lambda match: spans[ord(match[0]) - 0xE000], text)
-    kept = []
+    kept: list[str] = []
     for char in text.lower():
         category = unicodedata.category(char)
         if char in " -" or category[0] in "LMN" or category == "Pc":
@@ -106,7 +110,7 @@ def heading_slug(heading):
     return "".join(kept).replace(" ", "-")
 
 
-def setext_text(line):
+def setext_text(line: str) -> bool:
     """Whether a line can be the text of a Setext heading: not blank and not
     another block (heading, list item, quote, table row, HTML or a rule)."""
     stripped = line.strip()
@@ -114,14 +118,16 @@ def setext_text(line):
         r"(#|[-*+][ \t]|\d+[.)][ \t]|>|\||<|(?:[-*_][ \t]*){3,}$)", stripped)
 
 
-def markdown_anchors(text):
+def markdown_anchors(text: str) -> tuple[set[str], set[str]]:
     """The anchors a Markdown file defines, and its duplicated explicit ids.
 
     Headings give GitHub's slugs: a repeat takes the next free -1, -2 ...
     suffix, checked against every slug emitted so far, so "Scope", "Scope"
     and "Scope-1" give scope, scope-1 and scope-1-1. An HTML id or name
     attribute outside code gives an explicit anchor."""
-    counts, explicit, duplicates = {}, set(), set()
+    counts: dict[str, int] = {}
+    explicit: set[str] = set()
+    duplicates: set[str] = set()
     previous = ""
     for line in _outside_fences(text):
         heading = re.match(r"^ {0,3}#{1,6}[ \t]+(.*?)(?:[ \t]+#+)?[ \t]*$", line)
@@ -144,7 +150,7 @@ def markdown_anchors(text):
     return set(counts) | explicit, duplicates
 
 
-def markdown_targets(text):
+def markdown_targets(text: str) -> list[str]:
     # Common inline links/images and reference definitions outside fenced code.
     body = "\n".join(re.sub(r"`[^`]*`", "", line) for line in _outside_fences(text))
     targets = re.findall(r"\]\(\s*(<[^>]+>|[^\s)]+)(?:\s+[^)]*)?\)", body)
@@ -152,16 +158,106 @@ def markdown_targets(text):
     return [target.strip("<>") for target in targets]
 
 
-def validate_files(root, paths, binary=frozenset()):
+TEXT_EXPORTS = {".bas", ".cls", ".frm"}  # VBA exports may be Windows-1252
+
+
+def decode_text(name: str, path: Path, data: bytes) -> tuple[str | None, str | None]:
+    """The text of a tracked file, or the error that makes it unreadable."""
+    if b"\0" in data:
+        return None, f"{name}: unexpected NUL in text"
+    try:
+        return data.decode("utf-8"), None
+    except UnicodeDecodeError:
+        if path.suffix.lower() in TEXT_EXPORTS:
+            return data.decode("cp1252"), None
+        return None, f"{name}: text must be UTF-8"
+
+
+def whitespace_errors(name: str, path: Path, text: str) -> list[str]:
+    """Trailing whitespace (Markdown hard breaks aside), final newline and EOF blank lines."""
     errors = []
-    tracked = set(paths)
-    anchor_cache = {}
+    for number, line in enumerate(text.splitlines(), 1):
+        trailing = line[len(line.rstrip(" \t")):]
+        hard_break = path.suffix == ".md" and len(trailing) >= 2 and set(trailing) == {" "}
+        if trailing and not hard_break:
+            errors.append(f"{name}:{number}: trailing whitespace")
+    if text and not text.endswith("\n"):
+        errors.append(f"{name}: missing final newline")
+    if re.search(r"\n[\r\n]+\Z", text):
+        errors.append(f"{name}: extra blank line at EOF")
+    return errors
 
-    def anchors_of(relative):
-        if relative not in anchor_cache:
-            anchor_cache[relative] = markdown_anchors((root / relative).read_text(encoding="utf-8"))[0]
-        return anchor_cache[relative]
 
+class MarkdownLinks:
+    """Checks the local links of tracked Markdown files, and their fragments."""
+
+    def __init__(self, root: Path, tracked: set[str]) -> None:
+        self.root = root.resolve()
+        self.tracked = tracked
+        self.anchors: dict[str, set[str]] = {}
+
+    def anchors_of(self, relative: str) -> set[str]:
+        if relative not in self.anchors:
+            self.anchors[relative] = markdown_anchors((self.root / relative).read_text(encoding="utf-8"))[0]
+        return self.anchors[relative]
+
+    def validate(self, name: str, path: Path, text: str) -> None:
+        """Raise ValueError for a duplicated explicit anchor or a broken local link."""
+        anchors, duplicates = markdown_anchors(text)
+        self.anchors[name] = anchors
+        if duplicates:
+            raise ValueError(f"duplicate explicit anchor: {', '.join(sorted(duplicates))}")
+        for target in markdown_targets(text):
+            parsed = urlsplit(target)
+            if parsed.scheme or parsed.netloc:
+                continue
+            fragment = unquote(parsed.fragment)
+            if not parsed.path:
+                if fragment and not has_anchor(anchors, fragment):
+                    raise ValueError(f"link fragment not found in this file: {target}")
+                continue
+            relative = self.tracked_target(path, parsed.path, target)
+            if fragment and relative.endswith(".md") and relative in self.tracked \
+                    and not has_anchor(self.anchors_of(relative), fragment):
+                raise ValueError(f"link fragment not found in {relative}: {target}")
+
+    def tracked_target(self, path: Path, link_path: str, target: str) -> str:
+        """The repository path a link points to; it must be tracked, or hold tracked files."""
+        if link_path.startswith("/"):
+            destination = self.root / link_path.lstrip("/")
+        else:
+            destination = path.parent / unquote(link_path)
+        destination = destination.resolve()
+        if not destination.is_relative_to(self.root):
+            raise ValueError(f"link escapes repository: {target}")
+        relative = destination.relative_to(self.root).as_posix()
+        prefix = relative.rstrip("/") + "/"
+        if relative not in self.tracked and not any(item.startswith(prefix) for item in self.tracked):
+            raise ValueError(f"link target is not tracked: {target}")
+        return relative
+
+
+def has_anchor(anchors: set[str], fragment: str) -> bool:
+    return fragment in anchors or fragment.lower() in anchors
+
+
+def validate_content(name: str, path: Path, text: str, links: MarkdownLinks) -> None:
+    """Parse JSON and YAML strictly, check workflows, and check Markdown links."""
+    if path.suffix == ".json":
+        json.loads(text, object_pairs_hook=unique_pairs, parse_constant=reject_json_constant)
+    elif path.suffix in {".yml", ".yaml"}:
+        document = load_yaml(text)
+        if not isinstance(document, dict):
+            raise ValueError("configuration must be a mapping")
+        if name.startswith(".github/workflows/"):
+            validate_workflow(document, Path(name).name)
+    elif path.suffix == ".md":
+        links.validate(name, path, text)
+
+
+def validate_files(root: Path, paths: list[str], binary: Collection[str] = frozenset()) -> list[str]:
+    errors = []
+    links = MarkdownLinks(root, set(paths))
     for name in paths:
         path = root / name
         try:
@@ -171,67 +267,20 @@ def validate_files(root, paths, binary=frozenset()):
             continue
         if name in binary:
             continue
-        if b"\0" in data:
-            errors.append(f"{name}: unexpected NUL in text")
+        text, problem = decode_text(name, path, data)
+        if text is None:
+            errors.append(problem or f"{name}: unreadable")
             continue
+        errors += whitespace_errors(name, path, text)
         try:
-            text = data.decode("utf-8")
-        except UnicodeDecodeError:
-            if path.suffix.lower() in {".bas", ".cls", ".frm"}:
-                text = data.decode("cp1252")
-            else:
-                errors.append(f"{name}: text must be UTF-8")
-                continue
-        for number, line in enumerate(text.splitlines(), 1):
-            trailing = line[len(line.rstrip(" \t")):]
-            hard_break = path.suffix == ".md" and len(trailing) >= 2 and set(trailing) == {" "}
-            if trailing and not hard_break:
-                errors.append(f"{name}:{number}: trailing whitespace")
-        if text and not text.endswith("\n"):
-            errors.append(f"{name}: missing final newline")
-        if re.search(r"\n[\r\n]+\Z", text):
-            errors.append(f"{name}: extra blank line at EOF")
-        try:
-            if path.suffix == ".json":
-                json.loads(text, object_pairs_hook=unique_pairs, parse_constant=reject_json_constant)
-            elif path.suffix in {".yml", ".yaml"}:
-                document = load_yaml(text)
-                if not isinstance(document, dict):
-                    raise ValueError("configuration must be a mapping")
-                if name.startswith(".github/workflows/"):
-                    validate_workflow(document, Path(name).name)
-            elif path.suffix == ".md":
-                anchors, duplicates = markdown_anchors(text)
-                anchor_cache[name] = anchors
-                if duplicates:
-                    raise ValueError(f"duplicate explicit anchor: {', '.join(sorted(duplicates))}")
-                for target in markdown_targets(text):
-                    parsed = urlsplit(target)
-                    if parsed.scheme or parsed.netloc:
-                        continue
-                    fragment = unquote(parsed.fragment)
-                    if not parsed.path:
-                        if fragment and fragment not in anchors and fragment.lower() not in anchors:
-                            raise ValueError(f"link fragment not found in this file: {target}")
-                        continue
-                    destination = (root / parsed.path.lstrip("/")) if parsed.path.startswith("/") else path.parent / unquote(parsed.path)
-                    destination = destination.resolve()
-                    if not destination.is_relative_to(root.resolve()):
-                        raise ValueError(f"link escapes repository: {target}")
-                    relative = destination.relative_to(root.resolve()).as_posix()
-                    if relative not in tracked and not any(item.startswith(relative.rstrip("/") + "/") for item in tracked):
-                        raise ValueError(f"link target is not tracked: {target}")
-                    if fragment and relative.endswith(".md") and relative in tracked:
-                        known = anchors_of(relative)
-                        if fragment not in known and fragment.lower() not in known:
-                            raise ValueError(f"link fragment not found in {relative}: {target}")
+            validate_content(name, path, text, links)
         except (ValueError, TypeError, yaml.YAMLError) as error:
             errors.append(f"{name}: {error}")
     return errors
 
 
 # Jobs that may hold a write permission, and the scopes they may write.
-WRITE_ALLOWED = {
+WRITE_ALLOWED: dict[tuple[str | None, str], set[str]] = {
     ("labels-sync.yml", "reconcile"): {"issues"},
     ("traffic-export.yml", "export"): {"contents"},
     ("traffic-export.yml", "alert"): {"issues"},
@@ -241,7 +290,7 @@ DEFAULT_BRANCH_ONLY = "github.ref == format('refs/heads/{0}', github.event.repos
 LABEL_RECONCILE_CONDITION = "github.event_name != 'pull_request' && " + DEFAULT_BRANCH_ONLY
 
 
-def written_scopes(permissions):
+def written_scopes(permissions: object) -> set[str]:
     """The scopes a permissions value grants write access to."""
     if permissions in ("write-all", "write"):
         return {"*"}
@@ -252,7 +301,7 @@ def written_scopes(permissions):
     raise ValueError(f"unrecognized permissions value: {permissions!r}")
 
 
-def validate_workflow(document, name=None):
+def validate_workflow(document: dict[str, Any], name: str | None = None) -> None:
     """Check pinning, credentials, permissions and timeouts of one workflow.
 
     ``name`` is the file name under .github/workflows; write permissions are
@@ -284,7 +333,7 @@ def validate_workflow(document, name=None):
         raise ValueError("labels-sync reconcile must run only outside pull requests on the default branch")
 
 
-def validate_controls(root):
+def validate_controls(root: Path) -> None:
     milestone_workflow = load_yaml((root / ".github/workflows/pr-milestones.yml").read_text())
     validate_milestone_workflow(milestone_workflow)
     workflow = load_yaml((root / ".github/workflows/integrity.yml").read_text())
@@ -301,7 +350,7 @@ def validate_controls(root):
     milestone_group = milestone_workflow.get("concurrency", {}).get("group", "")
     if "github.event.pull_request.number" not in milestone_group:
         raise ValueError("PR milestone events need one concurrency group per PR")
-    for name in (".github/requirements.txt", "tests/requirements.txt"):
+    for name in (".github/requirements.txt", ".github/requirements-quality.txt", "tests/requirements.txt"):
         validate_hashed_requirements((root / name).read_text(encoding="utf-8"), name)
     updates = load_yaml((root / ".github/dependabot.yml").read_text())
     if updates["version"] != 2:
@@ -329,15 +378,15 @@ INTEGRITY_CONCURRENCY = {
 EXACT_VERSION = re.compile(r"\d+\.\d+\.\d+")
 
 
-def validate_integrity_reproducibility(workflow):
+def validate_integrity_reproducibility(workflow: dict[str, Any]) -> None:
     """Exact runtimes, hashed installs, a report always uploaded, and push
     runs that no later push cancels."""
     if workflow.get("concurrency") != INTEGRITY_CONCURRENCY:
         raise ValueError("integrity must cancel only superseded PR runs, never push runs")
     steps = workflow["jobs"]["integrity"]["steps"]
 
-    def step(action):
-        found = [item for item in steps if item.get("uses", "").startswith(action + "@")]
+    def step(action: str) -> dict[str, Any]:
+        found: list[dict[str, Any]] = [item for item in steps if item.get("uses", "").startswith(action + "@")]
         if len(found) != 1:
             raise ValueError(f"integrity must use {action} once")
         return found[0]
@@ -352,11 +401,16 @@ def validate_integrity_reproducibility(workflow):
     options = upload.get("with") or {}
     if upload.get("if") != "always()" or options.get("if-no-files-found") != "error" or not options.get("retention-days"):
         raise ValueError("integrity must always upload its report and fail when it is missing")
-    if not any("--report" in item.get("run", "") for item in steps):
+    gate = [item for item in steps if "tools/check_repository.py" in item.get("run", "")]
+    if len(gate) != 1 or "--report" not in gate[0]["run"]:
         raise ValueError("integrity must write its report")
+    if (gate[0].get("env") or {}).get("REQUIRE_QUALITY_TOOLS") != "1":
+        raise ValueError("integrity must require the quality tools (REQUIRE_QUALITY_TOOLS=1)")
+    if not any("sha256sum --check" in item.get("run", "") and "actionlint" in item.get("run", "") for item in steps):
+        raise ValueError("integrity must verify the SHA-256 of the actionlint it downloads")
 
 
-def validate_hashed_requirements(text, name):
+def validate_hashed_requirements(text: str, name: str) -> None:
     """Every requirement is pinned with == and carries at least one hash."""
     requirements = re.split(r"(?<!\\)\n(?=\S)", re.sub(r"(?m)^\s*#.*\n", "", text))
     for requirement in filter(str.strip, requirements):
@@ -370,7 +424,7 @@ MILESTONE_RECONCILE_CONDITION = (
 )
 
 
-def validate_milestone_workflow(document):
+def validate_milestone_workflow(document: dict[str, Any]) -> None:
     events = document["on"]
     if set(events) != {"push", "pull_request_target", "schedule", "workflow_dispatch"} or events["push"] != {"branches": ["main"], "paths": [".github/workflows/pr-milestones.yml"]} or events["pull_request_target"] != {"types": ["opened", "reopened", "edited", "milestoned"]} or events["schedule"] != [{"cron": "17 3 * * *"}]:
         raise ValueError("PR milestone workflow requires event and full-scan coverage")
@@ -384,13 +438,52 @@ def validate_milestone_workflow(document):
         raise ValueError("PR milestone workflow must use trusted inline code without checkout or event interpolation")
 
 
-def run_checks(root, checks):
+# The quality gates (#219), with the configuration of pyproject.toml. actionlint
+# runs without its ShellCheck and pyflakes integrations: those tools would come
+# unpinned from the runner image.
+QUALITY_GATES: list[tuple[str, str, list[str]]] = [
+    ("ruff check", "ruff", ["check", "tools", "tests", ".github"]),
+    ("mypy tools", "mypy", []),
+    ("mypy tests", "mypy", ["tests"]),
+    ("actionlint", "actionlint", ["-no-color", "-oneline", "-shellcheck=", "-pyflakes="]),
+]
+
+
+def quality_command(tool: str) -> list[str] | None:
+    """The command that runs a quality tool, or None when it is not installed.
+
+    Ruff and mypy run as modules of this interpreter; actionlint is the
+    ACTIONLINT binary, or the one on PATH."""
+    if tool in {"ruff", "mypy"}:
+        return [sys.executable, "-m", tool] if importlib.util.find_spec(tool) else None
+    found = os.environ.get("ACTIONLINT") or shutil.which(tool)
+    return [found] if found and Path(found).is_file() else None
+
+
+def quality_plan(require: bool) -> tuple[list[tuple[str, list[str]]], list[str], list[str]]:
+    """The gate commands to run, the missing tools that fail the run, and those skipped.
+
+    With REQUIRE_QUALITY_TOOLS=1, as in CI, a missing tool fails; a local run
+    without it skips the gate and says so."""
+    commands, failed, skipped = [], [], []
+    for name, tool, arguments in QUALITY_GATES:
+        command = quality_command(tool)
+        if command is not None:
+            commands.append((name, command + arguments))
+        elif require:
+            failed.append(f"{name}: {tool} is not installed and REQUIRE_QUALITY_TOOLS=1")
+        else:
+            skipped.append(name)
+    return commands, failed, skipped
+
+
+def run_checks(root: Path, checks: list[dict[str, Any]]) -> int:
     """Run every check in order, appending one record per check to ``checks``.
 
     It stops at the first failure, as before; the record of the failed check
     holds its errors or exit code. Returns the process exit code."""
-    def run(name, command):
-        record = {"name": name, "status": "FAIL"}
+    def run(name: str, command: list[str]) -> None:
+        record: dict[str, Any] = {"name": name, "status": "FAIL"}
         checks.append(record)
         started = time.monotonic()
         try:
@@ -411,6 +504,16 @@ def run_checks(root, checks):
         print("\n".join(errors), file=sys.stderr)
         return 1
     print(f"PASS: configuration, tracked whitespace and local Markdown targets ({len(paths)} files)", flush=True)
+    gates, missing, skipped = quality_plan(os.environ.get("REQUIRE_QUALITY_TOOLS") == "1")
+    for name in skipped:
+        checks.append({"name": name, "status": "SKIP", "detail": "tool not installed; CI requires it"})
+        print(f"SKIP: {name}: the tool is not installed; CI requires it (REQUIRE_QUALITY_TOOLS=1)", flush=True)
+    if missing:
+        checks.append({"name": "quality tools", "status": "FAIL", "detail": missing})
+        print("\n".join(missing), file=sys.stderr)
+        return 1
+    for name, command in gates:
+        run(name, command)
     commands = [
         ["node", ".github/scripts/labels-sync.mjs", "--self-test"],
         ["node", ".github/scripts/labels-sync.mjs", "--mode", "validate"],
@@ -424,7 +527,7 @@ def run_checks(root, checks):
     return 0
 
 
-def checked_commit(root):
+def checked_commit(root: Path) -> str:
     """The commit of the checked repository: GITHUB_SHA in CI, else its HEAD.
 
     It never falls back to the caller's working directory; a failed lookup
@@ -438,7 +541,8 @@ def checked_commit(root):
     return found.stdout.strip() or "unknown"
 
 
-def write_report(path, checks, code, versions, root=Path(__file__).resolve().parents[1]):
+def write_report(path: Path, checks: list[dict[str, Any]], code: int, versions: dict[str, str],
+                 root: Path = Path(__file__).resolve().parents[1]) -> None:
     """The JSON report of one run, bound to its commit, run and attempt."""
     commit = checked_commit(root)
     report = {
@@ -456,23 +560,32 @@ def write_report(path, checks, code, versions, root=Path(__file__).resolve().par
     path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
 
 
-def runtime_versions():
-    def version(command):
+def runtime_versions() -> dict[str, str]:
+    def version(command: list[str]) -> str:
         try:
             return subprocess.run(command, capture_output=True, text=True, check=False).stdout.strip()
         except OSError:
             return "not found"
-    return {"python": sys.version.split()[0], "node": version(["node", "--version"]),
-            "git": version(["git", "--version"]), "pyyaml": yaml.__version__}
+    versions = {"python": sys.version.split()[0], "node": version(["node", "--version"]),
+                "git": version(["git", "--version"]), "pyyaml": yaml.__version__}
+    for _, tool, _ in QUALITY_GATES:
+        command = quality_command(tool)
+        if command is None:
+            versions[tool] = "not installed"
+        else:
+            output = version(command + ["-version" if tool == "actionlint" else "--version"]).splitlines()
+            versions[tool] = output[0] if output else "unknown"
+    return versions
 
 
-def main(argv=None):
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--report", type=Path,
                         help="also write a JSON report of every check run, whatever the result")
     args = parser.parse_args(argv)
     root = Path(__file__).resolve().parents[1]
-    checks, code = [], 1
+    checks: list[dict[str, Any]] = []
+    code = 1
     try:
         code = run_checks(root, checks)
         return code

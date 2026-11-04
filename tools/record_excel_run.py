@@ -216,8 +216,8 @@ def main(arguments: list[str] | None = None) -> int:
     for name, stage in record["stages"].items():
         print(f"  {name:24} {stage['status']:8} {stage['detail']}")
     print(f"Validator outcome: {', '.join(check.outcomes)}")
-    for error in check.errors:
-        print(f"  ERROR {error}")
+    for message in check.errors:
+        print(f"  ERROR {message}")
     print(f"Reports: {reports}")
     return 0 if check.outcomes == ["PASS"] else 1
 
