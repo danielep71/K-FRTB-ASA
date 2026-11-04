@@ -426,9 +426,12 @@ def run_checks(root, checks):
 
 def write_report(path, checks, code, versions):
     """The JSON report of one run, bound to its commit, run and attempt."""
+    commit = os.environ.get("GITHUB_SHA") or subprocess.run(
+        ["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
     report = {
-        "commit": os.environ.get("GITHUB_SHA") or subprocess.run(
-            ["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip(),
+        # the commit tested (on a PR, GitHub's merge commit) and the head it was built from
+        "commit": commit,
+        "head_commit": os.environ.get("REPORT_HEAD_SHA") or commit,
         "run_id": os.environ.get("GITHUB_RUN_ID", ""),
         "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
         "finished_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),

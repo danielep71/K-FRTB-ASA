@@ -250,13 +250,14 @@ class RepositoryIntegrityTests(unittest.TestCase):
 
     def test_report_is_bound_to_commit_run_and_attempt(self):
         checks = [{"name": "one", "status": "PASS", "seconds": 0.1}, {"name": "two", "status": "FAIL", "detail": "exit code 1"}]
-        environment = {"GITHUB_SHA": "a" * 40, "GITHUB_RUN_ID": "7", "GITHUB_RUN_ATTEMPT": "2"}
+        environment = {"GITHUB_SHA": "a" * 40, "GITHUB_RUN_ID": "7", "GITHUB_RUN_ATTEMPT": "2", "REPORT_HEAD_SHA": "b" * 40}
         with tempfile.TemporaryDirectory() as directory, unittest.mock.patch.dict(checker.os.environ, environment):
             path = Path(directory) / "reports" / "integrity.json"
             checker.write_report(path, checks, 1, {"python": "3.13.18"})
             report = json.loads(path.read_text(encoding="utf-8"))
         self.assertEqual((report["commit"], report["run_id"], report["run_attempt"], report["result"]),
                          ("a" * 40, "7", "2", "FAIL"))
+        self.assertEqual(report["head_commit"], "b" * 40)
         self.assertEqual(report["checks"], checks)
         self.assertEqual(report["runtimes"], {"python": "3.13.18"})
 

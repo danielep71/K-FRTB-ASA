@@ -46,14 +46,18 @@ jobs:
           git --version
           python -m venv .venv-ci
           .venv-ci/bin/python -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r .github/requirements.txt
+      # On a PR, GITHUB_SHA is the merge commit GitHub tests; the report also
+      # names the PR head, and the report and artifact are named after it.
       - name: Validate repository and run offline maintenance fixtures
-        run: .venv-ci/bin/python tools/check_repository.py --report "integrity-report/integrity-${GITHUB_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json"
+        env:
+          REPORT_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: .venv-ci/bin/python tools/check_repository.py --report "integrity-report/integrity-${REPORT_HEAD_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json"
       # Uploaded whatever the result; a missing report fails the job.
       - name: Upload the integrity report
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: integrity-report-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          name: integrity-report-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: integrity-report/
           if-no-files-found: error
           retention-days: 30

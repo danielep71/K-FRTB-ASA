@@ -115,9 +115,10 @@ timeout is 10 minutes.
 - **Report:** `tools/check_repository.py --report PATH` writes a JSON report
   of every check it ran: the commit, run id and attempt, the runtimes, and
   each check's result and duration. It writes the report whatever the result.
-  The job uploads it as the artifact
-  `integrity-report-<sha>-<run id>-<attempt>`, kept 30 days, even when a
-  check failed; a missing report fails the job.
+  On a PR, `commit` is the merge commit GitHub tests and `head_commit` the PR
+  head; on a push they are the same. The job uploads the report as the
+  artifact `integrity-report-<head sha>-<run id>-<attempt>`, kept 30 days,
+  even when a check failed; a missing report fails the job.
 - **Concurrency:** a PR run has one group per PR, and a newer head cancels
   the older run. A push or dispatch run has a group of its own and is never
   cancelled, so each pushed commit keeps its result. The PR milestone
