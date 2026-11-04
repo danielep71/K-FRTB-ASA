@@ -20,6 +20,7 @@ on:
       - tools/**
       - .github/workflows/prototype-checks.yml
       - .github/requirements.txt
+      - .github/requirements.in
   workflow_dispatch:
 
 permissions:
@@ -54,10 +55,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends libreoffice-calc python3-uno
 
-      - name: Install pinned Python test dependencies
+      # The OS Python, because python3-uno is built for it. --ignore-installed
+      # installs every package from its hashed wheel even when the OS has one.
+      - name: Install hashed Python test dependencies
         run: |
+          /usr/bin/python3 --version
           /usr/bin/python3 -m venv --system-site-packages .venv
-          .venv/bin/python -m pip install --disable-pip-version-check -r tests/requirements.txt -r .github/requirements.txt
+          .venv/bin/python -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: --ignore-installed -r tests/requirements.txt -r .github/requirements.txt
 
       - name: Static lint of the VBA modules
         run: .venv/bin/python tools/vba_lint.py

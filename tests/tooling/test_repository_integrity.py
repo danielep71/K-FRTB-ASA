@@ -2,16 +2,22 @@
 """Synthetic failures for the universal maintenance gate, without network."""
 
 import copy
+import json
 from pathlib import Path
 import sys
 import subprocess
 import tempfile
 import unittest
+import unittest.mock
 
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 import check_repository as checker
+
+
+CONTROL_FILES = [".github/workflows/integrity.yml", ".github/workflows/pr-milestones.yml", ".github/dependabot.yml",
+                 ".github/requirements.txt", "tests/requirements.txt"]
 
 
 class RepositoryIntegrityTests(unittest.TestCase):
@@ -132,7 +138,7 @@ class RepositoryIntegrityTests(unittest.TestCase):
         source = Path(__file__).resolve().parents[2]
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            for name in [".github/workflows/integrity.yml", ".github/workflows/pr-milestones.yml", ".github/dependabot.yml"]:
+            for name in CONTROL_FILES:
                 path = root / name
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text((source / name).read_text())
@@ -149,6 +155,62 @@ class RepositoryIntegrityTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Dependabot must cover"):
                 checker.validate_controls(root)
 
+    def test_reproducibility_controls(self):
+        source = Path(__file__).resolve().parents[2]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name in CONTROL_FILES:
+                (root / name).parent.mkdir(parents=True, exist_ok=True)
+                (root / name).write_text((source / name).read_text())
+            checker.validate_controls(root)
+            integrity = root / ".github/workflows/integrity.yml"
+            original = integrity.read_text()
+
+            def broken(change, message):
+                workflow = checker.load_yaml(original)
+                change(workflow, workflow["jobs"]["integrity"]["steps"])
+                integrity.write_text(yaml.safe_dump(workflow))
+                with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
+                    checker.validate_controls(root)
+
+            def uses(steps, action):
+                return next(step for step in steps if step.get("uses", "").startswith(action + "@"))
+
+            broken(lambda w, s: w["concurrency"].update({"cancel-in-progress": True}), "never push runs")
+            broken(lambda w, s: uses(s, "actions/setup-python")["with"].update({"python-version": "3.13"}),
+                   "exact python-version")
+            broken(lambda w, s: uses(s, "actions/setup-node")["with"].update({"node-version": "lts/*"}),
+                   "exact node-version")
+            broken(lambda w, s: [step.update({"run": step["run"].replace("--require-hashes ", "")})
+                                 for step in s if "pip install" in step.get("run", "")], "by hash")
+            broken(lambda w, s: uses(s, "actions/upload-artifact").pop("if"), "always upload")
+            broken(lambda w, s: uses(s, "actions/upload-artifact")["with"].update({"if-no-files-found": "warn"}),
+                   "always upload")
+            integrity.write_text(original)
+            milestones = root / ".github/workflows/pr-milestones.yml"
+            milestones.write_text(milestones.read_text().replace(
+                "github.event_name == 'pull_request_target' && format('pr-milestones-pr-{0}', "
+                "github.event.pull_request.number) || ", "").replace("${{ 'pr-milestones-scan' }}", "pr-milestones"))
+            with self.assertRaisesRegex(ValueError, "one concurrency group per PR"):
+                checker.validate_controls(root)
+            milestones.write_text((source / ".github/workflows/pr-milestones.yml").read_text())
+            requirements = root / "tests/requirements.txt"
+            requirements.write_text("numpy==2.5.4\n")
+            with self.assertRaisesRegex(ValueError, "exact pin and a hash"):
+                checker.validate_controls(root)
+
+    def test_report_is_bound_to_commit_run_and_attempt(self):
+        checks = [{"name": "one", "status": "PASS", "seconds": 0.1}, {"name": "two", "status": "FAIL", "detail": "exit code 1"}]
+        environment = {"GITHUB_SHA": "a" * 40, "GITHUB_RUN_ID": "7", "GITHUB_RUN_ATTEMPT": "2"}
+        with tempfile.TemporaryDirectory() as directory, unittest.mock.patch.dict(checker.os.environ, environment):
+            path = Path(directory) / "reports" / "integrity.json"
+            checker.write_report(path, checks, 1, {"python": "3.13.18"})
+            report = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual((report["commit"], report["run_id"], report["run_attempt"], report["result"]),
+                         ("a" * 40, "7", "2", "FAIL"))
+        self.assertEqual(report["checks"], checks)
+        self.assertEqual(report["runtimes"], {"python": "3.13.18"})
+
     def test_dependabot_retirement_and_coverage_regressions(self):
         source = Path(__file__).resolve().parents[2]
         baseline = checker.load_yaml((source / ".github/dependabot.yml").read_text())
@@ -159,6 +221,9 @@ class RepositoryIntegrityTests(unittest.TestCase):
             workflow_path.write_text((source / ".github/workflows/integrity.yml").read_text())
             milestone_path = root / ".github/workflows/pr-milestones.yml"
             milestone_path.write_text((source / ".github/workflows/pr-milestones.yml").read_text())
+            for name in (".github/requirements.txt", "tests/requirements.txt"):
+                (root / name).parent.mkdir(parents=True, exist_ok=True)
+                (root / name).write_text((source / name).read_text())
             dependabot_path = root / ".github/dependabot.yml"
 
             def validate(document):
