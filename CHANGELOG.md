@@ -7,6 +7,11 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- SECURITY lists what each entry point reads, writes and deletes, the host
+  settings the scripts need and the data rules, and adds a good-faith
+  research clause. Governance and the PR template require checks and review
+  on the final head SHA, renewed after a content push, and `docs/CI.md`
+  states that CodeQL runs as the default setup (#223).
 - GIRR vega takes inflation and cross-currency basis risk factors along the
   option maturity only (MAR21.8 FAQ4): `In_Vega` accepts the sub-types
   `YIELD` (the default), `INFLATION` and `XCCY`, and rejects an underlying
