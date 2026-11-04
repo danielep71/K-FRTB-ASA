@@ -68,7 +68,9 @@ scans, so none is added (#223).
 
 [External link check](../.github/workflows/link-check.yml) runs weekly on
 Mondays at 04:41 UTC and on manual dispatch, read-only and outside the required
-checks. `tools/check_external_links.py` requests each `http(s)` link of the
+checks. After installing the pinned `.github/requirements.txt` (the checker
+reuses the gate's Markdown helpers, which import PyYAML),
+`tools/check_external_links.py` requests each `http(s)` link of the
 tracked Markdown files once, without its fragment, following redirects, with a
 25-second timeout, up to two retries and three requests at a time. A 2xx answer
 is verified; 403, 429, 5xx and network errors are unverifiable and reported as
