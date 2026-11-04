@@ -551,8 +551,8 @@ def alert(data: Path, milestone_due: str) -> dict[str, str] | None:
         "- [ ] What was found, and any follow-up issue, is recorded in a Resolution.", "",
         "## Dependencies and blocking status", "", "None.", "",
         "## Schedule", "",
-        f"- Planned start: **{day}**.", f"- Target completion: **{target}**.",
-        f"- Milestone target: **{milestone_due}**.", "",
+        f"- **Planned start:** {day}", f"- **Target completion date:** {target}",
+        f"- **Milestone target:** {milestone_due}", "",
         "UTC collection date; dates are not evidence of completion.",
     ]
     return {"title": f"Traffic alert: {day}", "body": "\n".join(body) + "\n"}

@@ -21,6 +21,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 
+import check_issues  # noqa: E402
 import traffic_history  # noqa: E402
 from traffic_history import DAILY, PATHS, REFERRERS, SNAPSHOTS, TrafficError  # noqa: E402
 
@@ -342,10 +343,12 @@ class AlertTests(unittest.TestCase):
             self.assertEqual(issue["title"], "Traffic alert: 2026-10-14")
             self.assertIn("views spike, clones spike, stars increased.", issue["body"])
             self.assertIn("| Stars | 2 | 1 |", issue["body"])
-            for line in ("- Planned start: **2026-10-14**.", "- Target completion: **2026-10-21**.",
-                         "- Milestone target: **2026-12-20**.",
+            for line in ("- **Planned start:** 2026-10-14", "- **Target completion date:** 2026-10-21",
+                         "- **Milestone target:** 2026-12-20",
                          "## Dependencies and blocking status\n\nNone."):
                 self.assertIn(line, issue["body"])
+            # issue triage reads the alert's target date from its planning line
+            self.assertEqual(check_issues.target_date(issue["body"]), "2026-10-21")
 
     def test_a_spike_needs_double_and_the_minimum_growth(self) -> None:
         with workspace() as ws:
