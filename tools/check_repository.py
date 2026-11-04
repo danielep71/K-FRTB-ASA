@@ -88,21 +88,25 @@ def heading_slug(heading):
 def markdown_anchors(text):
     """The anchors a Markdown file defines, and its duplicated explicit ids.
 
-    Headings give GitHub's slugs, with -1, -2 ... for repeats; an HTML id or
-    name attribute gives an explicit anchor."""
-    anchors, counts, explicit, duplicates = set(), {}, set(), set()
+    Headings give GitHub's slugs: a repeat takes the next free -1, -2 ...
+    suffix, checked against every slug emitted so far, so "Scope", "Scope"
+    and "Scope-1" give scope, scope-1 and scope-1-1. An HTML id or name
+    attribute outside code gives an explicit anchor."""
+    counts, explicit, duplicates = {}, set(), set()
     for line in _outside_fences(text):
         heading = re.match(r"^ {0,3}#{1,6}[ \t]+(.*?)(?:[ \t]+#+)?[ \t]*$", line)
         if heading:
-            slug = heading_slug(heading[1])
-            seen = counts.get(slug, 0)
-            counts[slug] = seen + 1
-            anchors.add(slug if seen == 0 else f"{slug}-{seen}")
-        for found in re.findall(r"<[A-Za-z][^>]*?\s(?:id|name)\s*=\s*[\"']([^\"']+)[\"']", line):
+            base = slug = heading_slug(heading[1])
+            while slug in counts:
+                counts[base] += 1
+                slug = f"{base}-{counts[base]}"
+            counts[slug] = 0
+        for found in re.findall(r"<[A-Za-z][^>]*?\s(?:id|name)\s*=\s*[\"']([^\"']+)[\"']",
+                                re.sub(r"`[^`]*`", "", line)):
             if found in explicit:
                 duplicates.add(found)
             explicit.add(found)
-    return anchors | explicit, duplicates
+    return set(counts) | explicit, duplicates
 
 
 def markdown_targets(text):

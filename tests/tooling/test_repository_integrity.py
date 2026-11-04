@@ -73,6 +73,15 @@ class RepositoryIntegrityTests(unittest.TestCase):
         fenced = "```md\n# Fake\n[Fake](#fake)\n```\n"
         self.assertEqual(self.check_fixture({"guide.md": fenced}), [])
         self.assertTrue(self.check_fixture({"guide.md": fenced + "[Fake](#fake)\n"}))
+        # an anchor shown as inline code is an example, not an anchor
+        example = "Write `<a id=\"sample\"></a>`, as in `<a id=\"sample\"></a>`.\n"
+        self.assertEqual(self.check_fixture({"guide.md": example}), [])
+        self.assertTrue(self.check_fixture({"guide.md": example + "[Sample](#sample)\n"}))
+
+    def test_repeated_heading_slugs_skip_taken_suffixes(self):
+        # GitHub: Scope, Scope, Scope-1 give scope, scope-1, scope-1-1
+        anchors, _ = checker.markdown_anchors("# Scope\n\n# Scope\n\n# Scope-1\n\n# Scope\n")
+        self.assertEqual(anchors, {"scope", "scope-1", "scope-1-1", "scope-2"})
 
     def test_heading_slugs_follow_github(self):
         for heading, slug in [("🧭 Stages", "-stages"), ("Curvature input contract (MAR21.5, MAR21.98)", "curvature-input-contract-mar215-mar2198"),
