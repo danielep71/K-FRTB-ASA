@@ -99,7 +99,7 @@ def inventory(root: Path, sha: str) -> list[dict[str, str]]:
 
 def load_policy(text: str, label: str) -> dict[str, Any]:
     try:
-        policy = json.loads(text)
+        policy: dict[str, Any] = json.loads(text)
         names = [stage["name"] for stage in policy["stages"]]
         if policy["schema_version"] != 1 or len(set(names)) != len(names):
             raise ValueError("unsupported schema or a stage listed twice")
@@ -360,7 +360,9 @@ def validate(root: Path, candidate: str, evidence: Path) -> Validation:
     return check
 
 
-def check_record(check: Validation, record: dict[str, Any]) -> None:
+def check_record(  # noqa: C901 -- one branch per rule of docs/EXCEL_EVIDENCE.md, in its order
+    check: Validation, record: dict[str, Any],
+) -> None:
     policy, sha = check.policy, check.candidate
     if record.get("schema_version") != SCHEMA_VERSION:
         check.error(f"schema_version must be {SCHEMA_VERSION}")
@@ -479,8 +481,8 @@ def main(arguments: list[str] | None = None) -> int:
     print(f"Candidate: {check.candidate}")
     for name, status in check.statuses.items():
         print(f"  {name:<24} {status}")
-    for error in check.errors:
-        print(f"  INVALID {error}")
+    for message in check.errors:
+        print(f"  INVALID {message}")
     print(f"OUTCOME={', '.join(check.outcomes)}")
     return 0 if check.outcomes == ["PASS"] else 1
 

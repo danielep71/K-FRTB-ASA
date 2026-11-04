@@ -9,6 +9,7 @@ show that the engine logic is right, not that Excel compiles or runs it.
 from __future__ import annotations
 
 import math
+from typing import Any
 
 import openpyxl
 import pytest
@@ -34,7 +35,7 @@ def sheet_rows(wb, name, min_row=FIRST_DATA_ROW):
     return [r for r in rows if r and r[0] not in (None, "")]
 
 
-def reconcile(wb):
+def reconcile(wb):  # noqa: C901 -- one pass over every output table of the engine
     """Return a list of mismatch descriptions (empty when everything agrees)."""
     p = ref.params_from_workbook(wb)
     res = ref.run(p, ref.inputs_from_workbook(wb))
@@ -173,7 +174,7 @@ def test_parameter_sheets_match_regulatory_defaults(lo_default_run):
 # --------------------------------------------------------------------------
 # Discretions switched on and invalid input rows
 # --------------------------------------------------------------------------
-INVALID_ROWS = {
+INVALID_ROWS: dict[str, list[list[Any]]] = {
     "In_Delta": [
         ["X1", "CSR_SEC_CTP", 1, "A", "BOND", 5, 1000],
         ["X2", "GIRR", "EUR", "ESTR", "YIELD", 7, 1000],
@@ -299,7 +300,7 @@ def test_fx_curvature_divisor_all(lo_default_path, tmp_path):
 
 
 
-GIRR_VEGA_ROWS = [
+GIRR_VEGA_ROWS: list[list[Any]] = [
     # MAR21.8 FAQ4: inflation and cross-currency basis vega along the option maturity only (#209)
     ["V1", "GIRR", "EUR", "HICP", "INFLATION", 1, None, 300_000],
     ["V2", "GIRR", "EUR", "FR_CPI", "INFLATION", 5, None, -100_000],

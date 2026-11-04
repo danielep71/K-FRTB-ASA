@@ -103,8 +103,9 @@ one issue, titled `Traffic alert: <snapshot date>`, when any of these holds:
 A count blank in the older snapshot raises nothing. At most one issue is
 opened per snapshot date: the job skips a date whose issue exists, open or
 closed. Like every issue it is assigned to me, labelled `P3` and
-`repository`, and filed under the open milestone with the earliest due date,
-so it passes *Issue triage*.
+`repository`, and filed under the open milestone with the earliest due date.
+Its target completion date is seven days after the snapshot, or the
+milestone's due date if that is sooner, so it passes *Issue triage*.
 
 The job uses the workflow token with `issues: write` and `contents: read`. It
 has no environment, so it never receives the App key or token.
