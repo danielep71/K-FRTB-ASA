@@ -461,7 +461,7 @@ class FailureTests(unittest.TestCase):
                 self.assert_refused(ws, message)
 
     def test_more_uniques_than_the_count_is_refused(self) -> None:
-        cases = {
+        cases: dict[str, dict[str, Any]] = {
             "a daily entry": {"views.json": series("views", [("2026-10-15", 1, 9)])},
             "a window total": {"views.json": {"count": 1, "uniques": 9, "views": []}},
             "a referrer": {"referrers.json": [{"referrer": "x", "count": 1, "uniques": 9}]},

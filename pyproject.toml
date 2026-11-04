@@ -26,9 +26,25 @@ explicit_package_bases = true
 files = ["tools"]
 
 # Tests: strict, with only the annotation requirement relaxed. Their bodies
-# are still type-checked (check_untyped_defs).
+# are still type-checked (check_untyped_defs). mypy takes only full module
+# names or a trailing ".*", so a new top-level tests/test_*.py is listed here;
+# until it is, the strict rules apply to it in full and the gate fails.
 [[tool.mypy.overrides]]
-module = ["conftest", "frtb_reference", "regulatory_defaults", "test_*", "tooling.*"]
+module = [
+    "conftest",
+    "frtb_reference",
+    "regulatory_defaults",
+    "test_compare_vba_export",
+    "test_excel_evidence",
+    "test_numeric_contract",
+    "test_record_excel_run",
+    "test_reference",
+    "test_sync_script",
+    "test_template",
+    "test_tooling",
+    "test_vba_engine",
+    "tooling.*",
+]
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
 disallow_untyped_calls = false

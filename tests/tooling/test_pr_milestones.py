@@ -5,19 +5,23 @@ import copy
 import sys
 import unittest
 from pathlib import Path
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 import check_repository as checker
 
 
 class PrMilestoneTests(unittest.TestCase):
+    workflow: Any
+    reconcile: "staticmethod[..., Any]"  # quoted: staticmethod is not subscriptable at runtime
+
     @classmethod
     def setUpClass(cls):
         path = Path(__file__).resolve().parents[2] / ".github/workflows/pr-milestones.yml"
         cls.workflow = checker.load_yaml(path.read_text())
         shell = cls.workflow["jobs"]["reconcile"]["steps"][0]["run"]
         assert shell.startswith("python3 - <<'PY'\n") and shell.endswith("\nPY\n")
-        namespace = {"__name__": "fixture"}
+        namespace: dict[str, Any] = {"__name__": "fixture"}
         exec(compile(shell.split("\n", 1)[1].rsplit("\nPY", 1)[0], str(path), "exec"), namespace)
         cls.reconcile = staticmethod(namespace["reconcile"])
 
