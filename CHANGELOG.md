@@ -24,6 +24,11 @@ Unreleased describe integrated work, not a published version.
   and rejects duplicated explicit anchors. A new weekly and manual workflow,
   `link-check.yml`, requests the external links and separates verified,
   unverifiable and broken ones, outside the required checks (#218).
+- CI is reproducible: the integrity gate runs on exact Python and Node.js
+  versions, both requirements files pin every package by hash and install
+  from wheels only, each integrity run uploads a report bound to its commit,
+  run and attempt, push runs are no longer cancelled by later pushes, and
+  PR milestone events have one concurrency group per PR (#220).
 - GIRR vega takes inflation and cross-currency basis risk factors along the
   option maturity only (MAR21.8 FAQ4): `In_Vega` accepts the sub-types
   `YIELD` (the default), `INFLATION` and `XCCY`, and rejects an underlying

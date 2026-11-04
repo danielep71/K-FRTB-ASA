@@ -27,9 +27,9 @@ jobs:
         with:
           persist-credentials: false
       # The checker reuses check_repository.py's Markdown helpers, which import PyYAML.
-      - name: Install the pinned configuration parser
+      - name: Install the hashed configuration parser
         run: |
           python3 -m venv .venv-links
-          .venv-links/bin/python -m pip install --disable-pip-version-check -r .github/requirements.txt
+          .venv-links/bin/python -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r .github/requirements.txt
       - name: Request every external link; broken ones fail, unverifiable ones warn
         run: .venv-links/bin/python tools/check_external_links.py

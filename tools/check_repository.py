@@ -2,13 +2,17 @@
 # SPDX-License-Identifier: MIT
 """Offline, tracked-file repository checks; no Excel or regulatory validation."""
 
+import argparse
+from datetime import datetime, timezone
 import html
 import json
+import os
 from pathlib import Path
 import re
 import unicodedata
 import subprocess
 import sys
+import time
 from urllib.parse import unquote, urlsplit
 
 import yaml
@@ -273,6 +277,9 @@ def validate_workflow(document, name=None):
                 raise ValueError(f"action must use a full commit SHA: {action}")
             if action.startswith("actions/checkout@") and (step.get("with") or {}).get("persist-credentials") is not False:
                 raise ValueError(f"job {job_id}: actions/checkout must set persist-credentials: false")
+            run = step.get("run", "")
+            if "pip install" in run and ("--require-hashes" not in run or "--only-binary=:all:" not in run):
+                raise ValueError(f"job {job_id}: pip install must use --require-hashes --only-binary=:all:")
     if name == "labels-sync.yml" and document["jobs"].get("reconcile", {}).get("if") != LABEL_RECONCILE_CONDITION:
         raise ValueError("labels-sync reconcile must run only outside pull requests on the default branch")
 
@@ -290,6 +297,12 @@ def validate_controls(root):
         raise ValueError("integrity must provide one unconditional stable Repository integrity check")
     if workflow["permissions"] != {"contents": "read"} or job["permissions"] != {"contents": "read"}:
         raise ValueError("integrity must use read-only contents permission")
+    validate_integrity_reproducibility(workflow)
+    milestone_group = milestone_workflow.get("concurrency", {}).get("group", "")
+    if "github.event.pull_request.number" not in milestone_group:
+        raise ValueError("PR milestone events need one concurrency group per PR")
+    for name in (".github/requirements.txt", "tests/requirements.txt"):
+        validate_hashed_requirements((root / name).read_text(encoding="utf-8"), name)
     updates = load_yaml((root / ".github/dependabot.yml").read_text())
     if updates["version"] != 2:
         raise ValueError("Dependabot requires version 2")
@@ -306,6 +319,49 @@ def validate_controls(root):
             raise ValueError("Dependabot PRs must have no milestone setting")
         if item["assignees"] != ["danielep71"] or [label for label in item["labels"] if label in {"P1", "P2", "P3"}] != ["P3"]:
             raise ValueError("Dependabot requires owner and exactly P3")
+
+
+INTEGRITY_CONCURRENCY = {
+    "group": "${{ github.event_name == 'pull_request' && format('integrity-pr-{0}', "
+             "github.event.pull_request.number) || format('integrity-run-{0}', github.run_id) }}",
+    "cancel-in-progress": "${{ github.event_name == 'pull_request' }}",
+}
+EXACT_VERSION = re.compile(r"\d+\.\d+\.\d+")
+
+
+def validate_integrity_reproducibility(workflow):
+    """Exact runtimes, hashed installs, a report always uploaded, and push
+    runs that no later push cancels."""
+    if workflow.get("concurrency") != INTEGRITY_CONCURRENCY:
+        raise ValueError("integrity must cancel only superseded PR runs, never push runs")
+    steps = workflow["jobs"]["integrity"]["steps"]
+
+    def step(action):
+        found = [item for item in steps if item.get("uses", "").startswith(action + "@")]
+        if len(found) != 1:
+            raise ValueError(f"integrity must use {action} once")
+        return found[0]
+
+    for action, key in (("actions/setup-python", "python-version"), ("actions/setup-node", "node-version")):
+        if not EXACT_VERSION.fullmatch(str((step(action).get("with") or {}).get(key, ""))):
+            raise ValueError(f"integrity {action} must set an exact {key}")
+    installs = [item["run"] for item in steps if "pip install" in item.get("run", "")]
+    if not installs or any("--require-hashes" not in run or "--only-binary=:all:" not in run for run in installs):
+        raise ValueError("integrity must install Python packages by hash, from wheels only")
+    upload = step("actions/upload-artifact")
+    options = upload.get("with") or {}
+    if upload.get("if") != "always()" or options.get("if-no-files-found") != "error" or not options.get("retention-days"):
+        raise ValueError("integrity must always upload its report and fail when it is missing")
+    if not any("--report" in item.get("run", "") for item in steps):
+        raise ValueError("integrity must write its report")
+
+
+def validate_hashed_requirements(text, name):
+    """Every requirement is pinned with == and carries at least one hash."""
+    requirements = re.split(r"(?<!\\)\n(?=\S)", re.sub(r"(?m)^\s*#.*\n", "", text))
+    for requirement in filter(str.strip, requirements):
+        if not re.match(r"[A-Za-z0-9_.-]+==[^\s;\\]+", requirement) or "--hash=sha256:" not in requirement:
+            raise ValueError(f"{name}: every requirement needs an exact pin and a hash: {requirement.split()[0]}")
 
 
 MILESTONE_RECONCILE_CONDITION = (
@@ -328,14 +384,29 @@ def validate_milestone_workflow(document):
         raise ValueError("PR milestone workflow must use trusted inline code without checkout or event interpolation")
 
 
-def main():
-    root = Path(__file__).resolve().parents[1]
+def run_checks(root, checks):
+    """Run every check in order, appending one record per check to ``checks``.
+
+    It stops at the first failure, as before; the record of the failed check
+    holds its errors or exit code. Returns the process exit code."""
+    def run(name, command):
+        record = {"name": name, "status": "FAIL"}
+        checks.append(record)
+        started = time.monotonic()
+        try:
+            subprocess.run(command, cwd=root, check=True)
+        finally:
+            record["seconds"] = round(time.monotonic() - started, 3)
+        record["status"] = "PASS"
+
     paths = subprocess.check_output(["git", "ls-files", "-z"], cwd=root).decode().rstrip("\0").split("\0")
     errors = validate_files(root, paths, binary_paths(root, paths))
     try:
         validate_controls(root)
     except (OSError, KeyError, TypeError, ValueError, yaml.YAMLError) as error:
         errors.append(f"CI controls: {error}")
+    checks.append({"name": "configuration, tracked whitespace, local Markdown targets and CI controls",
+                   "status": "FAIL" if errors else "PASS", "detail": errors or f"{len(paths)} files"})
     if errors:
         print("\n".join(errors), file=sys.stderr)
         return 1
@@ -348,9 +419,73 @@ def main():
         [sys.executable, "-m", "unittest", "discover", "-s", "tests/tooling", "-p", "test_*.py", "-v"],
     ]
     for command in commands:
-        subprocess.run(command, cwd=root, check=True)
+        run(" ".join("python" if part == sys.executable else part for part in command), command)
     print("PASS: repository integrity (maintenance only; no Excel or regulatory certification)")
     return 0
+
+
+def checked_commit(root):
+    """The commit of the checked repository: GITHUB_SHA in CI, else its HEAD.
+
+    It never falls back to the caller's working directory; a failed lookup
+    is recorded as "unknown", not as an empty or unrelated commit."""
+    if os.environ.get("GITHUB_SHA"):
+        return os.environ["GITHUB_SHA"]
+    try:
+        found = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True, check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+    return found.stdout.strip() or "unknown"
+
+
+def write_report(path, checks, code, versions, root=Path(__file__).resolve().parents[1]):
+    """The JSON report of one run, bound to its commit, run and attempt."""
+    commit = checked_commit(root)
+    report = {
+        # the commit tested (on a PR, GitHub's merge commit) and the head it was built from
+        "commit": commit,
+        "head_commit": os.environ.get("REPORT_HEAD_SHA") or commit,
+        "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+        "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
+        "finished_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "result": "PASS" if code == 0 else "FAIL",
+        "runtimes": versions,
+        "checks": checks,
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+
+
+def runtime_versions():
+    def version(command):
+        try:
+            return subprocess.run(command, capture_output=True, text=True, check=False).stdout.strip()
+        except OSError:
+            return "not found"
+    return {"python": sys.version.split()[0], "node": version(["node", "--version"]),
+            "git": version(["git", "--version"]), "pyyaml": yaml.__version__}
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--report", type=Path,
+                        help="also write a JSON report of every check run, whatever the result")
+    args = parser.parse_args(argv)
+    root = Path(__file__).resolve().parents[1]
+    checks, code = [], 1
+    try:
+        code = run_checks(root, checks)
+        return code
+    except Exception as error:
+        detail = f"exit code {error.returncode}" if isinstance(error, subprocess.CalledProcessError) else str(error)
+        if checks and checks[-1]["status"] == "FAIL" and "detail" not in checks[-1]:
+            checks[-1]["detail"] = detail
+        else:
+            checks.append({"name": "repository integrity", "status": "FAIL", "detail": detail})
+        raise
+    finally:
+        if args.report:
+            write_report(args.report, checks, code, runtime_versions(), root)
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@
 ## Run the same check locally
 
 Use a Git clone, Python 3.12 or newer, Node.js with built-in fetch, and Git.
-Install the one pinned configuration-parser package in a local environment:
+Install the hashed configuration parser in a local environment:
 
 ```sh
 python3 -m venv .venv-ci
@@ -49,6 +49,12 @@ after installation and all maintenance fixtures are offline.
   are not fetched here; this is not a complete Markdown parser.
 - The universal workflow keeps its unconditional stable check and branch
   coverage. Dependabot covers the inspected ecosystems and intended branches.
+- The integrity workflow sets exact Python and Node.js versions, installs its
+  Python packages by hash from wheels only, writes its report and always
+  uploads it, and cancels only superseded PR runs. Both requirements files
+  pin every package, including dependencies, with at least one hash. The PR
+  milestone workflow keeps one concurrency group per PR. Every workflow step
+  that runs `pip install` must use `--require-hashes --only-binary=:all:`.
 - The existing label self-tests, manifest validation and read-only drift
   fixtures run once through their authoritative scripts. The path-filtered
   label workflows remain responsible for their own live evidence and trusted
@@ -68,7 +74,7 @@ scans, so none is added (#223).
 
 [External link check](../.github/workflows/link-check.yml) runs weekly on
 Mondays at 04:41 UTC and on manual dispatch, read-only and outside the required
-checks. After installing the pinned `.github/requirements.txt` (the checker
+checks. After installing the hashed `.github/requirements.txt` (the checker
 reuses the gate's Markdown helpers, which import PyYAML),
 `tools/check_external_links.py` requests each `http(s)` link of the
 tracked Markdown files once, without its fragment, following redirects, with a
@@ -90,8 +96,41 @@ There is no matrix, job condition, path filter or changed-file shortcut.
 PRs targeting `main` or `release/**`, and pushes to those branches, run the
 same command on Ubuntu 24.04. Manual dispatch is also available after
 default-branch activation. Checkout is pinned to the existing reviewed SHA,
-credentials are not persisted, permissions are `contents: read`, timeout is
-10 minutes, and newer runs cancel older runs for the same workflow/ref.
+credentials are not persisted, permissions are `contents: read` and the
+timeout is 10 minutes.
+
+### Reproducible runs (#220)
+
+- **Runtimes:** `actions/setup-python` and `actions/setup-node`, pinned by
+  SHA, install Python 3.13.18 and Node.js 24.22.2, so a runner image update
+  cannot change them. Dependabot updates the actions; I change the versions
+  by hand.
+- **Dependencies:** `.github/requirements.txt` and `tests/requirements.txt`
+  are compiled from `.github/requirements.in` and `tests/requirements.in`
+  with `pip-compile --generate-hashes --allow-unsafe`. They pin every
+  package, dependencies included, by version and hash. CI installs them
+  with `--require-hashes --only-binary=:all:`. A local `pip install -r`
+  checks the hashes too, because pip turns hash checking on when a file
+  has hashes. After changing an `.in` file, compile it again and commit both.
+- **Report:** `tools/check_repository.py --report PATH` writes a JSON report
+  of every check it ran: the commit, run id and attempt, the runtimes, and
+  each check's result and duration. It writes the report whatever the result.
+  On a PR, `commit` is the merge commit GitHub tests and `head_commit` the PR
+  head; on a push they are the same. The job uploads the report as the
+  artifact `integrity-report-<head sha>-<run id>-<attempt>`, kept 30 days,
+  even when a check failed; a missing report fails the job.
+- **Concurrency:** a PR run has one group per PR, and a newer head cancels
+  the older run. A push or dispatch run has a group of its own and is never
+  cancelled, so each pushed commit keeps its result. The PR milestone
+  workflow has one group per PR for PR events, and one for its scheduled,
+  manual and push scans, so one PR's pending event no longer replaces
+  another's.
+- **Prototype checks:** this job keeps the OS Python, because the
+  LibreOffice UNO bridge is built for it, so its Python version follows the
+  runner image. It installs the hashed requirements with `--ignore-installed`
+  as well, so every package comes from its hashed wheel.
+- **External link check:** it installs the parser the same way, on the
+  runner's Python; it is not a required check.
 
 The check name and app identity are required by the main and release
 rulesets, and main must be up to date before merging; issue #2 records the
