@@ -82,6 +82,15 @@ body:
     validations:
       required: true
 
+  - type: input
+    id: target_end_date
+    attributes:
+      label: "📅 Target end date"
+      description: The planned completion date, as YYYY-MM-DD, no later than the due date of the issue's milestone. Issue triage checks it; a "**Target completion date:**" planning line in the body, if added later, takes precedence.
+      placeholder: "2026-11-30"
+    validations:
+      required: true
+
   - type: textarea
     id: dependencies
     attributes:

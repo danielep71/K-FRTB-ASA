@@ -23,6 +23,7 @@ import urllib.request
 from collections import Counter
 from collections.abc import Collection, Iterable, Mapping, Sequence
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -39,6 +40,12 @@ DEPENDABOT = Path(".github/dependabot.yml")
 # The tables of the Metadata rules section of LABELS.md that explain the labels.
 LABEL_TABLES = {"| Priority | Use |", "| Label | Use |"}
 TABLE_LABEL = re.compile(r"^\|\s*`([^`]+)`\s*\|")
+# The planned date: the planning line an issue body carries wins over the
+# target end date the issue forms ask for.
+PLANNING_DATE = re.compile(r"\*\*Target completion date:\*\*[ \t]*(\S*)", re.I)
+FORM_DATE_HEADING = "target end date"
+FORM_DATE_ID = "target_end_date"
+ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
 API = "https://api.github.com"
 
 
@@ -50,6 +57,8 @@ class Issue:
     assignees: tuple[str, ...]
     milestone: str | None
     body: str
+    milestone_state: str | None = None  # "open" or "closed"
+    milestone_due: str | None = None  # YYYY-MM-DD, or None without a due date
 
 
 @dataclass(frozen=True)
@@ -68,6 +77,8 @@ def issue_from_api(item: Mapping[str, Any]) -> Issue:
         assignees=tuple(str(user["login"]) for user in item.get("assignees", [])),
         milestone=str(milestone["title"]) if milestone else None,
         body=str(item.get("body") or ""),
+        milestone_state=str(milestone.get("state", "open")).lower() if milestone else None,
+        milestone_due=str(milestone["due_on"])[:10] if milestone and milestone.get("due_on") else None,
     )
 
 
@@ -113,6 +124,57 @@ def metadata_findings(issue: Issue, assignee: str) -> list[Finding]:
     return findings
 
 
+def target_date(body: str) -> str | None:
+    """The planned date of an issue: its planning line, else its form field.
+
+    None means the body holds neither; an empty string means the field is
+    there but empty."""
+    planned = PLANNING_DATE.search(body)
+    if planned:
+        return planned.group(1).strip()
+    lines = body.splitlines()
+    for index, line in enumerate(lines):
+        match = HEADING.match(line)
+        # an issue form renders its label as the heading, emoji first
+        if match and re.sub(r"^\W+", "", match.group(1)).strip().lower() == FORM_DATE_HEADING:
+            for following in lines[index + 1:]:
+                if HEADING.match(following):
+                    break
+                if following.strip():
+                    return following.strip()
+            return ""
+    return None
+
+
+def planning_findings(issue: Issue) -> list[Finding]:
+    """The milestone must be open, and the target date a real date no later
+    than the milestone's due date."""
+    findings = []
+    if issue.milestone and issue.milestone_state not in (None, "open"):
+        findings.append(Finding(issue.number, "milestone",
+                                f"is in the {issue.milestone_state} milestone {issue.milestone!r}: "
+                                "move it to an open milestone"))
+    value = target_date(issue.body)
+    if not value or value == "_No response_":
+        findings.append(Finding(issue.number, "target-date",
+                                "has no target date: add a Target end date (YYYY-MM-DD) "
+                                "or a **Target completion date:** planning line"))
+        return findings
+    try:
+        if not ISO_DATE.fullmatch(value):
+            raise ValueError
+        planned = date.fromisoformat(value)
+    except ValueError:
+        findings.append(Finding(issue.number, "target-date",
+                                f"has target date {value!r}, which is not a real YYYY-MM-DD date"))
+        return findings
+    if issue.milestone_due and planned.isoformat() > issue.milestone_due:
+        findings.append(Finding(issue.number, "target-date",
+                                f"has target date {value}, after the milestone's due date "
+                                f"{issue.milestone_due}"))
+    return findings
+
+
 def dependency_findings(issue: Issue, states: Mapping[int, str], repository: str,
                         pulls: Collection[int] = ()) -> list[Finding]:
     """A named pull request is a known reference, never a prerequisite."""
@@ -150,6 +212,7 @@ def audit(issues: Sequence[Issue], states: Mapping[int, str], repository: str,
         if issue.state != "open":
             continue
         findings += metadata_findings(issue, assignee)
+        findings += planning_findings(issue)
         findings += dependency_findings(issue, states, repository, pulls)
         if catalogue is not None:
             findings += [Finding(issue.number, "catalogue", f"has label {label!r}, "
@@ -263,6 +326,11 @@ def config_findings(root: Path) -> list[str]:
             problems.append(f"{name} must assign {assignee}")
         if not re.search(r"^\s*id:\s*dependencies\s*$", text, re.M):
             problems.append(f"{name} has no dependencies field")
+        date_field = re.search(rf"^\s*id:\s*{FORM_DATE_ID}\s*$(.*?)(?=^\s*-\s+type:|\Z)", text, re.M | re.S)
+        if not date_field:
+            problems.append(f"{name} has no {FORM_DATE_ID} field")
+        elif not re.search(r"^\s*required:\s*true\s*$", date_field.group(1), re.M):
+            problems.append(f"{name} must require {FORM_DATE_ID}")
     config = forms / "config.yml"
     if not config.is_file() or not re.search(r"^blank_issues_enabled:\s*false\s*$",
                                              config.read_text(encoding="utf-8"), re.M):

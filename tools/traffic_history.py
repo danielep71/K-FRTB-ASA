@@ -174,7 +174,7 @@ def parse_ranked(data: Any, name: str, fields: Sequence[str]) -> list[Row]:
     return rows
 
 
-def parse_repository(data: Any) -> dict[str, int]:
+def parse_repository(data: Any) -> dict[str, int | None]:
     if not isinstance(data, dict):
         raise TrafficError("repository: expected an object")
     return {column: count(data.get(field), f"repository.{field}")
@@ -530,7 +530,10 @@ def alert(data: Path, milestone_due: str) -> dict[str, str] | None:
         return (f"| {name} | {current[key] or 'not recorded'} "
                 f"| {previous[key] or 'not recorded'} |")
 
-    target = (date.fromisoformat(day) + timedelta(days=ALERT_DAYS)).isoformat()
+    # ALERT_DAYS after the snapshot, but never after the milestone's due date,
+    # which issue triage requires of every target date
+    target = min(date.fromisoformat(day) + timedelta(days=ALERT_DAYS),
+                 date.fromisoformat(milestone_due)).isoformat()
     body = [
         "## Objective", "",
         f"Find out what drove the traffic recorded on {day}: "
@@ -551,8 +554,8 @@ def alert(data: Path, milestone_due: str) -> dict[str, str] | None:
         "- [ ] What was found, and any follow-up issue, is recorded in a Resolution.", "",
         "## Dependencies and blocking status", "", "None.", "",
         "## Schedule", "",
-        f"- Planned start: **{day}**.", f"- Target completion: **{target}**.",
-        f"- Milestone target: **{milestone_due}**.", "",
+        f"- **Planned start:** {day}", f"- **Target completion date:** {target}",
+        f"- **Milestone target:** {milestone_due}", "",
         "UTC collection date; dates are not evidence of completion.",
     ]
     return {"title": f"Traffic alert: {day}", "body": "\n".join(body) + "\n"}
