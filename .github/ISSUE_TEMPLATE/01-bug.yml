@@ -96,6 +96,14 @@ body:
       required: true
 
   - type: textarea
+    id: workaround
+    attributes:
+      label: "🩹 Workaround or recovery (optional)"
+      description: How to avoid the defect or recover from it until it is fixed, and any further evidence such as logs or screenshots with synthetic data only.
+    validations:
+      required: false
+
+  - type: textarea
     id: acceptance
     attributes:
       label: "🏁 Acceptance criteria"
@@ -111,6 +119,15 @@ body:
     attributes:
       label: "🧪 Validation evidence required"
       description: The checks that will prove the fix, for example `REQUIRE_LIBREOFFICE=1 python -m pytest tests`, a reference case, or an Excel run recorded under docs/EXCEL_EVIDENCE.md.
+    validations:
+      required: true
+
+  - type: input
+    id: target_end_date
+    attributes:
+      label: "📅 Target end date"
+      description: The planned completion date, as YYYY-MM-DD, no later than the due date of the issue's milestone. Issue triage checks it; a "**Target completion date:**" planning line in the body, if added later, takes precedence.
+      placeholder: "2026-11-30"
     validations:
       required: true
 
