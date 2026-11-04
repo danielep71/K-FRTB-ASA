@@ -91,7 +91,9 @@ class RepositoryIntegrityTests(unittest.TestCase):
         for heading, slug in [("🧭 Stages", "-stages"), ("Curvature input contract (MAR21.5, MAR21.98)", "curvature-input-contract-mar215-mar2198"),
                               ("Link [text](https://x.y) and `code`", "link-text-and-code"), ("snake_case — dash", "snake_case--dash"),
                               ("__Scope__ and *notes*", "scope-and-notes"), ("Terms &amp; conditions", "terms--conditions"),
-                              ("**Bold** _it_ snake_case_name", "bold-it-snake_case_name")]:
+                              ("**Bold** _it_ snake_case_name", "bold-it-snake_case_name"),
+                              ("The `<input>` field", "the-input-field"), ("`__init__` and `&amp;`", "__init__-and-amp"),
+                              ("__Bold `x` text__", "bold-x-text"), ("``a `b` c``", "a-b-c")]:
             with self.subTest(heading=heading):
                 self.assertEqual(checker.heading_slug(heading), slug)
 

@@ -75,13 +75,25 @@ def _outside_fences(text):
 def heading_slug(heading):
     """GitHub's anchor for a heading: the rendered text lower-cased, every
     character but letters, marks, digits, connector punctuation, spaces and
-    hyphens removed, and each space turned into a hyphen."""
-    text = re.sub(r"!?\[([^\]]*)\]\([^)]*\)", r"\1", heading)  # links and images: their text
+    hyphens removed, and each space turned into a hyphen.
+
+    Code spans render their text literally, so they are set aside first and
+    restored after links, HTML, emphasis and character references are
+    resolved in the rest."""
+    spans = []
+
+    def set_aside(match):
+        spans.append(match[2].strip(" ") if match[2].strip(" ") else match[2])
+        return chr(0xE000 + len(spans) - 1)  # a private-use placeholder
+
+    text = re.sub(r"(`+)(.+?)(?<!`)\1(?!`)", set_aside, heading)
+    text = re.sub(r"!?\[([^\]]*)\]\([^)]*\)", r"\1", text)  # links and images: their text
     text = re.sub(r"<[^>]+>", "", text)  # inline HTML tags
     # emphasis delimiters: * anywhere, _ only at word edges (snake_case keeps its _)
     text = re.sub(r"(\*{1,3})(?=\S)(.+?)(?<=\S)\1", r"\2", text)
     text = re.sub(r"(?<!\w)(_{1,3})(?=\S)(.+?)(?<=\S)\1(?!\w)", r"\2", text)
     text = html.unescape(text)  # character references: the character they render
+    text = re.sub("[\uE000-\uF8FF]", lambda match: spans[ord(match[0]) - 0xE000], text)
     kept = []
     for char in text.lower():
         category = unicodedata.category(char)
