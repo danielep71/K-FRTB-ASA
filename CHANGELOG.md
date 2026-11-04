@@ -7,6 +7,11 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- SECURITY lists what each entry point reads, writes and deletes, the host
+  settings the scripts need and the data rules, and adds a good-faith
+  research clause. Governance and the PR template require checks and review
+  on the final head SHA, renewed after a content push, and `docs/CI.md`
+  states that CodeQL runs as the default setup (#223).
 - `tools/check_repository.py` checks the `#fragment` of every local Markdown
   link against the anchors of its target, GitHub heading slugs and HTML ids,
   and rejects duplicated explicit anchors. A new weekly and manual workflow,

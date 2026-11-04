@@ -58,6 +58,14 @@ after installation and all maintenance fixtures are offline.
   broken links, whitespace, unpinned actions, narrowed trigger
   coverage, incorrect update targets, and the traffic collector's safeguards.
 
+CodeQL runs as GitHub's **default setup** for Actions and Python: the
+default query suite, weekly and on pull requests into main (#214 ran it; a
+release-branch PR such as #224 gets no CodeQL run). It is configured in the
+repository's security settings, not in a workflow file. Its configuration therefore cannot
+be rebuilt from a commit; [settings evidence](REPOSITORY_SETTINGS_EVIDENCE.md)
+records its last readback. A versioned CodeQL workflow would duplicate the
+scans, so none is added (#223).
+
 [External link check](../.github/workflows/link-check.yml) runs weekly on
 Mondays at 04:41 UTC and on manual dispatch, read-only and outside the required
 checks. `tools/check_external_links.py` requests each `http(s)` link of the
