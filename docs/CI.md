@@ -42,8 +42,11 @@ after installation and all maintenance fixtures are offline.
   to Git's resolved `text` attribute from `.gitattributes`, including its
   macros and path overrides; the checker has no separate extension list.
 - Common inline Markdown links/images and reference definitions outside code
-  fences point to tracked repository files or directories. Anchors and remote
-  URLs are not fetched or validated; this is not a complete Markdown parser.
+  fences point to tracked repository files or directories. A `#fragment`, in
+  the same file or in another tracked Markdown file, must name one of its
+  anchors: a GitHub heading slug (with `-1`, `-2` for repeats) or an HTML `id`
+  or `name`; a file with a duplicated explicit anchor fails (#218). Remote URLs
+  are not fetched here; this is not a complete Markdown parser.
 - The universal workflow keeps its unconditional stable check and branch
   coverage. Dependabot covers the inspected ecosystems and intended branches.
 - The existing label self-tests, manifest validation and read-only drift
@@ -62,6 +65,17 @@ repository's security settings, not in a workflow file. Its configuration theref
 be rebuilt from a commit; [settings evidence](REPOSITORY_SETTINGS_EVIDENCE.md)
 records its last readback. A versioned CodeQL workflow would duplicate the
 scans, so none is added (#223).
+
+[External link check](../.github/workflows/link-check.yml) runs weekly on
+Mondays at 04:41 UTC and on manual dispatch, read-only and outside the required
+checks. After installing the pinned `.github/requirements.txt` (the checker
+reuses the gate's Markdown helpers, which import PyYAML),
+`tools/check_external_links.py` requests each `http(s)` link of the
+tracked Markdown files once, without its fragment, following redirects, with a
+25-second timeout, up to two retries and three requests at a time. A 2xx answer
+is verified; 403, 429, 5xx and network errors are unverifiable and reported as
+warnings, never as a pass; any other answer is broken and fails the run. Links
+to this repository on github.com are left to the local gate (#218).
 
 A failed prerequisite, validation error or failed child command exits nonzero.
 The fixture suite includes clean input as well as deliberate failures. It

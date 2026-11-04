@@ -57,6 +57,46 @@ class RepositoryIntegrityTests(unittest.TestCase):
                 self.assertTrue(self.check_fixture({"guide.md": text}))
         self.assertEqual(self.check_fixture({"guide.md": "```md\n[Example](absent.md)\n```\n"}), [])
 
+    def test_markdown_fragments_must_name_an_anchor(self):
+        child = "# 🧭 Scope (MAR21.5)\n\n## Notes\n\n## Notes\n\n<a id=\"explicit\"></a>\n"
+        valid = ("# Guide\n\n[Top](#guide) [Child](docs/child.md#-scope-mar215) [Repeat](docs/child.md#notes-1)\n"
+                 "[Explicit](docs/child.md#explicit) [Case](docs/child.md#Notes)\n")
+        self.assertEqual(self.check_fixture({"guide.md": valid, "docs/child.md": child}), [])
+        for text, fragment in [("[Gone](#nowhere)\n", "nowhere"), ("[Gone](docs/child.md#absent)\n", "absent"),
+                               ("[Third](docs/child.md#notes-2)\n", "notes-2")]:
+            with self.subTest(fragment=fragment):
+                errors = self.check_fixture({"guide.md": "# Guide\n\n" + text, "docs/child.md": child})
+                self.assertTrue(any("link fragment not found" in error and fragment in error for error in errors), errors)
+        errors = self.check_fixture({"guide.md": '<a id="twice"></a>\n<a name="twice"></a>\n'})
+        self.assertTrue(any("duplicate explicit anchor: twice" in error for error in errors), errors)
+        # a heading inside a fenced block defines no anchor, and a link there is not checked
+        fenced = "```md\n# Fake\n[Fake](#fake)\n```\n"
+        self.assertEqual(self.check_fixture({"guide.md": fenced}), [])
+        self.assertTrue(self.check_fixture({"guide.md": fenced + "[Fake](#fake)\n"}))
+        # an anchor shown as inline code is an example, not an anchor
+        example = "Write `<a id=\"sample\"></a>`, as in `<a id=\"sample\"></a>`.\n"
+        self.assertEqual(self.check_fixture({"guide.md": example}), [])
+        self.assertTrue(self.check_fixture({"guide.md": example + "[Sample](#sample)\n"}))
+
+    def test_setext_headings_define_anchors(self):
+        anchors, _ = checker.markdown_anchors("Scope\n=====\n\nDetails here\n---\n\n- item\n---\n\n| a |\n| --- |\n")
+        self.assertEqual(anchors, {"scope", "details-here"})
+
+    def test_repeated_heading_slugs_skip_taken_suffixes(self):
+        # GitHub: Scope, Scope, Scope-1 give scope, scope-1, scope-1-1
+        anchors, _ = checker.markdown_anchors("# Scope\n\n# Scope\n\n# Scope-1\n\n# Scope\n")
+        self.assertEqual(anchors, {"scope", "scope-1", "scope-1-1", "scope-2"})
+
+    def test_heading_slugs_follow_github(self):
+        for heading, slug in [("🧭 Stages", "-stages"), ("Curvature input contract (MAR21.5, MAR21.98)", "curvature-input-contract-mar215-mar2198"),
+                              ("Link [text](https://x.y) and `code`", "link-text-and-code"), ("snake_case — dash", "snake_case--dash"),
+                              ("__Scope__ and *notes*", "scope-and-notes"), ("Terms &amp; conditions", "terms--conditions"),
+                              ("**Bold** _it_ snake_case_name", "bold-it-snake_case_name"),
+                              ("The `<input>` field", "the-input-field"), ("`__init__` and `&amp;`", "__init__-and-amp"),
+                              ("__Bold `x` text__", "bold-x-text"), ("``a `b` c``", "a-b-c")]:
+            with self.subTest(heading=heading):
+                self.assertEqual(checker.heading_slug(heading), slug)
+
     @staticmethod
     def workflow_fixture():
         return {
