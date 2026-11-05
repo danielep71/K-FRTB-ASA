@@ -138,14 +138,16 @@ deleted, which also removes their issue/PR associations. Before any change to
 the catalogue or manual reconciliation, review the plan and inspect affected
 issue/PR associations; migrate those associations before removing a used label.
 The reconciler refuses all mutations if any planned deletion still has an
-open or closed issue/PR association, or if that lookup fails. This guard uses
+open or closed issue/PR association, or if that lookup fails. It checks every
+planned deletion first, so one refusal names every used label to migrate; a
+failed lookup still stops it at once. This guard uses
 the same validated plan as the mutations; updates and creations never trigger
 it, and `prune: false` performs no deletion association checks. The workflow
 retains its read-only preview; the script rechecks current live labels and
 associations before applying its actual plan. When the final check fails, the
 script writes one summary of the failed run. The offline self-test covers
-updates, disabled pruning, used and unused deletion candidates, and failed or
-malformed association lookups.
+updates, disabled pruning, used and unused deletion candidates, a refusal
+that lists several used labels, and failed or malformed association lookups.
 For comma-containing label names, the script scans actual issue/PR labels
 instead of GitHub's comma-separated filter. The scan includes closed items,
 matches complete names case-insensitively, and fails closed on malformed data
