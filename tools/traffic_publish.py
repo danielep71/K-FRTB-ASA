@@ -123,6 +123,17 @@ def publish(writer: GitHub, repository: str, parent: str, files: dict[str, str],
     return sha
 
 
+def write_output(name: str, value: str) -> None:
+    """Append name=value to the step outputs; outside Actions there are none."""
+    path = os.environ.get("GITHUB_OUTPUT")
+    if not path:
+        return
+    if not SHA.fullmatch(value):
+        raise ValueError("Refusing to output a value that is not a full commit SHA")
+    with open(path, "a", encoding="utf-8") as output:
+        output.write(name + "=" + value + "\n")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--history", type=Path, required=True,
@@ -140,6 +151,9 @@ def main(argv: list[str] | None = None) -> int:
     files = changed_files(args.history)
     sha = publish(GitHub(os.environ.get("GITHUB_TOKEN", "")), repository, parent, files,
                   "analytics: collect traffic " + args.collected_at)
+    # The alert job reads exactly this commit: the one published, or the
+    # unchanged parent, never whatever the branch holds when it starts.
+    write_output("sha", parent if sha is None else sha)
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if sha is None:
         print("No change to the history; nothing published.")
