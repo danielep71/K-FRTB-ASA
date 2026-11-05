@@ -7,6 +7,10 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The label sync and drift scripts build their API requests from
+  `GITHUB_API_URL`, with trailing slashes removed, and fall back to
+  `https://api.github.com` when it is unset, so they also run on a GitHub
+  Enterprise host (#234).
 - The traffic alert reads the history commit its own collection published,
   or the unchanged commit when nothing changed, instead of the
   `traffic-history` branch: `traffic_publish.py` writes it to the step
