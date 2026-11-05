@@ -7,6 +7,10 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The label sync and drift scripts build their API requests from
+  `GITHUB_API_URL`, with trailing slashes removed, and fall back to
+  `https://api.github.com` when it is unset, so they also run on a GitHub
+  Enterprise host (#234).
 - The required integrity check runs Ruff (pyflakes, import order and a
   complexity limit of 15), mypy in strict mode with `warn_unreachable`, and
   actionlint on every workflow. Their versions are pinned with hashes or a
