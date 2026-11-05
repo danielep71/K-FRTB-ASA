@@ -14,6 +14,12 @@ Unreleased describe integrated work, not a published version.
 - When the label sync refuses to prune, it names every planned deletion
   that is still used, in one message, instead of stopping at the first one,
   so one run shows every label to migrate (#235).
+- The traffic alert reads the history commit its own collection published,
+  or the unchanged commit when nothing changed, instead of the
+  `traffic-history` branch: `traffic_publish.py` writes it to the step
+  outputs, the export job exposes it as `history-sha`, and the alert checks
+  its format before checking it out. A re-run or an outside push to the
+  branch no longer changes the data an alert reads (#233).
 - The required integrity check runs Ruff (pyflakes, import order and a
   complexity limit of 15), mypy in strict mode with `warn_unreachable`, and
   actionlint on every workflow. Their versions are pinned with hashes or a
