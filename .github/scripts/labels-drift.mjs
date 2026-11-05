@@ -88,9 +88,16 @@ function splitRepository(repository) {
   return parts.map(encodeURIComponent);
 }
 
-function apiUrl(repository, suffix) {
+// The REST API root: GITHUB_API_URL in Actions (it differs on a GitHub
+// Enterprise host), else github.com. Trailing slashes are removed.
+function apiRoot(environment = process.env) {
+  const configured = String(environment.GITHUB_API_URL ?? "").replace(/\/+$/, "");
+  return configured || "https://api.github.com";
+}
+
+function apiUrl(repository, suffix, root = apiRoot()) {
   const [owner, repo] = splitRepository(repository);
-  return `https://api.github.com/repos/${owner}/${repo}${suffix}`;
+  return `${root}/repos/${owner}/${repo}${suffix}`;
 }
 
 function sleep(milliseconds) {
@@ -460,6 +467,15 @@ async function runSelfTest(manifestPath) {
   assert.equal(codeSpan("`edge`"), "`` `edge` ``");
   assert.equal(codeSpan("a|b"), "`a\\|b`");
   assert.equal(codeSpan("line1\r\nline2\rline3\nline4"), "`line1 line2 line3 line4`");
+
+  // The API root comes from GITHUB_API_URL, with github.com as the fallback (#234)
+  assert.equal(apiRoot({}), "https://api.github.com");
+  assert.equal(apiRoot({ GITHUB_API_URL: "" }), "https://api.github.com");
+  assert.equal(apiRoot({ GITHUB_API_URL: "https://ghe.example/api/v3" }), "https://ghe.example/api/v3");
+  assert.equal(apiRoot({ GITHUB_API_URL: "https://ghe.example/api/v3//" }), "https://ghe.example/api/v3");
+  assert.equal(apiUrl("o/r", "/labels", apiRoot({ GITHUB_API_URL: "https://ghe.example/api/v3/" })),
+    "https://ghe.example/api/v3/repos/o/r/labels");
+  assert.equal(apiUrl("o/r", "/labels", apiRoot({})), "https://api.github.com/repos/o/r/labels");
 
   process.stdout.write(
     "SELF-TEST PASS: retry delays and deterministic no-drift and create/update/delete drift fixtures are read-only and match the canonical reconciler.\n"
