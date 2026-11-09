@@ -2,4 +2,4 @@
 # Compile with: pip-compile --generate-hashes --allow-unsafe tests/requirements.in
 numpy==2.5.4
 openpyxl==3.1.5
-pytest==9.1.1
+pytest==9.2.0
