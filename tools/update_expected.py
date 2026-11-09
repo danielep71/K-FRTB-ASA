@@ -18,7 +18,9 @@ import argparse
 import re
 import sys
 import tempfile
+from collections.abc import Mapping, Sequence
 from pathlib import Path
+from typing import Any
 
 import openpyxl
 
@@ -35,7 +37,7 @@ END = "    ' END GENERATED EXPECTED VALUES"
 SUMMARY_ITEMS = ("SBM_LOW", "SBM_MEDIUM", "SBM_HIGH", "SBM", "DRC_NONSEC", "RRAO", "TOTAL")
 
 
-def expected_items(result: dict) -> list[tuple[str, float]]:
+def expected_items(result: Mapping[str, Any]) -> list[tuple[str, float]]:
     items = [(k, float(result["summary"][k])) for k in SUMMARY_ITEMS]
     for rc in ref.RISK_CLASSES:
         for comp in ref.COMPONENTS:
@@ -49,7 +51,7 @@ def vba_literal(x: float) -> str:
     return s[:-2] if s.endswith(".0") else s
 
 
-def generated_block(items, newline: str) -> str:
+def generated_block(items: Sequence[tuple[str, float]], newline: str) -> str:
     lines = [BEGIN]
     for i, (name, value) in enumerate(items):
         lines.append(f'    PutRow ws, r + {i}, Array("{name}", {vba_literal(value)})')
@@ -69,7 +71,7 @@ def compute() -> list[tuple[str, float]]:
     return expected_items(result)
 
 
-def main(argv) -> int:
+def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args(argv)

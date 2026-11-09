@@ -4,7 +4,8 @@ This guide covers repository maintenance and the separate SA prototype path.
 The universal maintenance check requires Git, Node.js with built-in fetch, Python
 3.12 or newer and the pinned parser in `.github/requirements.txt`. No npm
 packages, Excel or PowerShell are required for maintenance. Local verification used Linux,
-Git 2.51.1, Node.js 24.19.0 and Python 3.12.14; hosted CI uses Ubuntu 24.04.
+Git 2.51.1, Node.js 24.19.0 and Python 3.12.14; hosted CI uses Ubuntu 24.04,
+with Python 3.13.18 and Node.js 24.22.2 for the integrity gate.
 
 ## Check out the active work
 

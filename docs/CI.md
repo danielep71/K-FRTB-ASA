@@ -5,13 +5,17 @@
 ## Run the same check locally
 
 Use a Git clone, Python 3.12 or newer, Node.js with built-in fetch, and Git.
-Install the one pinned configuration-parser package in a local environment:
+Install the hashed configuration parser in a local environment:
 
 ```sh
 python3 -m venv .venv-ci
-.venv-ci/bin/python -m pip install -r .github/requirements.txt
+.venv-ci/bin/python -m pip install -r .github/requirements.txt -r .github/requirements-quality.txt -r tests/requirements.txt
 .venv-ci/bin/python tools/check_repository.py
 ```
+
+The quality gates need the second and third files and
+[actionlint](#quality-gates-219). Without a tool, a local run skips its gate
+and prints `SKIP`; set `REQUIRE_QUALITY_TOOLS=1` to fail instead, as CI does.
 
 On Windows use `.venv-ci\Scripts\python` instead of `.venv-ci/bin/python`.
 Run from the repository root. Stage new source and documentation before running
@@ -42,10 +46,19 @@ after installation and all maintenance fixtures are offline.
   to Git's resolved `text` attribute from `.gitattributes`, including its
   macros and path overrides; the checker has no separate extension list.
 - Common inline Markdown links/images and reference definitions outside code
-  fences point to tracked repository files or directories. Anchors and remote
-  URLs are not fetched or validated; this is not a complete Markdown parser.
+  fences point to tracked repository files or directories. A `#fragment`, in
+  the same file or in another tracked Markdown file, must name one of its
+  anchors: a GitHub heading slug (with `-1`, `-2` for repeats) or an HTML `id`
+  or `name`; a file with a duplicated explicit anchor fails (#218). Remote URLs
+  are not fetched here; this is not a complete Markdown parser.
 - The universal workflow keeps its unconditional stable check and branch
   coverage. Dependabot covers the inspected ecosystems and intended branches.
+- The integrity workflow sets exact Python and Node.js versions, installs its
+  Python packages by hash from wheels only, writes its report and always
+  uploads it, and cancels only superseded PR runs. Both requirements files
+  pin every package, including dependencies, with at least one hash. The PR
+  milestone workflow keeps one concurrency group per PR. Every workflow step
+  that runs `pip install` must use `--require-hashes --only-binary=:all:`.
 - The existing label self-tests, manifest validation and read-only drift
   fixtures run once through their authoritative scripts. The path-filtered
   label workflows remain responsible for their own live evidence and trusted
@@ -54,6 +67,25 @@ after installation and all maintenance fixtures are offline.
   configuration (including non-standard JSON numeric constants), binary policy,
   broken links, whitespace, unpinned actions, narrowed trigger
   coverage, incorrect update targets, and the traffic collector's safeguards.
+
+CodeQL runs as GitHub's **default setup** for Actions and Python: the
+default query suite, weekly and on pull requests into main (#214 ran it; a
+release-branch PR such as #224 gets no CodeQL run). It is configured in the
+repository's security settings, not in a workflow file. Its configuration therefore cannot
+be rebuilt from a commit; [settings evidence](REPOSITORY_SETTINGS_EVIDENCE.md)
+records its last readback. A versioned CodeQL workflow would duplicate the
+scans, so none is added (#223).
+
+[External link check](../.github/workflows/link-check.yml) runs weekly on
+Mondays at 04:41 UTC and on manual dispatch, read-only and outside the required
+checks. After installing the hashed `.github/requirements.txt` (the checker
+reuses the gate's Markdown helpers, which import PyYAML),
+`tools/check_external_links.py` requests each `http(s)` link of the
+tracked Markdown files once, without its fragment, following redirects, with a
+25-second timeout, up to two retries and three requests at a time. A 2xx answer
+is verified; 403, 429, 5xx and network errors are unverifiable and reported as
+warnings, never as a pass; any other answer is broken and fails the run. Links
+to this repository on github.com are left to the local gate (#218).
 
 A failed prerequisite, validation error or failed child command exits nonzero.
 The fixture suite includes clean input as well as deliberate failures. It
@@ -68,8 +100,76 @@ There is no matrix, job condition, path filter or changed-file shortcut.
 PRs targeting `main` or `release/**`, and pushes to those branches, run the
 same command on Ubuntu 24.04. Manual dispatch is also available after
 default-branch activation. Checkout is pinned to the existing reviewed SHA,
-credentials are not persisted, permissions are `contents: read`, timeout is
-10 minutes, and newer runs cancel older runs for the same workflow/ref.
+credentials are not persisted, permissions are `contents: read` and the
+timeout is 10 minutes.
+
+### Reproducible runs (#220)
+
+- **Runtimes:** `actions/setup-python` and `actions/setup-node`, pinned by
+  SHA, install Python 3.13.18 and Node.js 24.22.2, so a runner image update
+  cannot change them. Dependabot updates the actions; I change the versions
+  by hand.
+- **Dependencies:** `.github/requirements.txt` and `tests/requirements.txt`
+  are compiled from `.github/requirements.in` and `tests/requirements.in`
+  with `pip-compile --generate-hashes --allow-unsafe`. They pin every
+  package, dependencies included, by version and hash. CI installs them
+  with `--require-hashes --only-binary=:all:`. A local `pip install -r`
+  checks the hashes too, because pip turns hash checking on when a file
+  has hashes. After changing an `.in` file, compile it again and commit both.
+- **Report:** `tools/check_repository.py --report PATH` writes a JSON report
+  of every check it ran: the commit, run id and attempt, the runtimes, and
+  each check's result and duration. It writes the report whatever the result.
+  On a PR, `commit` is the merge commit GitHub tests and `head_commit` the PR
+  head; on a push they are the same. The job uploads the report as the
+  artifact `integrity-report-<head sha>-<run id>-<attempt>`, kept 30 days,
+  even when a check failed; a missing report fails the job.
+- **Concurrency:** a PR run has one group per PR, and a newer head cancels
+  the older run. A push or dispatch run has a group of its own and is never
+  cancelled, so each pushed commit keeps its result. The PR milestone
+  workflow has one group per PR for PR events, and one for its scheduled,
+  manual and push scans, so one PR's pending event no longer replaces
+  another's.
+- **Prototype checks:** this job keeps the OS Python, because the
+  LibreOffice UNO bridge is built for it, so its Python version follows the
+  runner image. It installs the hashed requirements with `--ignore-installed`
+  as well, so every package comes from its hashed wheel.
+- **External link check:** it installs the parser the same way, on the
+  runner's Python; it is not a required check.
+
+### Quality gates (#219)
+
+The required check runs these before the label commands and the tooling
+tests, with the configuration of [`pyproject.toml`](../pyproject.toml):
+
+| Gate | Scope | Rules |
+| --- | --- | --- |
+| Ruff 0.17.3 | `tools/`, `tests/`, `.github/` | `E4`, `E7`, `E9`, `F`, `I001` (import order) and `C90` with a maximum complexity of 15 |
+| mypy 2.4.1 | `tools/` | `strict`, `warn_unused_configs` and `warn_unreachable` |
+| mypy 2.4.1 | `tests/` | the same, with only the annotation requirement relaxed: function bodies are still type-checked |
+| actionlint 1.7.12 | every workflow | its own syntax, expression and type checks |
+
+- **Exceptions:** a function above the complexity limit carries a
+  `# noqa: C901` with its reason. Six do: the independent FRTB reference's
+  `delta_risk_factors` and `sbm_component`, which follow the MAR21 steps in
+  order, the engine reconciliation, the evidence validator, the LibreOffice
+  runner and the VBA lint parser. No stubs exist for the LibreOffice UNO
+  bridge or CairoSVG, so mypy does not follow those imports.
+- **Versions:** Ruff, mypy and the PyYAML and openpyxl stubs are pinned with
+  hashes in `.github/requirements-quality.txt`, compiled from
+  `.github/requirements-quality.in`. The job also installs
+  `tests/requirements.txt`, so mypy checks the tests against NumPy, openpyxl
+  and pytest. It downloads the actionlint release archive and checks its
+  SHA-256 before use.
+- **actionlint integrations:** actionlint runs without ShellCheck and
+  pyflakes. Those tools would come unpinned from the runner image, so the
+  shell and Python inside `run:` steps are not linted.
+- **Missing tools:** the job sets `REQUIRE_QUALITY_TOOLS=1`, so a missing
+  tool fails the check. `tests/tooling/test_quality_gates.py` proves that each
+  gate fails: an unused import, a complexity breach, a type error, an
+  unreachable branch and an invalid workflow expression. It also shows that a
+  missing tool fails only when tools are required. The gate refuses an
+  integrity workflow that drops `REQUIRE_QUALITY_TOOLS` or the actionlint
+  checksum.
 
 The check name and app identity are required by the main and release
 rulesets, and main must be up to date before merging; issue #2 records the

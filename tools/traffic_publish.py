@@ -14,13 +14,15 @@ It never receives the traffic App token (docs/TRAFFIC_HISTORY.md).
 import argparse
 import json
 import os
-from pathlib import Path
 import re
 import subprocess
 import sys
 import time
 import urllib.error
 import urllib.request
+from http.client import HTTPMessage
+from pathlib import Path
+from typing import IO, Any, NoReturn
 
 BRANCH = "traffic-history"
 DATA = "data/"
@@ -31,18 +33,19 @@ DATA_PATH = re.compile(r"data/[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)?")
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
+    def redirect_request(self, req: urllib.request.Request, fp: IO[bytes], code: int, msg: str,
+                         headers: HTTPMessage, newurl: str) -> NoReturn:
         raise RuntimeError("Refusing an API redirect with credentials")
 
 
 class GitHub:
-    def __init__(self, token):
+    def __init__(self, token: str) -> None:
         if not token:
             raise ValueError("Required workflow credential is missing")
         self.token = token
         self.opener = urllib.request.build_opener(NoRedirect())
 
-    def request(self, method, path, data=None):
+    def request(self, method: str, path: str, data: dict[str, Any] | None = None) -> Any:
         if not path.startswith("/repos/") or ".." in path:
             raise ValueError("Invalid API path")
         payload = None if data is None else json.dumps(data).encode("utf-8")
@@ -68,19 +71,19 @@ class GitHub:
         raise RuntimeError(f"GitHub {method} failed")
 
 
-def git(history, *args):
+def git(history: Path, *args: str) -> bytes:
     return subprocess.run(["git", "-C", str(history), *args], check=True,
                           capture_output=True).stdout
 
 
-def changed_files(history):
+def changed_files(history: Path) -> dict[str, str]:
     """The files under data/ that differ from the checked-out commit.
 
     The merge never deletes a file, so a deletion is refused rather than
     published.
     """
     listing = git(history, "status", "--porcelain=v1", "-z", "--untracked-files=all", "--", DATA)
-    files = {}
+    files: dict[str, str] = {}
     for entry in filter(None, listing.decode("utf-8").split("\0")):
         status, path = entry[:2], entry[3:]
         if "D" in status or "R" in status:
@@ -94,7 +97,7 @@ def changed_files(history):
     return files
 
 
-def publish(writer, repository, parent, files, message):
+def publish(writer: GitHub, repository: str, parent: str, files: dict[str, str], message: str) -> str | None:
     """One tree and one commit on the expected parent; the ref is never forced."""
     if not REPOSITORY.fullmatch(repository):
         raise ValueError("Invalid repository identity")
@@ -116,10 +119,22 @@ def publish(writer, repository, parent, files, message):
     # A competing update yields a non-fast-forward rejection; never force or reset.
     writer.request("PATCH", base + "/git/refs/heads/" + BRANCH,
                    {"sha": new["sha"], "force": False})
-    return new["sha"]
+    sha: str = new["sha"]
+    return sha
 
 
-def main(argv=None):
+def write_output(name: str, value: str) -> None:
+    """Append name=value to the step outputs; outside Actions there are none."""
+    path = os.environ.get("GITHUB_OUTPUT")
+    if not path:
+        return
+    if not SHA.fullmatch(value):
+        raise ValueError("Refusing to output a value that is not a full commit SHA")
+    with open(path, "a", encoding="utf-8") as output:
+        output.write(name + "=" + value + "\n")
+
+
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--history", type=Path, required=True,
                         help="checkout of traffic-history holding the merged data/")
@@ -136,6 +151,9 @@ def main(argv=None):
     files = changed_files(args.history)
     sha = publish(GitHub(os.environ.get("GITHUB_TOKEN", "")), repository, parent, files,
                   "analytics: collect traffic " + args.collected_at)
+    # The alert job reads exactly this commit: the one published, or the
+    # unchanged parent, never whatever the branch holds when it starts.
+    write_output("sha", parent if sha is None else sha)
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if sha is None:
         print("No change to the history; nothing published.")

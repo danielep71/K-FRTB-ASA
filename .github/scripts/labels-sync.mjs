@@ -153,15 +153,22 @@ export function planChanges(desiredLabels, liveLabels, { prune = true } = {}) {
 }
 
 // Pruning a label also removes it from every issue and PR, so a label that is
-// still used, by an open or a closed item, is never deleted.
+// still used, by an open or a closed item, is never deleted. Every planned
+// deletion is checked before refusing, so one run lists every label to
+// migrate. A failed or malformed lookup still aborts at once.
 export async function assertUnusedDeletions(changes, listAssociations) {
+  const used = [];
   for (const change of changes) {
     if (change.action !== "delete") continue;
     const associations = await listAssociations(change.currentName);
     if (!Array.isArray(associations)) throw new Error("GitHub issue associations response is not an array");
-    if (associations.length > 0) {
-      throw new Error(`Refusing to prune used label ${JSON.stringify(change.currentName)}; migrate its issue/PR associations first`);
-    }
+    if (associations.length > 0) used.push(JSON.stringify(change.currentName));
+  }
+  if (used.length === 1) {
+    throw new Error(`Refusing to prune used label ${used[0]}; migrate its issue/PR associations first`);
+  }
+  if (used.length > 1) {
+    throw new Error(`Refusing to prune ${used.length} used labels: ${used.join(", ")}; migrate their issue/PR associations first`);
   }
 }
 
@@ -214,9 +221,16 @@ function splitRepository(repository) {
   return parts.map(encodeURIComponent);
 }
 
-function apiUrl(repository, suffix) {
+// The REST API root: GITHUB_API_URL in Actions (it differs on a GitHub
+// Enterprise host), else github.com. Trailing slashes are removed.
+function apiRoot(environment = process.env) {
+  const configured = String(environment.GITHUB_API_URL ?? "").replace(/\/+$/, "");
+  return configured || "https://api.github.com";
+}
+
+function apiUrl(repository, suffix, root = apiRoot()) {
   const [owner, repo] = splitRepository(repository);
-  return `https://api.github.com/repos/${owner}/${repo}${suffix}`;
+  return `${root}/repos/${owner}/${repo}${suffix}`;
 }
 
 function sleep(milliseconds) {
@@ -321,8 +335,22 @@ async function applyChanges(repository, token, changes) {
   }
 }
 
+// Text for one Markdown line or table cell: pipes escaped and every line
+// break (CR, LF or CRLF) turned into a space.
 function markdownEscape(value) {
-  return String(value).replaceAll("|", "\\|").replaceAll("\n", " ");
+  return String(value).replace(/\r\n|\r|\n/g, " ").replaceAll("|", "\\|");
+}
+
+// A code span that holds exactly the value: its backtick fence is longer
+// than any backtick run in the value, and a space pads a value that starts
+// or ends with a backtick (CommonMark code spans). A fixed single backtick
+// would let an API value end the span early.
+export function codeSpan(value) {
+  const text = markdownEscape(value);
+  const longest = Math.max(0, ...(text.match(/`+/g) ?? []).map(run => run.length));
+  const fence = "`".repeat(longest + 1);
+  const pad = text.startsWith("`") || text.endsWith("`") ? " " : "";
+  return `${fence}${pad}${text}${pad}${fence}`;
 }
 
 function renderLabelNames(labels) {
@@ -350,8 +378,8 @@ function renderSummary({
   const lines = [
     "# Repository label synchronization",
     "",
-    `- Mode: \`${mode}\`${dryRun ? " (dry run)" : ""}`,
-    `- Label manifest: \`${manifestPath ?? "unavailable"}\``,
+    `- Mode: ${codeSpan(mode)}${dryRun ? " (dry run)" : ""}`,
+    `- Label manifest: ${codeSpan(manifestPath ?? "unavailable")}`,
     `- Schema: **${manifest?.schema_version ?? "unavailable"}**`,
     `- Labels: **${resolvedLabels.length}**`,
     `- Prune: **${manifest ? (manifest.prune ? "enabled" : "disabled") : "unavailable"}**`,
@@ -366,7 +394,7 @@ function renderSummary({
     `- Labels (${resolvedLabels.length}): ${renderLabelNames(resolvedLabels)}`
   );
   if (error) {
-    lines.push("", "## Failure", "", `\`${markdownEscape(error)}\``);
+    lines.push("", "## Failure", "", codeSpan(error));
     if (partial) {
       lines.push("", "The failure happened during or after reconciliation: some changes may already be applied. Compare the live labels with the manifest.");
     }
@@ -378,7 +406,7 @@ function renderSummary({
     lines.push("", "| Action | Label | Detail |", "|---|---|---|");
     for (const change of changes) {
       const detail = change.action === "update" ? change.fields.join(", ") : change.action === "delete" ? "outside the manifest" : "missing live label";
-      lines.push(`| ${change.action} | \`${markdownEscape(change.name)}\` | ${markdownEscape(detail)} |`);
+      lines.push(`| ${change.action} | ${codeSpan(change.name)} | ${markdownEscape(detail)} |`);
     }
   }
   return `${lines.join("\n")}\n`;
@@ -538,6 +566,25 @@ async function runSelfTest(manifestPath) {
   await assert.rejects(() => assertUnusedDeletions(deletionPlan, async () => ({})), /not an array/);
   await assert.rejects(() => assertUnusedDeletions(deletionPlan, async () => { throw new Error("Association lookup failed"); }), /Association lookup failed/);
 
+  // Every planned deletion is checked, and one refusal lists every used label (#235)
+  const manyPlan = [
+    { action: "delete", currentName: "old-a", name: "old-a" },
+    { action: "delete", currentName: "unused", name: "unused" },
+    { action: "delete", currentName: "old-b", name: "old-b" }
+  ];
+  const manyChecks = [];
+  const manyLookup = async name => { manyChecks.push(name); return name === "unused" ? [] : [{ number: 7 }]; };
+  await assert.rejects(() => assertUnusedDeletions(manyPlan, manyLookup),
+    { message: 'Refusing to prune 2 used labels: "old-a", "old-b"; migrate their issue/PR associations first' });
+  assert.deepEqual(manyChecks, ["old-a", "unused", "old-b"], "every planned deletion must be checked before refusing");
+  const abortChecks = [];
+  await assert.rejects(() => assertUnusedDeletions(manyPlan, async name => {
+    abortChecks.push(name);
+    if (name === "unused") throw new Error("Association lookup failed");
+    return [{ number: 7 }];
+  }), /Association lookup failed/);
+  assert.deepEqual(abortChecks, ["old-a", "unused"], "a failed lookup must still abort at once");
+
   const commaPlan = [{ action: "delete", currentName: "foo,bar", name: "foo,bar" }];
   const lookupCalls = [];
   const commaLookup = async (_repository, _token, method, suffix) => {
@@ -556,6 +603,30 @@ async function runSelfTest(manifestPath) {
   await assert.rejects(() => listLabelAssociations("fixture/repo", "unused", "foo,bar", async () => [{ labels: null }]), /malformed/);
   await assert.rejects(() => listLabelAssociations("fixture/repo", "unused", "foo,bar", async () => ({})), /not an array/);
   await assert.rejects(() => listLabelAssociations("fixture/repo", "unused", "foo,bar", async () => Array.from({ length: 100 }, () => ({ labels: [] }))), /pagination exceeded/);
+
+
+  // Summary values from the API stay inside one code span (#217)
+  assert.equal(codeSpan("plain"), "`plain`");
+  assert.equal(codeSpan("a`b"), "``a`b``");
+  assert.equal(codeSpan("x``y"), "```x``y```");
+  assert.equal(codeSpan("`edge`"), "`` `edge` ``");
+  assert.equal(codeSpan("a|b"), "`a\\|b`");
+  assert.equal(codeSpan("line1\r\nline2\rline3\nline4"), "`line1 line2 line3 line4`");
+  const escapedSummary = renderSummary({ mode: "plan", manifest, manifestPath: "a`b.json", desiredLabels: desired,
+    changes: [{ action: "delete", name: "evil`name|x\r\ny", currentName: "evil`name|x\r\ny" }] });
+  assert.match(escapedSummary, /\| delete \| ``evil`name\\\|x y`` \| outside the manifest \|/);
+  assert.match(escapedSummary, /- Label manifest: ``a`b\.json``/);
+  assert.match(renderSummary({ mode: "reconcile", manifest, manifestPath: "m", desiredLabels: desired, changes: null,
+    error: "API said `no`\r\nretry" }), /\n``API said `no` retry``\n/);
+
+  // The API root comes from GITHUB_API_URL, with github.com as the fallback (#234)
+  assert.equal(apiRoot({}), "https://api.github.com");
+  assert.equal(apiRoot({ GITHUB_API_URL: "" }), "https://api.github.com");
+  assert.equal(apiRoot({ GITHUB_API_URL: "https://ghe.example/api/v3" }), "https://ghe.example/api/v3");
+  assert.equal(apiRoot({ GITHUB_API_URL: "https://ghe.example/api/v3//" }), "https://ghe.example/api/v3");
+  assert.equal(apiUrl("o/r", "/labels", apiRoot({ GITHUB_API_URL: "https://ghe.example/api/v3/" })),
+    "https://ghe.example/api/v3/repos/o/r/labels");
+  assert.equal(apiUrl("o/r", "/labels", apiRoot({})), "https://api.github.com/repos/o/r/labels");
 
   process.stdout.write("SELF-TEST PASS: retry delays, validation, deletion guard and reconciliation fixtures\n");
 }

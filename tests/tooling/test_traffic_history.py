@@ -21,6 +21,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 
+import check_issues  # noqa: E402
 import traffic_history  # noqa: E402
 from traffic_history import DAILY, PATHS, REFERRERS, SNAPSHOTS, TrafficError  # noqa: E402
 
@@ -319,14 +320,14 @@ class BadgeTests(unittest.TestCase):
 
 class AlertTests(unittest.TestCase):
     def history(self, ws: Workspace, before: tuple[int, int, int], after: tuple[int, int, int],
-                referrers: Any = None) -> dict[str, str] | None:
+                referrers: Any = None, milestone_due: str = "2026-12-20") -> dict[str, str] | None:
         """Two daily snapshots of (views, clones, stars); the second may add referrers."""
         for day, (views, clones, stars), extra in (("2026-10-13", before, None),
                                                   ("2026-10-14", after, referrers)):
             ws.collect([(day, views, 1)], clones=[(day, clones, 1)],
                        repository=stats(stars=stars), referrers=extra)
             ws.merge(f"{day}T06:00:00")
-        return traffic_history.alert(ws.data, "2026-12-20")
+        return traffic_history.alert(ws.data, milestone_due)
 
     def test_no_alert_when_nothing_stands_out(self) -> None:
         with workspace() as ws:
@@ -342,10 +343,19 @@ class AlertTests(unittest.TestCase):
             self.assertEqual(issue["title"], "Traffic alert: 2026-10-14")
             self.assertIn("views spike, clones spike, stars increased.", issue["body"])
             self.assertIn("| Stars | 2 | 1 |", issue["body"])
-            for line in ("- Planned start: **2026-10-14**.", "- Target completion: **2026-10-21**.",
-                         "- Milestone target: **2026-12-20**.",
+            for line in ("- **Planned start:** 2026-10-14", "- **Target completion date:** 2026-10-21",
+                         "- **Milestone target:** 2026-12-20",
                          "## Dependencies and blocking status\n\nNone."):
                 self.assertIn(line, issue["body"])
+            # issue triage reads the alert's target date from its planning line
+            self.assertEqual(check_issues.target_date(issue["body"]), "2026-10-21")
+
+    def test_the_alert_target_never_passes_the_milestone_due_date(self) -> None:
+        with workspace() as ws:
+            issue = self.history(ws, (50, 20, 1), (150, 40, 2), milestone_due="2026-10-20")
+            assert issue is not None
+            self.assertIn("- **Target completion date:** 2026-10-20", issue["body"])
+            self.assertEqual(check_issues.target_date(issue["body"]), "2026-10-20")
 
     def test_a_spike_needs_double_and_the_minimum_growth(self) -> None:
         with workspace() as ws:
@@ -451,7 +461,7 @@ class FailureTests(unittest.TestCase):
                 self.assert_refused(ws, message)
 
     def test_more_uniques_than_the_count_is_refused(self) -> None:
-        cases = {
+        cases: dict[str, dict[str, Any]] = {
             "a daily entry": {"views.json": series("views", [("2026-10-15", 1, 9)])},
             "a window total": {"views.json": {"count": 1, "uniques": 9, "views": []}},
             "a referrer": {"referrers.json": [{"referrer": "x", "count": 1, "uniques": 9}]},

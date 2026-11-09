@@ -262,7 +262,10 @@ including one updated from a downloads folder.
    separate Excel instance. It exports every component with the VBA editor's
    own Export and closes the workbook without saving. It then checks that the
    workbook's SHA-256 has not changed and writes `export-manifest.json`. The
-   manifest records the SHA-256 of the workbook and of every exported file.
+   manifest records the SHA-256 of the workbook and of every exported file,
+   and the type of every component: the comparison takes a document module
+   (type 100) from it, because the export of `ThisWorkbook` and the sheets
+   carries no `VB_Base` line.
 3. Compare the export with the source of that commit, on any machine with
    Python and the checkout:
 

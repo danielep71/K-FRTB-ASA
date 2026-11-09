@@ -82,8 +82,11 @@ candidate tree. For ignore or attribute changes, exercise representative
 paths with `git check-ignore --no-index` and `git check-attr`.
 
 Run `python tools/check_repository.py` after installing the pinned
-`.github/requirements.txt` dependency; [Repository checks](docs/CI.md) documents
-its tracked-file inventory, prerequisites and limits. Inspect applicable
+`.github/requirements.txt`, `.github/requirements-quality.txt` and
+`tests/requirements.txt`; [Repository checks](docs/CI.md) documents its
+tracked-file inventory, its quality gates (Ruff, mypy and actionlint),
+prerequisites and limits. Run `python -m ruff check --fix tools tests` to fix
+import order. Inspect applicable
 hosted checks and reviews before merging; no emitted job is not a passing job.
 
 The prototype has a separate suite: `python3 tools/vba_lint.py` and

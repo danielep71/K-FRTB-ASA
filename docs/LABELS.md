@@ -14,6 +14,10 @@ issues, must have:
 - The milestone that owns its work; current prototype and repository maintenance
   belong to **v0.2.0 — SA prototype** (milestone 2, approved in #51).
   Historical setup issues retain the closed **v0.1.0 — Repo setup** milestone.
+  An open issue's milestone must be open.
+- A target date, `YYYY-MM-DD`, no later than the milestone's due date: the
+  **Target end date** of the issue forms, or a `**Target completion date:**`
+  planning line in the body, which takes precedence (#221).
 - An objective, acceptance checklist, dependencies and required evidence.
 
 PRs retain the assignee and exactly one priority, and link to their owning
@@ -67,13 +71,15 @@ applicable green checks and any required runtime evidence; only mark acceptance
 checkboxes complete when that evidence exists.
 
 **Issue triage** ([workflow](../.github/workflows/issue-triage.yml),
-[check](../tools/check_issues.py)) audits every open issue on issue events
-and on manual dispatch: assignee `danielep71`, exactly one priority, P1 only
-with `bug`, a milestone, labels from the catalogue, and the dependency rule
-above. It is read-only: a failed run is the triage signal, and I resolve each
+[check](../tools/check_issues.py)) audits every open issue on issue events, on
+milestone events (a new due date or a closed milestone changes the rules of
+its issues) and on manual dispatch: assignee `danielep71`, exactly one
+priority, P1 only with `bug`, an open milestone, a real target date no later
+than its due date, labels from the catalogue, and the dependency rule above. It is read-only: a failed run is the triage signal, and I resolve each
 finding by hand. `python tools/check_issues.py --check-config`, run by
 `tools/check_repository.py`, checks offline that the forms, this guide and
-Dependabot agree with the catalogue. For an offline audit of exported issues:
+Dependabot agree with the catalogue, and that the three work forms require
+the target end date. For an offline audit of exported issues:
 `python tools/check_issues.py --input issues.json --repo-name danielep71/K-FRTB-SA`.
 The label workflows manage the catalogue only: they do not assign issues,
 choose priorities or milestones, or close issues. The bug form defaults to
@@ -132,14 +138,16 @@ deleted, which also removes their issue/PR associations. Before any change to
 the catalogue or manual reconciliation, review the plan and inspect affected
 issue/PR associations; migrate those associations before removing a used label.
 The reconciler refuses all mutations if any planned deletion still has an
-open or closed issue/PR association, or if that lookup fails. This guard uses
+open or closed issue/PR association, or if that lookup fails. It checks every
+planned deletion first, so one refusal names every used label to migrate; a
+failed lookup still stops it at once. This guard uses
 the same validated plan as the mutations; updates and creations never trigger
 it, and `prune: false` performs no deletion association checks. The workflow
 retains its read-only preview; the script rechecks current live labels and
 associations before applying its actual plan. When the final check fails, the
 script writes one summary of the failed run. The offline self-test covers
-updates, disabled pruning, used and unused deletion candidates, and failed or
-malformed association lookups.
+updates, disabled pruning, used and unused deletion candidates, a refusal
+that lists several used labels, and failed or malformed association lookups.
 For comma-containing label names, the script scans actual issue/PR labels
 instead of GitHub's comma-separated filter. The scan includes closed items,
 matches complete names case-insensitively, and fails closed on malformed data

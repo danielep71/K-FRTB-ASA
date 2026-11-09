@@ -15,7 +15,9 @@ from __future__ import annotations
 import math
 import re
 from collections import OrderedDict, defaultdict
+from collections.abc import Mapping
 from dataclasses import dataclass, field
+from typing import Any, TypedDict
 
 import numpy as np
 
@@ -28,6 +30,25 @@ EPS = 1e-6
 # ---------------------------------------------------------------------------
 # Parameters
 # ---------------------------------------------------------------------------
+class CsrBucket(TypedDict):
+    quality: str
+    group: str
+    type: str
+    rw: float
+
+
+class EqBucket(TypedDict):
+    type: str
+    rw_spot: float
+    rw_repo: float
+    rho: float
+
+
+class ComBucket(TypedDict):
+    rw: float
+    rho: float
+
+
 @dataclass
 class Params:
     reporting_ccy: str = "EUR"
@@ -39,27 +60,27 @@ class Params:
     low_mult: float = 0.75
     vega_rw_sigma: float = 0.55
     vega_alpha: float = 0.01
-    vega_lh: list = field(default_factory=list)  # (class, bucket, lh)
-    vertices: dict = field(default_factory=dict)
-    girr_rw: dict = field(default_factory=dict)
-    girr: dict = field(default_factory=dict)
-    girr_specified: set = field(default_factory=set)
-    csr_buckets: dict = field(default_factory=dict)  # b -> dict
-    csr: dict = field(default_factory=dict)
-    csr_sector: dict = field(default_factory=dict)  # (g1, g2) -> gamma
-    eq_buckets: dict = field(default_factory=dict)
-    eq: dict = field(default_factory=dict)
-    eq_gamma: dict = field(default_factory=dict)
-    com_buckets: dict = field(default_factory=dict)
-    com: dict = field(default_factory=dict)
-    com_gamma: dict = field(default_factory=dict)
-    fx: dict = field(default_factory=dict)
-    fx_pairs: set = field(default_factory=set)
-    drc_rw: dict = field(default_factory=dict)
-    drc_seniority: dict = field(default_factory=dict)  # name -> (rank, lgd)
-    drc: dict = field(default_factory=dict)
-    drc_buckets: list = field(default_factory=list)
-    rrao_rw: dict = field(default_factory=dict)
+    vega_lh: list[tuple[str, str, float]] = field(default_factory=list)  # (class, bucket, lh)
+    vertices: dict[str, list[float]] = field(default_factory=dict)
+    girr_rw: dict[float, float] = field(default_factory=dict)
+    girr: dict[str, float] = field(default_factory=dict)
+    girr_specified: set[str] = field(default_factory=set)
+    csr_buckets: dict[str, CsrBucket] = field(default_factory=dict)  # b -> dict
+    csr: dict[str, float] = field(default_factory=dict)
+    csr_sector: dict[tuple[str, str], float] = field(default_factory=dict)  # (g1, g2) -> gamma
+    eq_buckets: dict[str, EqBucket] = field(default_factory=dict)
+    eq: dict[str, float] = field(default_factory=dict)
+    eq_gamma: dict[tuple[str, str], float] = field(default_factory=dict)
+    com_buckets: dict[str, ComBucket] = field(default_factory=dict)
+    com: dict[str, float] = field(default_factory=dict)
+    com_gamma: dict[tuple[str, str], float] = field(default_factory=dict)
+    fx: dict[str, float] = field(default_factory=dict)
+    fx_pairs: set[str] = field(default_factory=set)
+    drc_rw: dict[str, float] = field(default_factory=dict)
+    drc_seniority: dict[str, tuple[int, float]] = field(default_factory=dict)  # name -> (rank, lgd)
+    drc: dict[str, float] = field(default_factory=dict)
+    drc_buckets: list[str] = field(default_factory=list)
+    rrao_rw: dict[str, float] = field(default_factory=dict)
 
 
 # Numeric text as CORE_Util accepts it: optional sign, ASCII digits with an
@@ -100,7 +121,7 @@ def _text(v) -> str:
     return "" if v is None else str(v).strip().upper()
 
 
-def _num(v, default=0.0) -> float:
+def _num(v, default: float = 0.0) -> float:
     x = _number(v)
     return default if x is None else x
 
@@ -120,22 +141,25 @@ def _bool(v) -> bool:
 
 
 def _flag(v):
-    """An optional yes/no input: False when blank, None when not recognized."""
+    """An optional TRUE/FALSE input: False when blank, None for anything else.
+
+    Only a Boolean or the text TRUE or FALSE is accepted; aliases such as YES,
+    N or 1 are rejected (#144).
+    """
     if v is None or (isinstance(v, str) and not v.strip()):
         return False
     if isinstance(v, bool):
         return v
-    if isinstance(v, (int, float)):
-        return {1: True, -1: True, 0: False}.get(v)
-    s = _text(v)
-    return True if s in ("TRUE", "YES", "Y", "1", "-1") else False if s in ("FALSE", "NO", "N", "0") else None
+    if isinstance(v, str):
+        return {"TRUE": True, "FALSE": False}.get(_text(v))
+    return None
 
 
 FIRST_COL = 2  # tables start in column C (0-based index 2)
 FIRST_DATA_ROW = 6  # input and output tables: header in row 5, data from row 6
 
 
-def _tables(ws) -> dict:
+def _tables(ws) -> dict[str, tuple[list[Any], list[list[Any]]]]:
     """Return {TAG: (header, rows)} for every block whose heading starts with "[TAG]"."""
     rows = [list(r) + [None] * 40 for r in ws.iter_rows(values_only=True)]
     out = {}
@@ -156,7 +180,7 @@ def _tables(ws) -> dict:
     return out
 
 
-def _kv(tables, tag) -> dict:
+def _kv(tables, tag) -> dict[str, Any]:
     return {_text(r[0]): r[1] for r in tables[tag][1]}
 
 
@@ -225,17 +249,35 @@ def params_from_workbook(wb) -> Params:
     return p
 
 
+def _cell_value(cell):
+    """A cell's value, with a number formatted as TRUE/FALSE read as a Boolean.
+
+    LibreOffice saves a Boolean cell as a number whose format shows TRUE or
+    FALSE; the VBA reads such a cell as the flag it shows (CellBool, #144). A
+    plain number keeps its value, so 1 or 0 is not a flag.
+    """
+    v = cell.value
+    if isinstance(v, bool) or not isinstance(v, (int, float)):
+        return v
+    sections = [s.strip() for s in (cell.number_format or "").split(";")]
+    if len(sections) < 2:
+        return v
+    shown = sections[0] if v > 0 else sections[1] if v < 0 else sections[2] if len(sections) > 2 else sections[0]
+    shown = shown.strip('"').strip().upper()
+    return {"TRUE": True, "FALSE": False}.get(shown, v)
+
+
 def _input_rows(ws, ncols):
     out = []
-    for r in ws.iter_rows(min_row=FIRST_DATA_ROW, min_col=FIRST_COL + 1, values_only=True):
-        r = list(r) + [None] * ncols
+    for cells in ws.iter_rows(min_row=FIRST_DATA_ROW, min_col=FIRST_COL + 1):
+        r = [_cell_value(c) for c in cells] + [None] * ncols
         if r[0] in (None, "") and r[1] in (None, ""):
             break
         out.append(r[:ncols])
     return out
 
 
-def inputs_from_workbook(wb) -> dict:
+def inputs_from_workbook(wb) -> dict[str, list[list[Any]]]:
     return {
         "delta": _input_rows(wb["In_Delta"], 7),
         "vega": _input_rows(wb["In_Vega"], 8),
@@ -268,12 +310,13 @@ def _in(x, values):
 def _bucket_valid(p: Params, rc, b) -> bool:
     if rc in ("GIRR", "FX"):
         return len(b) == 3 and not (rc == "FX" and b == p.reporting_ccy)
-    table = {"CSR_NS": p.csr_buckets, "EQ": p.eq_buckets, "COM": p.com_buckets}[rc]
+    tables: dict[str, Mapping[str, object]] = {"CSR_NS": p.csr_buckets, "EQ": p.eq_buckets, "COM": p.com_buckets}
+    table = tables[rc]
     return b in table
 
 
 def _net(rfs):
-    out = OrderedDict()
+    out: OrderedDict[tuple[str, str, str, str, float, float], RF] = OrderedDict()
     for f in rfs:
         key = (f.rc, f.bucket, f.qual, f.sub, round(f.t1, 6), round(f.t2, 6))
         if key in out:
@@ -284,7 +327,9 @@ def _net(rfs):
     return list(out.values())
 
 
-def delta_risk_factors(p: Params, rows):
+def delta_risk_factors(  # noqa: C901 -- follows the MAR21 steps in order, to be read against the standard
+    p: Params, rows
+):
     rfs = []
     for r in rows:
         rc, b, q, sub = _text(r[1]), _label(r[2]), _text(r[3]), _text(r[4])
@@ -379,9 +424,19 @@ def vega_risk_factors(p: Params, rows):
         if not _in(topt, mats):
             continue
         if rc == "GIRR":
-            if not _in(tund, mats):
+            sub = sub or "YIELD"
+            if sub == "YIELD":
+                # one vega surface per currency: option x underlying maturity
+                if not _in(tund, mats):
+                    continue
+                q = ""
+            elif sub in ("INFLATION", "XCCY"):
+                # option maturity only (MAR21.8 FAQ4): an underlying maturity is an input error
+                if not (r[6] is None or (isinstance(r[6], str) and r[6].strip() == "")):
+                    continue
+                tund = 0.0
+            else:
                 continue
-            q, sub = "", ""
         else:
             tund = 0.0
             if rc in ("CSR_NS", "EQ", "COM"):
@@ -473,7 +528,7 @@ def delta_rho(p: Params, rc, bucket, a: RF, b: RF) -> float:
     return 1.0
 
 
-def _mat_rho(p: Params, x, y):
+def _mat_rho(p: Params, x, y) -> float:
     return 1.0 if abs(x - y) < EPS else math.exp(-p.vega_alpha * abs(x - y) / min(x, y))
 
 
@@ -490,8 +545,24 @@ def _name_rho(p: Params, rc, bucket, a: RF, b: RF) -> float:
     return 1.0
 
 
+def _girr_vega_rho(p: Params, a: RF, b: RF) -> float:
+    """Delta correlation of the GIRR delta risk factors two vega risk factors
+    correspond to (MAR21.94, MAR21.46-MAR21.49): the underlying maturity for
+    two yield surfaces, otherwise the sub-type and curve correlations."""
+    g = p.girr
+    if a.sub == b.sub == "YIELD":
+        return _mat_rho(p, a.t2, b.t2)
+    if a.sub == b.sub and a.qual == b.qual:
+        return 1.0
+    if "XCCY" in (a.sub, b.sub):
+        return g["RHO_XCCY"]
+    if a.sub == b.sub == "INFLATION":
+        return g["RHO_DIFF_CURVE"]
+    return g["RHO_INFLATION"]
+
+
 def vega_rho(p: Params, rc, bucket, a: RF, b: RF) -> float:
-    und = _mat_rho(p, a.t2, b.t2) if rc == "GIRR" else _name_rho(p, rc, bucket, a, b)
+    und = _girr_vega_rho(p, a, b) if rc == "GIRR" else _name_rho(p, rc, bucket, a, b)
     return min(_mat_rho(p, a.t1, b.t1) * und, 1.0)
 
 
@@ -534,7 +605,9 @@ def _psi_matrix(x):
     return np.where(np.outer(neg, neg), 0.0, 1.0)
 
 
-def sbm_component(p: Params, comp, rfs):
+def sbm_component(  # noqa: C901 -- follows the MAR21 steps in order, to be read against the standard
+    p: Params, comp, rfs
+):
     """Return (capital[rc][scen], alt[rc][scen], buckets[(rc, scen, bucket)] = (Kb, Sb, n, note))."""
     rho_fn = {"DELTA": delta_rho, "VEGA": vega_rho, "CURVATURE": curvature_rho}[comp]
     capital = {rc: {s: 0.0 for s in SCENARIOS} for rc in RISK_CLASSES}
@@ -653,7 +726,7 @@ def drc(p: Params, rows):
         w = min(max(maturity, p.drc["MIN_MATURITY"]), p.drc["MAX_MATURITY"]) / p.drc["MAX_MATURITY"]
         positions.append((obl, bucket, quality, p.drc_seniority[sen][0], jtd * w))
 
-    obligors = OrderedDict()
+    obligors: OrderedDict[str, dict[str, Any]] = OrderedDict()
     for obl, bucket, quality, rank, jtd in positions:
         o = obligors.setdefault(obl, {"buckets": set(), "quality": quality, "pos": []})
         o["buckets"].add(bucket)
@@ -714,7 +787,7 @@ def rrao(p: Params, rows) -> float:
 # ---------------------------------------------------------------------------
 # Full run
 # ---------------------------------------------------------------------------
-def run(p: Params, inputs: dict) -> dict:
+def run(p: Params, inputs: dict[str, Any]) -> dict[str, Any]:
     loaders = {
         "DELTA": delta_risk_factors(p, inputs["delta"]),
         "VEGA": vega_risk_factors(p, inputs["vega"]),
