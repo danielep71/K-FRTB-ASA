@@ -18,7 +18,7 @@ The layout separates source, tests, documentation, and tools while distinguishin
 | `docs/assets/` | Documentation images and their sources; `market-risk/` holds the market risk and CVA method maps |
 | `docs/evidence/` | Dated, sanitized evidence records bound to reviewed commits |
 | `docs/Milestones/` | Detailed milestone guides |
-| `tools/` | Tooling index; prototype build, VBA synchronization into an existing workbook and their `.cmd` launchers, read-only VBA export and source comparison, LibreOffice runner, VBA lint, expected-value generator, Excel evidence validator and diagram generator; label tooling remains in `.github/scripts/` |
+| `tools/` | Tooling index; prototype build and template generation, VBA synchronization into an existing workbook and their `.cmd` launchers, read-only VBA export and source comparison, LibreOffice runner, VBA lint, expected-value generator, Excel run recorder and evidence validator, repository, issue and external-link checks, traffic history merge and publication, and diagram generator; label tooling remains in `.github/scripts/` |
 | `.github/` | Labels, forms, universal maintenance/analytics workflows, prototype checks, dependency updates and the Excel evidence policy |
 | Root | Entry documentation, licenses, contribution/setup guidance, and repository-control files |
 
@@ -26,8 +26,6 @@ Each new root has a purposeful README. Add further subdirectories with their
 first real file and documented purpose, rather than creating empty engine
 modules, fixtures, or placeholder test runners. Source extensions, runtime
 dependencies, and build commands must follow an approved platform decision.
-The label catalogue's `application` profile is not an engine architecture
-decision.
 
 ## Source of truth
 
@@ -117,8 +115,10 @@ requirements apply:
    Independently specified numeric expectations remain a separate requirement.
 
 The prototype has source export/build helpers and a LibreOffice runtime gate.
-Excel host compilation, execution and the source round trip remain unverified
-in #28/#30; those gaps must stay visible.
+One desktop Excel run on `323260b` recorded the builds, compilation,
+regression test and both source round trips on one host
+([Excel run](evidence/2026-10-31-excel-run-323260b.md)). The remaining manual
+Excel checks are in #28, #72, #85 and #206; those gaps must stay visible.
 
 **Prototype implementation (issues #20, #30).** Exported modules live in
 `src/modules` and `tests/modules`; the committed template at the approved
@@ -126,7 +126,8 @@ path is generated from them by `tools/build_template.py` (LibreOffice) or
 `tools/Build-Workbook.ps1 -Template` (Excel), and `tests/test_template.py`
 checks that it matches a fresh build and carries no VBA project, controls or
 personal properties. Excel builds start from the template and
-`M_Setup.FinishWorkbook` adds the buttons and window settings. Remaining gap:
-the only runtime executed so far is LibreOffice Calc in VBA-compatibility
-mode, which is not Excel host evidence (#28); the Excel round trip and its
-digests belong to #28 and #30. See [validation](validation.md).
+`M_Setup.FinishWorkbook` adds the buttons and window settings. The automated
+checks run LibreOffice Calc in VBA-compatibility mode, which is not Excel host
+evidence; one desktop Excel run, with both round trips and their digests, is
+recorded on `323260b` (#28, #30), and a change after that commit needs a new
+run. See [validation](validation.md).

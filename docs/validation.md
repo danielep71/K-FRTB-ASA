@@ -16,7 +16,7 @@ checked. Treat any result as unvalidated for regulatory use.
 | VBA static lint | `python3 tools/vba_lint.py` | Module banner, `Option Explicit` and `VB_Name` in every module, `CORE_`/`M_` names in `src/modules` and `TEST_` names in `tests/modules`, `Option Private Module` in core, no undeclared identifiers, no duplicate declarations, no cross-module use of private procedures, ASCII-only source |
 | Hand-calculated tests | `python3 -m pytest tests/test_reference.py` | The reference reproduces small examples worked out from the MAR21-MAR23 formulas: correlation scenarios, GIRR tenor/curve/inflation/basis correlations, alternative `Sb`, other-sector buckets, CSR cross-bucket correlations, FX crosses, vega and curvature correlations and risk factors, curvature selection and `psi`, DRC JTD, maturity scaling, seniority netting, HBR, RRAO |
 | Parameter spot check | `tests/test_vba_engine.py::test_parameter_sheets_match_regulatory_defaults` | The `P_*` sheets written by `M_Setup` equal an independently typed list in `tests/regulatory_defaults.py` |
-| VBA engine reconciliation | `python3 -m pytest tests/test_vba_engine.py` | The VBA modules, executed headless in LibreOffice, reproduce every `Out_RiskClass`, `Out_Buckets`, `Out_Summary` and `Out_DRC` value of the independent Python reference, on the sample portfolio and on a variant with all discretions enabled and invalid rows, each of which must be logged; empty inputs give zero capital |
+| VBA engine reconciliation | `python3 -m pytest tests/test_vba_engine.py` | The VBA modules, executed headless in LibreOffice, reproduce every `Out_RiskClass`, `Out_Buckets`, `Out_Summary` and `Out_DRC` value of the independent Python reference, on the sample portfolio, on a variant with three discretions enabled (`GIRR_SPECIFIED_CCY_DISCRETION`, `FX_SPECIFIED_PAIR_DISCRETION`, `FX_CURVATURE_DIVISOR`) and invalid rows, each of which must be logged, and on a separate run with `FX_CURVATURE_DIVISOR_ALL`; empty inputs give zero capital |
 | Numeric input contract | `python3 -m pytest tests/test_numeric_contract.py` | Valid numeric text converts as expected and invalid text is rejected in the VBA and the reference; a required key, parameter-table value or vertex-list entry that is blank or not a number stops the run with its location named and leaves every output sheet empty; **Clear outputs** and a failed run restore the template's output headers and note (#41, #45, #85) |
 | In-workbook regression test | run inside the reconciliation tests | `Test_RunRegression` passes all 52 items embedded by `M_Setup` |
 | Expected values current | `python3 tools/update_expected.py --check` | The values embedded in `M_Setup` equal the reference results for the sample |
@@ -79,18 +79,25 @@ macros and saves the result as `.xlsx`.
   sets offline in PowerShell 7; the Excel import, backup and save are
   untested.
 * **Not yet run in Excel:**
-  * the invalid-row variant with every discretion on;
+  * the invalid-row variant with its three discretions on;
   * numeric text typed with each decimal separator;
   * the `-FromSource` and `-Template` builds;
   * the build's Trust Center error path;
-  * `Dev_ExportModules`.
+  * `Dev_ExportModules`;
+  * the changes after `323260b`: the frozen panes and `Control` column
+    widths (#203), two engine changes, the GIRR inflation and cross-currency
+    basis vega (#209) and the rejection of undefined vega and curvature
+    sub-types (#245), and the input contract and sub-type texts on the
+    `README` sheet (#210, #245).
 * **Regulatory correctness.** The reference and the VBA share the same
   reading of MAR21-MAR23, so their agreement does not prove that reading is
   right. The [BIS check](methodology.md#bis-check), the hand-calculated
   tests and the parameter spot checks tie both to the regulatory text as
-  transcribed; the
-  [open interpretations](methodology.md#interpretations-and-simplifications-to-review)
-  still need a decision.
+  transcribed. The six
+  [interpretations](methodology.md#interpretations-and-simplifications-to-review)
+  are my readings, decided on October 27, 2026 and implemented (#29); they
+  are not independently reviewed, and v0.3.0 reviews them for the certified
+  scope.
 * **Real portfolios and performance.** Only the synthetic sample and small
   test cases have been run; the engine uses simple loops and has not been
   timed on large inputs.

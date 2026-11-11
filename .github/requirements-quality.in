@@ -1,5 +1,5 @@
 # Quality gates of the repository tooling (#219): Ruff, mypy and the stubs it needs.
-# Compile with: pip-compile --generate-hashes --allow-unsafe .github/requirements-quality.in
+# Compile with: pip-compile --allow-unsafe --generate-hashes --no-emit-index-url --output-file=.github/requirements-quality.txt --strip-extras .github/requirements-quality.in
 mypy==2.4.1
 ruff==0.17.3
 types-PyYAML==6.0.12.20261103

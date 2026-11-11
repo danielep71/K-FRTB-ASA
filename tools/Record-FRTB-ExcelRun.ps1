@@ -25,7 +25,9 @@
     Requirements: Windows with desktop Excel, Git and Python 3 on PATH, a
     clean checkout of the candidate, and "Trust access to the VBA project
     object model" on (File > Options > Trust Center > Trust Center Settings >
-    Macro Settings). The script changes no setting.
+    Macro Settings). The script changes no setting. If Git or Python is
+    missing, the checkout has local changes or the VBA project access is off,
+    it stops before writing anything, says why, and exits 2.
 
     If a compile error is found, Excel shows it in a message box: read it,
     click OK, and the run goes on with that compile recorded as FAIL.
@@ -149,6 +151,15 @@ function Write-Environment {
         [System.GC]::Collect()
         [System.GC]::WaitForPendingFinalizers()
     }
+}
+
+function Stop-NotRecorded {
+    # Ends the run before anything is recorded. Exit code 2 is the launcher's
+    # NOT RECORDED; an uncaught throw would exit 1, the code of a run recorded
+    # with findings.
+    param([Parameter(Mandatory = $true)][string]$Message)
+    Write-Host "ERROR: $Message" -ForegroundColor Red
+    exit 2
 }
 
 function Invoke-Logged {
@@ -299,26 +310,30 @@ function Invoke-Variant {
 
 # --- Candidate and bundle -------------------------------------------------------
 
-foreach ($tool in 'git', 'python') {
-    if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) {
-        throw "$tool was not found on PATH"
+# Nothing is recorded until the bundle exists: a failure up to then exits 2
+try {
+    foreach ($tool in 'git', 'python') {
+        if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) {
+            throw "$tool was not found on PATH"
+        }
     }
-}
-$status = @(& git status --porcelain --untracked-files=no)
-if ($status.Count -gt 0) {
-    throw "The checkout has local changes; commit, stash or discard them first:`n$($status -join "`n")"
-}
-$sha = (& git rev-parse HEAD).Trim()
-$bundle = Join-Path $repoRoot ("test-results\excel-run-" + $sha.Substring(0, 7))
-if (Test-Path $bundle) {
-    $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-    Rename-Item -Path $bundle -NewName ((Split-Path -Leaf $bundle) + "-before-$stamp")
-}
-New-Item -ItemType Directory -Force -Path $bundle | Out-Null
-$session = Join-Path $bundle 'session.log'
-
-if ((Get-VbaProjectAccess) -ne 'On') {
-    throw "Turn on 'Trust access to the VBA project object model' (File > Options > Trust Center > Trust Center Settings > Macro Settings), then run again. If you turn it on only for this run, pass -TrustChange with what you changed."
+    $status = @(& git status --porcelain --untracked-files=no)
+    if ($status.Count -gt 0) {
+        throw "The checkout has local changes; commit, stash or discard them first:`n$($status -join "`n")"
+    }
+    if ((Get-VbaProjectAccess) -ne 'On') {
+        throw "Turn on 'Trust access to the VBA project object model' (File > Options > Trust Center > Trust Center Settings > Macro Settings), then run again. If you turn it on only for this run, pass -TrustChange with what you changed."
+    }
+    $sha = (& git rev-parse HEAD).Trim()
+    $bundle = Join-Path $repoRoot ("test-results\excel-run-" + $sha.Substring(0, 7))
+    if (Test-Path $bundle) {
+        $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+        Rename-Item -Path $bundle -NewName ((Split-Path -Leaf $bundle) + "-before-$stamp")
+    }
+    New-Item -ItemType Directory -Force -Path $bundle | Out-Null
+    $session = Join-Path $bundle 'session.log'
+} catch {
+    Stop-NotRecorded $_.Exception.Message
 }
 
 Write-Host "Candidate: $sha"

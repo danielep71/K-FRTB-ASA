@@ -81,7 +81,7 @@ does not judge them.
 ## ▶️ Recorded run
 
 `tools\Record-FRTB-ExcelRun.cmd` records the run in one step. Use desktop
-Excel for Windows, with Git and Python 3 on PATH, and turn on *Trust access to
+Excel for Windows, with Git and Python 3.12 or newer on PATH, and turn on *Trust access to
 the VBA project object model* (**File → Options → Trust Center → Trust Center
 Settings → Macro Settings**).
 
@@ -119,14 +119,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\Record-FRTB-ExcelRun.p
 ```
 
 The launcher exits 0 when the record is a valid pass, 1 for any other
-outcome and 2 when the record could not be written. The manual procedure
+outcome and 2 when the record could not be written. If Git or Python is
+missing, the checkout has local changes or the VBA project access is off, it
+stops before writing the bundle, says why, and exits 2. The manual procedure
 below gives the same bundle by hand.
 
 <a id="manual-procedure"></a>
 
 ## 🧑‍💻 Manual procedure
 
-Use desktop Excel for Windows, with Git, Python 3 and PowerShell on the same
+Use desktop Excel for Windows, with Git, Python 3.12 or newer and PowerShell on the same
 machine. Run the commands in PowerShell from the checkout.
 
 1. **Pick the candidate** and confirm the tree is clean:

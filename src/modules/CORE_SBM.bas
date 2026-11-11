@@ -250,6 +250,10 @@ Private Sub LoadDelta()
                         ok = False
                     End If
                 Case RC_FX
+                    If subType <> "" Then
+                        LogMessage "ERROR", src, "FX takes no sub-type; row skipped"
+                        ok = False
+                    End If
                     qual = bucket
                     subType = ""
                     tenor = 0#
@@ -277,6 +281,27 @@ Private Function DeltaRiskWeight(ByVal i As Long) As Double
         Case RC_EQ: DeltaRiskWeight = EqRiskWeight(mBucket(i), mSub(i))
         Case RC_COM: DeltaRiskWeight = ComRiskWeight(mBucket(i))
         Case RC_FX: DeltaRiskWeight = FxRiskWeight(mBucket(i))
+    End Select
+End Function
+
+' Vega and curvature take the sub-types of the delta that are the same risk
+' factor: the bond or CDS curve of a CSR issuer, and the equity spot price.
+' Equity repo rates have no vega or curvature (MAR21.12); a commodity
+' sub-type is the delivery location and stays free text.
+Private Function IsNameSubType(ByVal rc As String, ByVal subType As String, _
+                               ByVal src As String, ByVal kind As String) As Boolean
+    IsNameSubType = True
+    Select Case rc
+        Case RC_CSR
+            If subType <> "" And subType <> "BOND" And subType <> "CDS" Then
+                LogMessage "ERROR", src, "CSR " & kind & " sub-type must be BOND, CDS or none; row skipped"
+                IsNameSubType = False
+            End If
+        Case RC_EQ
+            If subType <> "" And subType <> "SPOT" Then
+                LogMessage "ERROR", src, "Equity " & kind & " takes sub-type SPOT or none: repo rates have no " & kind & "; row skipped"
+                IsNameSubType = False
+            End If
     End Select
 End Function
 
@@ -338,9 +363,14 @@ Private Sub LoadVega()
                 Case RC_CSR, RC_EQ, RC_COM
                     ' Vega risk factors are the underlying name and the option
                     ' maturity: no bond/CDS basis or delivery location (MAR21.94 FAQ)
+                    If Not IsNameSubType(rc, subType, src, "vega") Then ok = False
                     subType = ""
                     undMat = 0#
                 Case RC_FX
+                    If subType <> "" Then
+                        LogMessage "ERROR", src, "FX takes no sub-type; row skipped"
+                        ok = False
+                    End If
                     qual = bucket
                     subType = ""
                     undMat = 0#
@@ -381,7 +411,7 @@ Private Sub LoadCurvature()
             ok = False
         End If
         If ok And Not IsBlankOrBoolCell(TableCell(ws, r, 8)) Then
-            LogMessage "ERROR", src, "RefReportingCcy must be TRUE, FALSE or blank; row skipped"
+            LogMessage "ERROR", src, "References reporting ccy (RefReportingCcy) must be TRUE, FALSE or blank; row skipped"
             ok = False
         End If
         If ok Then
@@ -390,20 +420,30 @@ Private Sub LoadCurvature()
             refCcy = CellBool(TableCell(ws, r, 8))
             Select Case rc
                 Case RC_GIRR
-                    ' All curves of a currency are shifted together: one risk factor per bucket
+                    ' All curves of a currency are shifted together: one risk factor
+                    ' per bucket, with no inflation or cross-currency basis curvature (MAR21.8)
+                    If subType <> "" And subType <> "YIELD" Then
+                        LogMessage "ERROR", src, "GIRR curvature takes sub-type YIELD or none: inflation and cross-currency basis have no curvature; row skipped"
+                        ok = False
+                    End If
                     qual = ""
                     subType = ""
                 Case RC_CSR, RC_EQ, RC_COM
                     ' One curvature risk factor per issuer or commodity: bond and
-                    ' CDS curves, and delivery locations, are not separate (MAR21.100)
+                    ' CDS curves, and delivery locations, are not separate (MAR21.8-MAR21.14)
+                    If Not IsNameSubType(rc, subType, src, "curvature") Then ok = False
                     subType = ""
                 Case RC_FX
+                    If subType <> "" Then
+                        LogMessage "ERROR", src, "FX takes no sub-type; row skipped"
+                        ok = False
+                    End If
                     qual = bucket
                     subType = ""
                     up = up / FxCurvatureDivisor(refCcy)
                     dn = dn / FxCurvatureDivisor(refCcy)
             End Select
-            If qual = "" And rc <> RC_GIRR Then
+            If ok And qual = "" And rc <> RC_GIRR Then
                 LogMessage "ERROR", src, "Qualifier (issuer or commodity) is required; row skipped"
                 ok = False
             End If

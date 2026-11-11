@@ -1,8 +1,10 @@
 # Roadmap
 
 This roadmap records the milestone plan approved on October 18, 2026,
-from the repository setup to the first certified release. Milestones carry no
-dates or release promises. Each milestone after v0.3.0 is created on GitHub
+from the repository setup to the first certified release. A milestone's due
+date on GitHub is a planning target, not a release promise; issue triage
+checks each issue's target date against it ([labels and triage](LABELS.md)).
+Each milestone after v0.3.0 is created on GitHub
 when its predecessor has fixed its scope, as [governance](GOVERNANCE.md)
 requires; the issue tracker is authoritative for current progress.
 
@@ -60,10 +62,16 @@ the setup baseline.
 
 [Live milestone](https://github.com/danielep71/K-FRTB-SA/milestone/2) ·
 [milestone guide](Milestones/v0.2.0.md) ·
-[interim evaluation](evidence/2026-10-27-prototype-evaluation.md),
+[interim evaluation](evidence/2026-10-27-prototype-evaluation.md) ·
+[Excel run](evidence/2026-10-31-excel-run-323260b.md),
 integration branch `release/v0.2.0` (`release/v0.1.0` until October 27, 2026).
 
-| Issue | State | Deliverable |
+The table below is the readback of October 27, 2026, kept as it was. Since
+then, #20, #30, #79 and #82 have closed with the
+[Excel run of October 31, 2026](evidence/2026-10-31-excel-run-323260b.md) on
+`323260b`; the remaining manual Excel checks are in #28, #72, #85 and #206.
+
+| Issue | State on October 27, 2026 | Deliverable |
 | --- | --- | --- |
 | [#20](https://github.com/danielep71/K-FRTB-SA/issues/20) | Open | Excel VBA workbook prototype: SBM (delta, vega, curvature) for five risk classes, DRC non-securitization, RRAO, independent Python reference and reconciliation |
 | [#28](https://github.com/danielep71/K-FRTB-SA/issues/28) | Open | Excel host build, compile, execution and evidence |
@@ -110,9 +118,12 @@ supply desktop Excel evidence. The [milestone guide](Milestones/v0.2.0.md)
 and an [interim evaluation](evidence/2026-10-27-prototype-evaluation.md)
 exist; the final closeout record follows the Excel run of #28 (#32).
 
-The open methodology interpretations are documented as limits in the
-[methodology](methodology.md); deciding them ([#29](https://github.com/danielep71/K-FRTB-SA/issues/29))
-belongs to v0.3.0. The prototype informs the v0.3.0 scope and platform
+I decided the six methodology interpretations of
+[#29](https://github.com/danielep71/K-FRTB-SA/issues/29) on October 27, 2026;
+they are implemented (#134, #136, #138, #140, #142, #144) and recorded in the
+[methodology](methodology.md#interpretations-and-simplifications-to-review).
+They are my readings, not independently reviewed; v0.3.0 reviews them for
+the certified scope. The prototype informs the v0.3.0 scope and platform
 decisions; it does not complete the later milestones' exit conditions.
 
 ## 📐 v0.3.0 — Regulatory baseline and certification scope
@@ -120,5 +131,6 @@ decisions; it does not complete the later milestones' exit conditions.
 [Live milestone](https://github.com/danielep71/K-FRTB-SA/milestone/3),
 integration branch `release/v0.3.0` (#132). It holds the methodology
 decisions of
-[#29](https://github.com/danielep71/K-FRTB-SA/issues/29); its exit condition is
-in the plan above.
+[#29](https://github.com/danielep71/K-FRTB-SA/issues/29), decided on October
+27, 2026 and implemented; its exit condition, including their review for the
+certified scope, is in the plan above.

@@ -13,7 +13,8 @@ prototype and repository maintenance use `release/v0.2.0`, milestone 2,
 v0.2.0 — SA prototype (#117); `release/v0.1.0` is superseded.
 Read [scope and decisions](docs/SCOPE.md)
 before functional changes. The prototype is on main and release/v0.2.0 with a
-committed macro-free template; Excel host evidence remains pending in #28.
+committed macro-free template; one desktop Excel run is recorded on `323260b`,
+and the remaining manual Excel checks are in #28, #72, #85 and #206.
 Versions and tags follow [Releasing](RELEASING.md).
 
 ## Start with an issue
@@ -85,7 +86,8 @@ Run `python tools/check_repository.py` after installing the pinned
 `.github/requirements.txt`, `.github/requirements-quality.txt` and
 `tests/requirements.txt`; [Repository checks](docs/CI.md) documents its
 tracked-file inventory, its quality gates (Ruff, mypy and actionlint),
-prerequisites and limits. Run `python -m ruff check --fix tools tests` to fix
+prerequisites and limits. A gate whose tool is missing is skipped unless
+`REQUIRE_QUALITY_TOOLS=1`, as in CI. Run `python -m ruff check --fix tools tests` to fix
 import order. Inspect applicable
 hosted checks and reviews before merging; no emitted job is not a passing job.
 
@@ -116,5 +118,8 @@ See the dedicated security and conduct policies for reporting and moderation.
 ## Rights and licenses
 
 Submit only material you have the right to contribute. This project and
-contributions to it use the [MIT License](LICENSE). Preserve applicable
+contributions to it use the [MIT License](LICENSE), except the files listed in
+[THIRD_PARTY_NOTICES.txt](docs/licenses/THIRD_PARTY_NOTICES.txt), which
+remain under the MPL-2.0; a contribution to one of them is made under the
+MPL-2.0. Preserve applicable
 copyright and permission notices when redistributing project material.

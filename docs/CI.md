@@ -5,7 +5,7 @@
 ## Run the same check locally
 
 Use a Git clone, Python 3.12 or newer, Node.js with built-in fetch, and Git.
-Install the hashed configuration parser in a local environment:
+Install the three hashed requirements files in a local environment:
 
 ```sh
 python3 -m venv .venv-ci
@@ -55,8 +55,8 @@ after installation and all maintenance fixtures are offline.
   coverage. Dependabot covers the inspected ecosystems and intended branches.
 - The integrity workflow sets exact Python and Node.js versions, installs its
   Python packages by hash from wheels only, writes its report and always
-  uploads it, and cancels only superseded PR runs. Both requirements files
-  pin every package, including dependencies, with at least one hash. The PR
+  uploads it, and cancels only superseded PR runs. The three requirements
+  files pin every package, including dependencies, with at least one hash. The PR
   milestone workflow keeps one concurrency group per PR. Every workflow step
   that runs `pip install` must use `--require-hashes --only-binary=:all:`.
 - The existing label self-tests, manifest validation and read-only drift
@@ -66,7 +66,8 @@ after installation and all maintenance fixtures are offline.
 - Offline maintenance tests under `tests/tooling` cover malformed/duplicate
   configuration (including non-standard JSON numeric constants), binary policy,
   broken links, whitespace, unpinned actions, narrowed trigger
-  coverage, incorrect update targets, and the traffic collector's safeguards.
+  coverage, incorrect update targets, Windows-only test dependencies missing
+  from `tests/requirements.txt`, and the traffic collector's safeguards.
 
 CodeQL runs as GitHub's **default setup** for Actions and Python: the
 default query suite, weekly and on pull requests into main (#214 ran it; a
@@ -109,13 +110,20 @@ timeout is 10 minutes.
   SHA, install Python 3.13.18 and Node.js 24.22.2, so a runner image update
   cannot change them. Dependabot updates the actions; I change the versions
   by hand.
-- **Dependencies:** `.github/requirements.txt` and `tests/requirements.txt`
-  are compiled from `.github/requirements.in` and `tests/requirements.in`
-  with `pip-compile --generate-hashes --allow-unsafe`. They pin every
-  package, dependencies included, by version and hash. CI installs them
+- **Dependencies:** the three requirements files, `.github/requirements.txt`,
+  `.github/requirements-quality.txt` and `tests/requirements.txt`, are
+  compiled from their `.in` files with `pip-compile --allow-unsafe
+  --generate-hashes --no-emit-index-url --output-file=<file>.txt
+  --strip-extras <file>.in`, the command each records in its header. They pin
+  every package, dependencies included, by version and hash. CI installs them
   with `--require-hashes --only-binary=:all:`. A local `pip install -r`
   checks the hashes too, because pip turns hash checking on when a file
   has hashes. After changing an `.in` file, compile it again and commit both.
+  pip-compile evaluates environment markers where it runs, so a compile on
+  Linux or macOS drops colorama, the Windows-only dependency of pytest that
+  `tests/requirements.in` pins with its marker; I compile that file on
+  Windows or restore the entry, and
+  `tests/tooling/test_requirements_platforms.py` fails without it (#246).
 - **Report:** `tools/check_repository.py --report PATH` writes a JSON report
   of every check it ran: the commit, run id and attempt, the runtimes, and
   each check's result and duration. It writes the report whatever the result.
@@ -172,8 +180,11 @@ tests, with the configuration of [`pyproject.toml`](../pyproject.toml):
   checksum.
 
 The check name and app identity are required by the main and release
-rulesets, and main must be up to date before merging; issue #2 records the
-readback and a representative blocked PR (October 18, 2026). A task PR proves
+rulesets, and both are strict: a PR branch must be up to date with its base
+before merging. Issue #2 records the readback and a representative blocked
+PR (October 18, 2026); the release ruleset has been strict since the
+readback of October 31, 2026
+([settings evidence](REPOSITORY_SETTINGS_EVIDENCE.md)). A task PR proves
 the hosted command; release-to-main integration and synchronization into the
 prototype branch (#31) install the workflow on the respective branch lines.
 The prototype workflow installs both requirements manifests in its own test
@@ -198,7 +209,7 @@ PRs; it was deleted after the closeout (#62):
 | Ecosystem and manifest location | Version-update PR target |
 | --- | --- |
 | GitHub Actions, `/` | `release/v0.2.0` |
-| pip, `/.github/requirements.txt` (PyYAML configuration parser) | `release/v0.2.0` |
+| pip, `/.github` (`requirements.txt`: PyYAML configuration parser; `requirements-quality.txt`: Ruff, mypy and stubs) | `release/v0.2.0` |
 | pip, `/tests/requirements.txt` (prototype NumPy, openpyxl, pytest) | `release/v0.2.0` |
 
 The two previous Actions entries are consolidated into one. Both pip
@@ -252,12 +263,13 @@ trusted workflow; do not claim synchronous assignment prevention. The query
 ## Issue triage
 
 [Issue triage](../.github/workflows/issue-triage.yml) runs
-[`tools/check_issues.py`](../tools/check_issues.py) on issue events and on
-manual dispatch. Issue events run the workflow from the default branch only,
-so it is active after the change reaches main. Its token has `contents`,
-`issues` and `pull-requests` read access only: it never changes an issue, and a
-failed run reports the findings in the job summary and a 30-day artifact. The
-rules are in [labels and triage](LABELS.md).
+[`tools/check_issues.py`](../tools/check_issues.py) on issue events, on
+milestone events and on manual dispatch. Issue and milestone events run the
+workflow from the default branch only, so it is active after the change
+reaches main. Its token has `contents`, `issues` and `pull-requests` read
+access only: it never changes an issue, and a failed run reports the findings
+in the job summary and a 30-day artifact. The rules are in
+[labels and triage](LABELS.md).
 
 ## Evidence boundaries
 
@@ -265,7 +277,10 @@ This gate checks repository maintenance. It does not execute Excel, run the
 FRTB engine, validate formulas, certify regulation, or substitute for runtime
 and independent numerical evidence. The prototype's separate checks already
 cover VBA lint, Python reference tests and LibreOffice reconciliation on its
-branch. Excel build/compile/runtime evidence is tracked in #28, methodology
-decisions in #29 (v0.3.0); prototype synchronization was completed in #31. Future engine gates
+branch. One desktop Excel run is recorded under #28
+([Excel run](evidence/2026-10-31-excel-run-323260b.md)), which keeps the
+remaining manual Excel checks; the methodology readings decided in #29 are
+reviewed for the certified scope in v0.3.0; prototype synchronization was
+completed in #31. Future engine gates
 must retain independently derived expectations and name the actual host and
 commit, following [Scope](SCOPE.md) and the [structure policy](REPOSITORY_STRUCTURE.md).
