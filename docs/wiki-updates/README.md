@@ -9,8 +9,8 @@ The run covers candidate `323260bb38116cd64c616e7acd73af7d8bdc9482` on
 `release/v0.3.0`, on one Windows/Excel host. The patch preserves the remaining
 manual checks, the private-bundle limitation and the distinction between
 Excel, LibreOffice and regulatory validation. It does not change the dated
-October 27 evaluation or imply that this release branch has the Excel-run
-tooling or the later layout fix.
+October 27 evaluation. The layout fix #203 is closed, but no Excel run has
+seen it yet, so the pages leave that check to the all-sheet review #206.
 
 The wiki is a separate Git repository. After this task PR is reviewed, apply
 the patch to a clean wiki checkout at the named commit with `git apply

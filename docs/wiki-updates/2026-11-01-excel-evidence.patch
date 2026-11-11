@@ -1,5 +1,5 @@
 diff --git a/Home.md b/Home.md
-index fc41a72..20e4d52 100644
+index fc41a72..0f7b0a1 100644
 --- a/Home.md
 +++ b/Home.md
 @@ -8,7 +8,7 @@
@@ -21,7 +21,7 @@ index fc41a72..20e4d52 100644
 +`323260bb38116cd64c616e7acd73af7d8bdc9482` on `release/v0.3.0`: builds,
 +compiles, 52 regression items and both round trips passed on one Windows
 +host, as recorded in the [Excel record](https://github.com/danielep71/K-FRTB-SA/blob/4a3b97412e7a3b7f4c80b736d239a88377f851d5/docs/evidence/2026-10-31-excel-run-323260b.md). Further manual checks remain
-+under #28, #72, #85, #203 and #206. No result is validated for regulatory use. See
++under #28, #72, #85 and #206. No result is validated for regulatory use. See
  [Open Items and Limitations](Open-Items-and-Limitations).
 
  ```text
@@ -60,7 +60,7 @@ index e5216ce..6c8e43c 100644
 
  ---
 diff --git a/Workbook/Open-Items-and-Limitations.md b/Workbook/Open-Items-and-Limitations.md
-index 479d3ab..117466a 100644
+index 479d3ab..16a1870 100644
 --- a/Workbook/Open-Items-and-Limitations.md
 +++ b/Workbook/Open-Items-and-Limitations.md
 @@ -20,7 +20,7 @@ the work goes next. The issue tracker is authoritative for current progress.
@@ -68,7 +68,7 @@ index 479d3ab..117466a 100644
  | Area | Limitation |
  | --- | --- |
 -| Excel | Not compiled or run in desktop Excel yet; LibreOffice's VBA support is not Excel's (#28) |
-+| Excel | First build, compile, regression and round trips recorded at `323260b` on one Windows/Excel host ([Excel record](https://github.com/danielep71/K-FRTB-SA/blob/4a3b97412e7a3b7f4c80b736d239a88377f851d5/docs/evidence/2026-10-31-excel-run-323260b.md)); synchronization and other manual cases remain open (#28/#72/#85/#203/#206) |
++| Excel | First build, compile, regression and round trips recorded at `323260b` on one Windows/Excel host ([Excel record](https://github.com/danielep71/K-FRTB-SA/blob/4a3b97412e7a3b7f4c80b736d239a88377f851d5/docs/evidence/2026-10-31-excel-run-323260b.md)); synchronization and other manual cases remain open (#28/#72/#85/#206) |
  | Release | No published release, workbook download or user manual: build the workbook from source |
  | Risk classes | CSR securitization (non-CTP and CTP) not implemented; rows are rejected |
  | DRC | Securitizations and the correlation trading portfolio not implemented |
@@ -125,7 +125,7 @@ index 32aaba5..adbfd98 100644
  ---
 
 diff --git a/Workbook/Validation-Approach.md b/Workbook/Validation-Approach.md
-index 67ec818..4e9342e 100644
+index 67ec818..6d7de55 100644
 --- a/Workbook/Validation-Approach.md
 +++ b/Workbook/Validation-Approach.md
 @@ -4,7 +4,7 @@
@@ -157,7 +157,7 @@ index 67ec818..4e9342e 100644
 +| **Excel compilation and runtime** | Recorded only for `323260b` on the named host. The raw bundle remains private; the published record supplies its digests and the operator's report. This documentation update did not rerun Excel or validate the private bundle. Later source/template changes need applicable checks repeated (#28) |
 +| **Build and sync scripts** | Template-based development/production builds ran at `323260b`. `-FromSource`, `-Template` and the build Trust Center error path remain open. Synchronization, its Windows launchers, backup/failure behavior and preserved settings/structure remain unverified (#72) |
 +| **Excel round trip** (#30) | Both modes passed at `323260b`, with 0 differences and verified workbook binding, according to the recorded host run; #30/#79 are closed. This does not establish a round trip for another candidate |
-+| **Excel-only presentation** | Five sheets were inspected in the first run. Autofilters, all-sheet formatting (#206), the layout after #203 and the full failed-run output state (#85) remain open. The recorded screenshots predate #203 |
++| **Excel-only presentation** | Five sheets were inspected in the first run. Autofilters, the formatting of every sheet, including the panes and Control widths changed by #203 (#206), and the full failed-run output state (#85) remain open. The recorded screenshots predate #203 |
  | **Regulatory correctness** | The reference and the VBA share the same reading of MAR21–MAR23, so their agreement does not prove that reading right; the interpretations decided in #29 are my readings, not an independent confirmation |
  | **Real portfolios and performance** | Only the synthetic sample and small cases have run; the engine uses simple loops and has not been timed on large inputs |
 
