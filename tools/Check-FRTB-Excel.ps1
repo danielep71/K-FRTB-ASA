@@ -9,7 +9,8 @@
        and checks its commit out (detached);
     2. checks "Trust access to the VBA project object model"; when it is off
        it asks, and turns it on for your Windows user only when you answer Y.
-       It also asks once whether to run the Trust Center error check below.
+       It also asks once whether to run the Trust Center error check below,
+       unless a group policy sets the access: that check then cannot run.
        Nothing else is asked: the rest runs unattended;
     3. runs tools\Record-FRTB-ExcelRun.ps1: both builds, both compiles, the
        regression and both round trips, written to the evidence bundle
@@ -26,7 +27,9 @@
        template from source, and records the SHA-256 of that template and of
        the committed one, with their differences (tools\compare_templates.py);
     6. when you answered Y in step 2, checks the build's Trust Center error
-       path: it turns the VBA project access off for one build and back on;
+       path: it turns the VBA project access off for one build and restores
+       your setting as it was. When a group policy sets the access, it reports
+       the check as not run;
     7. checks the synchronization (#72) on copies of both workbooks: Production
        and Development from the checkout, each followed by a compile and a
        run (and the regression for Development), with the workbook's
@@ -159,6 +162,24 @@ function Set-VbaAccess {
     $key = Get-SecurityKey $Version
     if (-not (Test-Path -LiteralPath $key)) { [void](New-Item -Path $key -Force) }
     Set-ItemProperty -LiteralPath $key -Name 'AccessVBOM' -Value $Value -Type DWord
+}
+
+function Get-UserVbaAccess {
+    # The user's own setting, or $null when it is absent; a policy is not read
+    param([string]$Version)
+    $item = Get-ItemProperty -LiteralPath (Get-SecurityKey $Version) -Name 'AccessVBOM' -ErrorAction SilentlyContinue
+    if ($null -eq $item) { return $null }
+    return [int]$item.AccessVBOM
+}
+
+function Restore-UserVbaAccess {
+    # Puts the user's setting back as Get-UserVbaAccess found it, absent included
+    param([string]$Version, $Value)
+    if ($null -eq $Value) {
+        Remove-ItemProperty -LiteralPath (Get-SecurityKey $Version) -Name 'AccessVBOM' -ErrorAction SilentlyContinue
+    } else {
+        Set-VbaAccess $Version ([int]$Value)
+    }
 }
 
 function Read-YesNo {
@@ -341,7 +362,10 @@ if ($access.Value -ne 1) {
     Write-Log 'TRUST_CHANGE=VBA project access turned on'
 }
 $runTrustCheck = [bool]$TrustCenterCheck
-if (-not $runTrustCheck) {
+if ($access.Policy) {
+    # Only the user's setting can be turned off; the policy would keep the access on
+    Write-Log 'TRUST_CHECK=not run: a group policy sets the VBA project access'
+} elseif (-not $runTrustCheck) {
     $runTrustCheck = Read-YesNo 'Also check the build''s Trust Center error path? It turns the VBA project access off for one build and back on.'
 }
 Write-Host ''
@@ -474,22 +498,26 @@ try {
     }
 
     # ------------------------------------------------- 4. Trust Center path
-    if ($runTrustCheck) {
+    if ($access.Policy) {
+        Add-Result 'TRUST_CENTER_ERROR' 'NOT_RUN' `
+                   'a group policy sets the VBA project access; the error path cannot be tested without changing the policy'
+    } elseif ($runTrustCheck) {
         Assert-TimeLeft
         Write-Host '== Trust Center error path'
-        $before = (Get-VbaAccess $excelVersion).Value
+        $before = Get-UserVbaAccess $excelVersion
         try {
             Set-VbaAccess $excelVersion 0
             $code = Invoke-Tool 'build-trust-center.log' @('-File', 'tools\Build-Workbook.ps1',
                                                           '-OutputPath', (Join-Path $script:bundle 'trust-test.xlsm'), '-Force')
         } finally {
-            Set-VbaAccess $excelVersion $before
+            Restore-UserVbaAccess $excelVersion $before
         }
+        $restored = if ($null -eq $before) { 'absent' } else { $before }
         $named = Select-String -Path (Join-Path $script:bundle 'build-trust-center.log') `
                                -Pattern 'Trust access to the VBA project object model' -SimpleMatch -Quiet
         $ok = ($code -ne 0) -and $named
         Add-Result 'TRUST_CENTER_ERROR' $(if ($ok) { 'PASS' } else { 'FAIL' }) `
-                   "exit code $code; message names the setting: $named; access restored to $before"
+                   "exit code $code; message names the setting: $named; your setting restored to $restored"
     } else {
         Add-Result 'TRUST_CENTER_ERROR' 'NOT_RUN' 'not requested'
     }
