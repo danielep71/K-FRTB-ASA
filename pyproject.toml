@@ -34,6 +34,8 @@ module = [
     "conftest",
     "frtb_reference",
     "regulatory_defaults",
+    "test_acceptance",
+    "test_check_excel_script",
     "test_compare_vba_export",
     "test_excel_evidence",
     "test_numeric_contract",
