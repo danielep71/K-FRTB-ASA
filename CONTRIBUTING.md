@@ -85,7 +85,8 @@ Run `python tools/check_repository.py` after installing the pinned
 `.github/requirements.txt`, `.github/requirements-quality.txt` and
 `tests/requirements.txt`; [Repository checks](docs/CI.md) documents its
 tracked-file inventory, its quality gates (Ruff, mypy and actionlint),
-prerequisites and limits. Run `python -m ruff check --fix tools tests` to fix
+prerequisites and limits. A gate whose tool is missing is skipped unless
+`REQUIRE_QUALITY_TOOLS=1`, as in CI. Run `python -m ruff check --fix tools tests` to fix
 import order. Inspect applicable
 hosted checks and reviews before merging; no emitted job is not a passing job.
 

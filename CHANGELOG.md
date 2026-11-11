@@ -7,6 +7,14 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- `tests/requirements.txt` pins colorama 0.4.6, the Windows-only dependency
+  of pytest, with its marker and hashes, so the hashed install also works on
+  Windows; `tests/tooling/test_requirements_platforms.py` fails when a
+  Windows-only dependency of pytest is missing. `INSTALLATION.md` and
+  `tools/README.md` install the three requirements files and name the
+  quality gates they run, the documented compile command matches the one
+  each file records, Python 3.12 or newer is stated throughout, and
+  `integrity-report/` is ignored (#246).
 - Prepared a reviewed wiki update for the first recorded desktop Excel run,
   with its exact candidate, one-host scope and remaining manual checks. The
   patch is under `docs/wiki-updates/`; wiki publication remains separate
