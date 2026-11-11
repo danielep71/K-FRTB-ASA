@@ -26,8 +26,9 @@ and #30 say which Excel results the ASA prototype (v0.2.0) needs.
 > LibreOffice run, a static check or a synthetic bundle is never an Excel
 > pass.
 
-Execution is **manual**: an operator runs Excel interactively on Windows.
-There is no automated Excel job.
+Execution is **manual**: an operator starts the run in desktop Excel on
+Windows. The [unattended check](#unattended-check) then runs every check
+without further input. There is no Excel job in CI.
 
 <a id="what-a-record-binds"></a>
 
@@ -106,8 +107,9 @@ Settings → Macro Settings**).
    log, and the stages that depend on it are `NOT_RUN`. If a compile error is
    found, Excel shows it in a message box: note it, click **OK**, and the run
    goes on.
-3. Do the remaining #28 checks by hand, in `dist\K-FRTB-ASA-development.xlsm`,
-   with their screenshots.
+3. Run the other #28 checks with the [unattended check](#unattended-check),
+   which includes this recorded run, or by hand in
+   `dist\K-FRTB-ASA-development.xlsm`, with their screenshots.
 4. Zip the bundle and the validation folder, attach them to #28 with the
    results of step 3, and add the dated record under `docs/evidence/`.
 
@@ -123,6 +125,59 @@ outcome and 2 when the record could not be written. If Git or Python is
 missing, the checkout has local changes or the VBA project access is off, it
 stops before writing the bundle, says why, and exits 2. The manual procedure
 below gives the same bundle by hand.
+
+<a id="unattended-check"></a>
+
+## 🤖 Unattended check
+
+`tools\Check-FRTB-Excel.cmd` runs every Excel check of a branch with one
+double-click: `release/v0.2.0` by default, or the branch given as its first
+argument (#274). It needs what the recorded run needs. It asks at most two
+questions, at the start:
+* whether to turn on the VBA project access, when it is off;
+* whether to check the build's Trust Center error path.
+
+Then it runs unattended:
+
+1. checks out the branch's commit (a checkout with local changes is
+   refused) and runs the [recorded run](#recorded-run), which writes and
+   validates the evidence bundle;
+2. runs `TEST_Acceptance.Test_RunAcceptanceInExcel_Silent` in a copy of the
+   development workbook, with its macros enabled for that Excel session only.
+   It runs these checks:
+   * the sample run;
+   * the state after a failed run and after **Clear outputs** (#85);
+   * numeric text with a comma and with a point;
+   * the frozen panes and autofilters of the committed template;
+   * the width of the Control descriptions (#203);
+   * the invalid-row variant, whose results must equal the independent
+     reference's (#28);
+3. takes pictures of the sheets after a failed run, after **Clear outputs**
+   and after the sample run;
+4. builds the workbook from source with the regression test, and the
+   template from source, then records the template digests and their
+   differences from the committed template;
+5. checks the Trust Center error path, if asked: it turns the access off for
+   one build and restores it;
+6. checks the synchronization (#72) on copies:
+   * Production and Development, each followed by a compile, a run and, for
+     Development, the regression, with the calculation mode kept;
+   * a folder of modules;
+   * the failure path while the workbook is open elsewhere;
+   * both launchers;
+7. writes `summary.txt`, zips `test-results\excel-check-SHORTSHA-TIME`,
+   copies the summary to the clipboard and shows the zip.
+
+It exits:
+* 0 when every check passed;
+* 1 when a check failed;
+* 2 when it could not start.
+
+Each Excel it starts is its own instance, and a watchdog closes them after
+60 minutes. The zip and the evidence bundle hold local paths and the
+computer's name: send them privately, not to a public issue. The validator
+covers the recorded bundle only. The acceptance results are the operator's
+evidence for #28, #72 and #85, and a dated record cites them.
 
 <a id="manual-procedure"></a>
 
