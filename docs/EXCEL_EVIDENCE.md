@@ -119,7 +119,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\Record-FRTB-ExcelRun.p
 ```
 
 The launcher exits 0 when the record is a valid pass, 1 for any other
-outcome and 2 when the record could not be written. The manual procedure
+outcome and 2 when the record could not be written. If Git or Python is
+missing, the checkout has local changes or the VBA project access is off, it
+stops before writing the bundle, says why, and exits 2. The manual procedure
 below gives the same bundle by hand.
 
 <a id="manual-procedure"></a>
