@@ -7,6 +7,16 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The repository, the project and the workbook are renamed K-FRTB-ASA
+  (#261). Every link to the repository and to the website, whose address
+  GitHub does not redirect, uses the new name, links in dated records
+  included; dated records keep their wording. The workbook brand bar, the
+  default build paths (`dist\K-FRTB-ASA.xlsm`), the tools, the tests, the
+  social preview and two market-risk diagrams follow. The Excel evidence
+  policy requires `danielep71/K-FRTB-ASA` and still accepts the former name
+  for records made before the rename, such as the `323260b` run. The export
+  format identifier `k-frtb-sa-vba-export-1` is unchanged. A wiki patch
+  renames the wiki pages.
 - The documentation no longer contradicts itself or the configuration.
   Milestone due dates are planning targets, not release promises; the website
   is no longer listed outside the prototype scope; Issue triage also runs on
@@ -341,6 +351,11 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- The prototype checks no longer fail when the runner cannot reach the
+  ubuntu.com package mirrors: the LibreOffice install tries the runner's
+  mirror with short apt timeouts and its own limits, then installs again
+  from the kernel.org mirror of the Ubuntu archive over HTTPS with a
+  warning. The step limit is 12 minutes and the job limit 25 (#263).
 - The Excel run recorder exits 2 when Git or Python is missing, the checkout
   has local changes or the VBA project access is off, so the launcher
   reports NOT RECORDED instead of RECORDED WITH FINDINGS. It checks the VBA

@@ -19,7 +19,7 @@ body:
         Name the exact commit, give steps anyone can repeat, and state where the expected value comes from. I set the milestone and confirm the priority: `P2` by default, `P1` only for a confirmed calculation bug, that is, wrong results for valid inputs.
 
         > [!CAUTION]
-        > Synthetic data only: never paste real positions, sensitivities, counterparties, credentials or private workbooks. Report a vulnerability privately as [`SECURITY.md`](https://github.com/danielep71/K-FRTB-SA/blob/main/SECURITY.md) describes, never in an issue.
+        > Synthetic data only: never paste real positions, sensitivities, counterparties, credentials or private workbooks. Report a vulnerability privately as [`SECURITY.md`](https://github.com/danielep71/K-FRTB-ASA/blob/main/SECURITY.md) describes, never in an issue.
 
   - type: dropdown
     id: area

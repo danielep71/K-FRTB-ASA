@@ -4,7 +4,7 @@
 [![Parameters: checked against BIS](https://img.shields.io/badge/parameters-checked%20against%20BIS-2ea44f)](#bis-check)
 [![Status: prototype](https://img.shields.io/badge/status-prototype-D93F0B)](#interpretations-and-simplifications-to-review)
 
-This document is authoritative for **what K-FRTB-SA calculates**: the
+This document is authoritative for **what K-FRTB-ASA calculates**: the
 formulas, the default parameters and the interpretations I decided (#29). It
 follows the Basel Framework chapters MAR21 (sensitivities-based method),
 MAR22 (default risk capital) and MAR23 (residual risk add-on), in force since

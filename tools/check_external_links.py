@@ -38,11 +38,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from check_repository import markdown_targets  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-OWN_REPOSITORY = "github.com/danielep71/k-frtb-sa"
+OWN_REPOSITORY = "github.com/danielep71/k-frtb-asa"
 TIMEOUT = 25
 RETRIES = 2
 WORKERS = 3
-USER_AGENT = "K-FRTB-SA link check"
+USER_AGENT = "K-FRTB-ASA link check"
 
 VERIFIED, UNVERIFIABLE, BROKEN = "verified", "unverifiable", "broken"
 

@@ -104,7 +104,7 @@ modules.
    The script opens a copy of `src\workbook\FRTB_Template.xlsx`, imports
    `src\modules` and `tests\modules`, runs `FinishWorkbook` (sheet buttons
    and reapplication of saved view settings), the calculation and the regression test, and saves
-   `dist\K-FRTB-SA.xlsm`. `-FromSource` builds every sheet from the modules
+   `dist\K-FRTB-ASA.xlsm`. `-FromSource` builds every sheet from the modules
    (`BuildWorkbook`) instead of the template; `-Production` leaves out the
    test modules; `-Template` saves a source-built, macro-free template as
    `dist\FRTB_Template.xlsx` for comparison with the committed one; `-Force`
@@ -112,7 +112,7 @@ modules.
 
    Without a PowerShell prompt, double-click `tools\Build-Workbook.cmd`. It
    asks for a production or a development workbook, and whether to
-   overwrite an existing `dist\K-FRTB-SA.xlsm`. It then runs the same script,
+   overwrite an existing `dist\K-FRTB-ASA.xlsm`. It then runs the same script,
    with `-Production` or with `-RunTests`.
 3. Open the workbook and run **Debug → Compile VBAProject**.
 
@@ -161,8 +161,8 @@ when cancelled (the workbook is not changed).
 From PowerShell, the same options are available without the prompts:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools\Sync-FRTB-VBA.ps1 -WorkbookPath dist\K-FRTB-SA.xlsm -Mode Development
-powershell -NoProfile -ExecutionPolicy Bypass -File tools\Sync-FRTB-VBA.ps1 -WorkbookPath dist\K-FRTB-SA.xlsm -SourceDir "$env:USERPROFILE\Downloads" -Force
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\Sync-FRTB-VBA.ps1 -WorkbookPath dist\K-FRTB-ASA.xlsm -Mode Development
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\Sync-FRTB-VBA.ps1 -WorkbookPath dist\K-FRTB-ASA.xlsm -SourceDir "$env:USERPROFILE\Downloads" -Force
 ```
 
 `-NoBackup` skips the safety copy and `-Visible` shows Excel while it works.
@@ -255,7 +255,7 @@ including one updated from a downloads folder.
 2. Export its VBA to a new, empty folder outside the checkout:
 
    ```powershell
-   powershell -NoProfile -ExecutionPolicy Bypass -File tools\Export-FRTB-VBA.ps1 -WorkbookPath dist\K-FRTB-SA.xlsm -OutDir C:\FRTB\export
+   powershell -NoProfile -ExecutionPolicy Bypass -File tools\Export-FRTB-VBA.ps1 -WorkbookPath dist\K-FRTB-ASA.xlsm -OutDir C:\FRTB\export
    ```
 
    The exporter opens the workbook read-only, with macros disabled, in a
@@ -270,7 +270,7 @@ including one updated from a downloads folder.
    Python and the checkout:
 
    ```sh
-   python3 tools/compare_vba_export.py --export C:\FRTB\export --mode development --candidate-sha <commit> --workbook dist\K-FRTB-SA.xlsm
+   python3 tools/compare_vba_export.py --export C:\FRTB\export --mode development --candidate-sha <commit> --workbook dist\K-FRTB-ASA.xlsm
    ```
 
    The source is read from Git at `<commit>`, not from the working tree.

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Records an Excel run of K-FRTB-SA for the evidence record, in one command.
+    Records an Excel run of K-FRTB-ASA for the evidence record, in one command.
 
 .DESCRIPTION
     Runs every stage of .github/excel-evidence-policy.json on the commit that
@@ -280,7 +280,7 @@ function Invoke-Variant {
     # Builds, compiles, exports and compares one workbook
     param([string]$Mode)
     $label = $Mode.ToLowerInvariant()
-    $workbook = Join-Path $repoRoot "dist\K-FRTB-SA-$label.xlsm"
+    $workbook = Join-Path $repoRoot "dist\K-FRTB-ASA-$label.xlsm"
     $buildArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', 'tools\Build-Workbook.ps1',
                    '-OutputPath', $workbook, '-Force')
     if ($Mode -eq 'Development') { $buildArgs += '-RunTests' } else { $buildArgs += '-Production' }

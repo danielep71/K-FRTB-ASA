@@ -1,6 +1,6 @@
 # 🧾 Workbook template
 
-`FRTB_Template.xlsx` is the macro-free template of the K-FRTB-SA prototype,
+`FRTB_Template.xlsx` is the macro-free template of the K-FRTB-ASA prototype,
 at the approved path. It is the workbook that `M_Setup.BuildWorkbook`
 produces from [`src/modules`](../modules), saved without a VBA project,
 sheet buttons or personal document properties. Other workbook names, paths,

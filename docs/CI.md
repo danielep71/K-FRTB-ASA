@@ -189,8 +189,15 @@ the hosted command; release-to-main integration and synchronization into the
 prototype branch (#31) install the workflow on the respective branch lines.
 The prototype workflow installs both requirements manifests in its own test
 environment before pytest discovers the shared maintenance tests. Its
-LibreOffice installation step stops after 8 minutes, within the job's
-20-minute limit, so a hung package mirror fails early (#124). The
+LibreOffice installation step tries the runner's package mirror first, with
+short apt timeouts and limits of 2 minutes for the index and 5 for the
+packages. When that mirror does not answer, it installs again from
+`mirrors.edge.kernel.org/ubuntu` over HTTPS and prints a warning (#263): the
+runner could not resolve any ubuntu.com host, so neither another ubuntu.com
+mirror nor HTTPS helped. Apt still checks the Ubuntu archive signatures, so
+the other mirror changes where packages come from, not what is trusted. The
+step stops after 12 minutes, within the job's 25-minute limit, so a hung mirror still fails
+early (#124). The
 universal job remains a separate, runtime-independent check.
 Do not require a check on a line before installing it there.
 
@@ -198,7 +205,7 @@ Do not require a check on a line before installing it there.
 
 The configuration must reach the default branch before GitHub schedules
 version updates. The temporary maintenance successor was approved in
-[#51](https://github.com/danielep71/K-FRTB-SA/issues/51#issuecomment-6254417218)
+[#51](https://github.com/danielep71/K-FRTB-ASA/issues/51#issuecomment-6254417218)
 on October 18, 2026, and the entries moved to `release/v0.2.0` with the
 integration branch on October 27 (#118); the configuration was activated
 on main through #120.
@@ -258,7 +265,7 @@ cleanup; daily runs also cover changes by bots whose events may not trigger
 another workflow. Event delivery and scheduled runs can be delayed or blocked
 by GitHub Actions policies or outages. If a run fails, inspect it and rerun the
 trusted workflow; do not claim synchronous assignment prevention. The query
-`repo:danielep71/K-FRTB-SA is:pr has:milestone` should return zero.
+`repo:danielep71/K-FRTB-ASA is:pr has:milestone` should return zero.
 
 ## Issue triage
 

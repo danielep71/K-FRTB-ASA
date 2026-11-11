@@ -3,7 +3,7 @@ Attribute VB_Name = "M_Setup"
 ' MODULE: M_Setup
 '------------------------------------------------------------------------------
 ' PURPOSE
-'   Build the workbook from an empty one: every sheet with the K-FRTB-SA
+'   Build the workbook from an empty one: every sheet with the K-FRTB-ASA
 '   frame (brand bar, title bar, subtitle, tab color), the default
 '   regulatory parameters (Basel MAR21-MAR23), a synthetic sample portfolio,
 '   the buttons and the expected results of the regression test. The

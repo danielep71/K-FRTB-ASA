@@ -4,7 +4,7 @@
 [![Binding: exact SHA](https://img.shields.io/badge/binding-exact%20SHA-217346)](#what-a-record-binds)
 [![Validator: offline](https://img.shields.io/badge/validator-offline-6f42c1)](#validating-a-bundle)
 
-This document defines how a run of K-FRTB-SA in desktop Excel is recorded, so
+This document defines how a run of K-FRTB-ASA in desktop Excel is recorded, so
 that it can be tied to one exact commit and checked (#82). It is
 authoritative for:
 
@@ -106,7 +106,7 @@ Settings → Macro Settings**).
    log, and the stages that depend on it are `NOT_RUN`. If a compile error is
    found, Excel shows it in a message box: note it, click **OK**, and the run
    goes on.
-3. Do the remaining #28 checks by hand, in `dist\K-FRTB-SA-development.xlsm`,
+3. Do the remaining #28 checks by hand, in `dist\K-FRTB-ASA-development.xlsm`,
    with their screenshots.
 4. Zip the bundle and the validation folder, attach them to #28 with the
    results of step 3, and add the dated record under `docs/evidence/`.
@@ -164,20 +164,20 @@ machine. Run the commands in PowerShell from the checkout.
    ```
 
    The log shows every imported module and the regression result
-   (`Regression test: Result: ...`). It ends with `Saved ...dist\K-FRTB-SA.xlsm`.
-5. **Compile.** Open `dist\K-FRTB-SA.xlsm` and run **Debug → Compile
+   (`Regression test: Result: ...`). It ends with `Saved ...dist\K-FRTB-ASA.xlsm`.
+5. **Compile.** Open `dist\K-FRTB-ASA.xlsm` and run **Debug → Compile
    VBAProject**. Then check **Tools → References**: it must list only the
    four default references of the policy. Write both results in
    `session.log`, then close the workbook **without saving**.
 6. **Round trip the development workbook:**
 
    ```powershell
-   powershell -NoProfile -ExecutionPolicy Bypass -File tools\Export-FRTB-VBA.ps1 -WorkbookPath dist\K-FRTB-SA.xlsm -OutDir ..\frtb-evidence-SHORTSHA\export-development
-   python tools\compare_vba_export.py --export ..\frtb-evidence-SHORTSHA\export-development --mode development --candidate-sha $sha --workbook dist\K-FRTB-SA.xlsm | Out-File -Encoding utf8 ..\frtb-evidence-SHORTSHA\round-trip-development.log
+   powershell -NoProfile -ExecutionPolicy Bypass -File tools\Export-FRTB-VBA.ps1 -WorkbookPath dist\K-FRTB-ASA.xlsm -OutDir ..\frtb-evidence-SHORTSHA\export-development
+   python tools\compare_vba_export.py --export ..\frtb-evidence-SHORTSHA\export-development --mode development --candidate-sha $sha --workbook dist\K-FRTB-ASA.xlsm | Out-File -Encoding utf8 ..\frtb-evidence-SHORTSHA\round-trip-development.log
    ```
 
 7. **Build, compile and round trip the production workbook** the same way:
-   * build with `-Production -OutputPath dist\K-FRTB-SA-production.xlsm -Force`
+   * build with `-Production -OutputPath dist\K-FRTB-ASA-production.xlsm -Force`
      and log to `build-production.log`;
    * compile it and record the result in `session.log`;
    * export it to `export-production` and compare it with `--mode production`,
@@ -213,7 +213,7 @@ Replace every value with what was observed. This shape is not evidence.
 ```json
 {
   "schema_version": 1,
-  "repository": "danielep71/K-FRTB-SA",
+  "repository": "danielep71/K-FRTB-ASA",
   "candidate_sha": "FULL_40_CHARACTER_SHA",
   "execution": "manual",
   "availability_reason": null,
@@ -256,7 +256,9 @@ Rules the validator applies:
 **Record**
 * `candidate_sha` must equal the commit given to the validator.
 * `sources` must equal the `--inventory` of that commit.
-* `repository` must equal the policy's repository.
+* `repository` must equal the policy's repository, or one of its
+  `former_repositories`: a record made before the rename to K-FRTB-ASA
+  names `danielep71/K-FRTB-SA` (#261).
 * The stages must be exactly the policy's stages.
 
 **Stage statuses**

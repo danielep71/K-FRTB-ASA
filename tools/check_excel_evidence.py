@@ -1,4 +1,4 @@
-"""Validate an Excel evidence record of K-FRTB-SA, offline (#82, #28).
+"""Validate an Excel evidence record of K-FRTB-ASA, offline (#82, #28).
 
 A record, host.json, describes one manual run of the workbook in desktop
 Excel for Windows, bound to one exact commit. It sits in a bundle folder
@@ -110,6 +110,9 @@ def load_policy(text: str, label: str) -> dict[str, Any]:
                 raise ValueError(f"stage {stage['name']}: compare stages need a mode")
         if not isinstance(policy["regression_items"], int) or policy["regression_items"] <= 0:
             raise ValueError("regression_items is not a positive integer")
+        former = policy.get("former_repositories", [])
+        if not isinstance(former, list) or not all(isinstance(name, str) for name in former):
+            raise ValueError("former_repositories is not a list of names")
         return policy
     except (ValueError, KeyError, TypeError) as error:
         raise CommandError(f"{label}: invalid policy: {error}") from error
@@ -366,7 +369,8 @@ def check_record(  # noqa: C901 -- one branch per rule of docs/EXCEL_EVIDENCE.md
     policy, sha = check.policy, check.candidate
     if record.get("schema_version") != SCHEMA_VERSION:
         check.error(f"schema_version must be {SCHEMA_VERSION}")
-    if record.get("repository") != policy["repository"]:
+    # A record made before a rename names the repository as it was (#261)
+    if record.get("repository") not in (policy["repository"], *policy.get("former_repositories", [])):
         check.error(f"repository must be {policy['repository']}")
     if not isinstance(record.get("candidate_sha"), str) or not SHA.match(record["candidate_sha"]):
         check.error("candidate_sha must be a full 40-character commit SHA")
