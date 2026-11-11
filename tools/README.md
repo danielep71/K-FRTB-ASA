@@ -26,7 +26,7 @@ prototype, milestone v0.2.0 (issue #20). None of them holds calculation logic.
 | `traffic_history.py` | Merges collected traffic API responses into the CSV history and writes traffic alerts; see *Traffic tooling* below |
 | `traffic_publish.py` | Publishes the merged traffic history atomically to the data-only `traffic-history` branch; see *Traffic tooling* below |
 
-[Validation](../docs/validation.md) lists their prerequisites (Python 3,
+[Validation](../docs/validation.md) lists their prerequisites (Python 3.12 or newer,
 LibreOffice Calc with the Python UNO bridge, the pinned packages in
 `tests/requirements.txt` and `.github/requirements.txt`) and how they are used
 together. The [workbook guide](../docs/workbook-guide.md#updating-an-existing-workbook)
@@ -51,9 +51,12 @@ paths under `.github/scripts/`; do not duplicate them here.
 
 ## 🧪 Universal maintenance check
 
-Install `.github/requirements.txt`, then run `python tools/check_repository.py`.
-It checks tracked configuration, whitespace, local Markdown targets and their anchors, and
-calls the existing label scripts and offline maintenance tests. Coverage and
+Install `.github/requirements.txt`, `.github/requirements-quality.txt` and
+`tests/requirements.txt`, then run `python tools/check_repository.py`. It runs
+the quality gates (Ruff, mypy and actionlint), checks tracked configuration,
+whitespace, local Markdown targets and their anchors, and calls the existing
+label scripts and offline maintenance tests. A gate whose tool is missing is
+skipped unless `REQUIRE_QUALITY_TOOLS=1`, as in CI. Coverage and
 dependency-update policy are in [Repository checks](../docs/CI.md).
 
 ## 📈 Traffic tooling

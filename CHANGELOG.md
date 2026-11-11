@@ -25,6 +25,14 @@ Unreleased describe integrated work, not a published version.
   tools, tests and structure indexes list every tool and test file. The
   changelog has one Changed section, and superseded entries name the change
   that superseded them (#249).
+- `tests/requirements.txt` pins colorama 0.4.6, the Windows-only dependency
+  of pytest, with its marker and hashes, so the hashed install also works on
+  Windows; `tests/tooling/test_requirements_platforms.py` fails when a
+  Windows-only dependency of pytest is missing. `INSTALLATION.md` and
+  `tools/README.md` install the three requirements files and name the
+  quality gates they run, the documented compile command matches the one
+  each file records, Python 3.12 or newer is stated throughout, and
+  `integrity-report/` is ignored (#246).
 - The README, scope, structure, releasing, contributing, validation,
   methodology, roadmap, governance, CI, milestone and documentation-index
   pages and the website state the current status: one desktop Excel run is
