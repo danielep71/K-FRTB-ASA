@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
 - name: 🛡️ Privately report a vulnerability
-  url: https://github.com/danielep71/K-FRTB-SA/security/advisories/new
+  url: https://github.com/danielep71/K-FRTB-ASA/security/advisories/new
   about: Use the private security channel; do not post vulnerability details in public issues.
 - name: 🤝 Contribution and triage guide
-  url: https://github.com/danielep71/K-FRTB-SA/blob/main/CONTRIBUTING.md
+  url: https://github.com/danielep71/K-FRTB-ASA/blob/main/CONTRIBUTING.md
   about: Read branch, issue metadata, evidence, and contribution rules before opening work.

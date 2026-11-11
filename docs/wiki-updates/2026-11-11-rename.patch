@@ -1,0 +1,659 @@
+diff --git a/Home.md b/Home.md
+index 0e2fde7..d1c0b4a 100644
+--- a/Home.md
++++ b/Home.md
+@@ -1,5 +1,5 @@
+ <div align="center">
+
+-# 📈 K-FRTB-SA Wiki
++# 📈 K-FRTB-ASA Wiki
+
+ **FRTB standardized approach for market risk in Excel VBA**
+@@ -10,17 +10,17 @@
+ [![Regression](https://img.shields.io/badge/Regression-52_items-2ea44f?style=flat-square)](Test-Catalogue)
+ [![Excel evidence](https://img.shields.io/badge/Excel_evidence-partial-217346?style=flat-square)](Validation-Approach#-what-is-not-validated)
+-[![License](https://img.shields.io/badge/License-MIT-2ea44f?style=flat-square)](https://github.com/danielep71/K-FRTB-SA/blob/main/LICENSE)
++[![License](https://img.shields.io/badge/License-MIT-2ea44f?style=flat-square)](https://github.com/danielep71/K-FRTB-ASA/blob/main/LICENSE)
+
+ </div>
+
+ > 📌 **Guide, not policy.** The versioned documents in the
+-> [repository](https://github.com/danielep71/K-FRTB-SA) govern: the
+-> [README](https://github.com/danielep71/K-FRTB-SA/blob/main/README.md), the
+-> [methodology](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md),
+-> the [workbook guide](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/workbook-guide.md)
+-> and the [validation record](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/validation.md).
++> [repository](https://github.com/danielep71/K-FRTB-ASA) govern: the
++> [README](https://github.com/danielep71/K-FRTB-ASA/blob/main/README.md), the
++> [methodology](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md),
++> the [workbook guide](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/workbook-guide.md)
++> and the [validation record](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/validation.md).
+ > Where a wiki page differs from them, the repository wins.
+
+-K-FRTB-SA calculates the **standardized approach capital requirement for
++K-FRTB-ASA calculates the **standardized approach capital requirement for
+ market risk** of the Basel Framework. It covers the sensitivities-based method
+ (SBM, MAR21), the default risk capital requirement for non-securitizations
+@@ -57,5 +57,5 @@ RWA       = 12.5 x K_FRTB-SA                                         (MAR20.1)
+ ## ⚖️ Regulation
+
+-What the FRTB standardized approach requires, as K-FRTB-SA implements it,
++What the FRTB standardized approach requires, as K-FRTB-ASA implements it,
+ with the MAR paragraph references.
+
+@@ -93,18 +93,18 @@ How to build, run and check the workbook, and how the repository is organized.
+ | Document | Purpose |
+ | --- | --- |
+-| [README](https://github.com/danielep71/K-FRTB-SA/blob/main/README.md) | Overview, status, quick start, workbook and validation summary |
+-| [Methodology](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md) | Formulas, parameters, BIS check and interpretation decisions |
+-| [Workbook guide](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/workbook-guide.md) | Source of truth, build, update, sheets, running and the round trip |
+-| [Validation](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/validation.md) | Automated checks and what is not validated |
+-| [Excel evidence](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/EXCEL_EVIDENCE.md) | The Excel evidence record and its validator |
+-| [Scope](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/SCOPE.md) | Functional scope, platform decisions and the source and validation policy |
+-| [Roadmap](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/ROADMAP.md) | Milestone plan up to the first certified release |
+-| [Market risk diagrams](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/assets/market-risk/README.md) | The five method maps used on these pages |
+-| [Governance](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/GOVERNANCE.md) · [Releasing](https://github.com/danielep71/K-FRTB-SA/blob/main/RELEASING.md) · [Contributing](https://github.com/danielep71/K-FRTB-SA/blob/main/CONTRIBUTING.md) | Branches, issues, releases and contributions |
+-| [CHANGELOG](https://github.com/danielep71/K-FRTB-SA/blob/main/CHANGELOG.md) | Recorded changes |
+-| [Issues](https://github.com/danielep71/K-FRTB-SA/issues) · [Milestones](https://github.com/danielep71/K-FRTB-SA/milestones) | Open work and progress |
+-| [Security policy](https://github.com/danielep71/K-FRTB-SA/blob/main/SECURITY.md) | Private vulnerability reporting |
++| [README](https://github.com/danielep71/K-FRTB-ASA/blob/main/README.md) | Overview, status, quick start, workbook and validation summary |
++| [Methodology](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md) | Formulas, parameters, BIS check and interpretation decisions |
++| [Workbook guide](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/workbook-guide.md) | Source of truth, build, update, sheets, running and the round trip |
++| [Validation](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/validation.md) | Automated checks and what is not validated |
++| [Excel evidence](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/EXCEL_EVIDENCE.md) | The Excel evidence record and its validator |
++| [Scope](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/SCOPE.md) | Functional scope, platform decisions and the source and validation policy |
++| [Roadmap](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/ROADMAP.md) | Milestone plan up to the first certified release |
++| [Market risk diagrams](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/assets/market-risk/README.md) | The five method maps used on these pages |
++| [Governance](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/GOVERNANCE.md) · [Releasing](https://github.com/danielep71/K-FRTB-ASA/blob/main/RELEASING.md) · [Contributing](https://github.com/danielep71/K-FRTB-ASA/blob/main/CONTRIBUTING.md) | Branches, issues, releases and contributions |
++| [CHANGELOG](https://github.com/danielep71/K-FRTB-ASA/blob/main/CHANGELOG.md) | Recorded changes |
++| [Issues](https://github.com/danielep71/K-FRTB-ASA/issues) · [Milestones](https://github.com/danielep71/K-FRTB-ASA/milestones) | Open work and progress |
++| [Security policy](https://github.com/danielep71/K-FRTB-ASA/blob/main/SECURITY.md) | Private vulnerability reporting |
+
+ Questions and proposals go to the
+-[issues](https://github.com/danielep71/K-FRTB-SA/issues). Keep every example
++[issues](https://github.com/danielep71/K-FRTB-ASA/issues). Keep every example
+ synthetic: never post client, counterparty or position data.
+diff --git a/Regulation/Default-Risk-Charge.md b/Regulation/Default-Risk-Charge.md
+index 080c844..f1fdca9 100644
+--- a/Regulation/Default-Risk-Charge.md
++++ b/Regulation/Default-Risk-Charge.md
+@@ -10,5 +10,5 @@
+ </p>
+
+-> 📌 **Guide, not policy.** [docs/methodology.md](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md#-default-risk-capital-non-securitizations-mar22) governs; where this page differs, the repository wins.
++> 📌 **Guide, not policy.** [docs/methodology.md](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md#-default-risk-capital-non-securitizations-mar22) governs; where this page differs, the repository wins.
+
+ The default risk capital requirement (DRC) captures **jump-to-default** risk:
+@@ -21,5 +21,5 @@ position to the DRC total.
+ ## 📦 Scope
+
+-| Category of MAR22 | K-FRTB-SA |
++| Category of MAR22 | K-FRTB-ASA |
+ | --- | --- |
+ | Non-securitizations | Implemented |
+@@ -85,5 +85,5 @@ at least one year (MAR22.16 and its FAQ); any other maturity rejects the row
+ Long and short positions to the **same obligor** may offset, but a short
+ offsets a long only when the short ranks the **same as or junior to** the
+-long. K-FRTB-SA applies the shorts from the most junior rank upward, which
++long. K-FRTB-ASA applies the shorts from the most junior rank upward, which
+ maximizes the eligible offset:
+
+@@ -155,3 +155,3 @@ portfolio is on [Worked Examples](Worked-Examples#-default-risk-charge).
+ - [FRTB-SA Overview](FRTB-SA-Overview) · [Worked Examples](Worked-Examples) · [Inputs](Inputs#-in_drc) · [Home](Home)
+ - Official text: [MAR22](https://www.bis.org/basel_framework/chapter/MAR/22.htm?inforce=20230101&published=20200327)
+-- Repository: [methodology, DRC](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md#-default-risk-capital-non-securitizations-mar22) · [`CORE_DRC`](https://github.com/danielep71/K-FRTB-SA/blob/main/src/modules/CORE_DRC.bas)
++- Repository: [methodology, DRC](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md#-default-risk-capital-non-securitizations-mar22) · [`CORE_DRC`](https://github.com/danielep71/K-FRTB-ASA/blob/main/src/modules/CORE_DRC.bas)
+diff --git a/Regulation/FRTB-SA-Overview.md b/Regulation/FRTB-SA-Overview.md
+index 18b868c..2d21224 100644
+--- a/Regulation/FRTB-SA-Overview.md
++++ b/Regulation/FRTB-SA-Overview.md
+@@ -10,5 +10,5 @@
+ </p>
+
+-> 📌 **Guide, not policy.** [docs/methodology.md](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md) governs; where this page differs, the repository wins.
++> 📌 **Guide, not policy.** [docs/methodology.md](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md) governs; where this page differs, the repository wins.
+
+ This page explains what the standardized approach of the Fundamental Review
+@@ -33,5 +33,5 @@ residual-risk positions, and the regulation prints the risk weights,
+ correlations and aggregation rules.
+
+-| Chapter | Content | Role in K-FRTB-SA |
++| Chapter | Content | Role in K-FRTB-ASA |
+ | --- | --- | --- |
+ | **MAR20** | Structure of the standardized approach: the three components, monthly calculation and reporting, the 12.5 conversion to RWA, the correlation trading portfolio | Total = SBM + DRC + RRAO |
+@@ -41,5 +41,5 @@ correlations and aggregation rules.
+
+ The chapters have been in force since 1 January 2023 in the Basel Framework.
+-Jurisdictions implement them through their own rules and dates; K-FRTB-SA
++Jurisdictions implement them through their own rules and dates; K-FRTB-ASA
+ follows the Basel text and has no jurisdiction profile (see
+ [Regulatory Basis](Regulatory-Basis)).
+@@ -51,5 +51,5 @@ risk of the banking book; the boundary between the two books is set by
+ chapter RBC25. Within that perimeter a bank may use three methods:
+
+-| Method | Chapters | K-FRTB-SA |
++| Method | Chapters | K-FRTB-ASA |
+ | --- | --- | --- |
+ | Standardized approach | MAR20–MAR23 | Implemented in part (see [Regulatory Basis](Regulatory-Basis)) |
+@@ -69,5 +69,5 @@ its own approaches, and neither includes the other. The framework diagram
+ maps both, with the earlier Basel rules each approach replaced:
+
+-![Market risk and CVA risk as two separate capital requirements: market risk uses the internal models approach for approved desks (expected shortfall, non-modellable risk factors, default risk charge) and the standardized approach for other desks (sensitivities-based method, default risk charge, residual risk add-on); CVA risk uses BA-CVA, reduced or full, SA-CVA, delta and vega, or the MAR50.9 alternative; below each approach the earlier Basel rule; each requirement converts to risk-weighted assets at 12.5 times capital](https://raw.githubusercontent.com/danielep71/K-FRTB-SA/main/docs/assets/market-risk/Market_risk_framework.png)
++![Market risk and CVA risk as two separate capital requirements: market risk uses the internal models approach for approved desks (expected shortfall, non-modellable risk factors, default risk charge) and the standardized approach for other desks (sensitivities-based method, default risk charge, residual risk add-on); CVA risk uses BA-CVA, reduced or full, SA-CVA, delta and vega, or the MAR50.9 alternative; below each approach the earlier Basel rule; each requirement converts to risk-weighted assets at 12.5 times capital](https://raw.githubusercontent.com/danielep71/K-FRTB-ASA/main/docs/assets/market-risk/Market_risk_framework.png)
+
+ | Band | Approaches | Earlier rule below each approach |
+@@ -77,5 +77,5 @@ maps both, with the earlier Basel rules each approach replaced:
+ | Total | RWA = 12.5 × K<sub>market</sub> + 12.5 × K<sub>CVA</sub> | |
+
+-The diagram is a method map: it does not describe what K-FRTB-SA implements.
++The diagram is a method map: it does not describe what K-FRTB-ASA implements.
+ The earlier rules are drawn approach by approach as a simplification; the old
+ and new charges are not equivalent. The CVA method names of Basel III (2011)
+@@ -85,8 +85,8 @@ were not re-read in the primary text ([Regulatory Sources](Regulatory-Sources)).
+
+ The standardized approach starts from risk measures produced upstream by the
+-bank's valuation systems. K-FRTB-SA performs the regulatory aggregation; it
++bank's valuation systems. K-FRTB-ASA performs the regulatory aggregation; it
+ does not price instruments.
+
+-![Where FRTB-SA fits: the regulatory perimeter and supplied risk inputs feed the standardized approach, which applies the sensitivities-based method and the complementary charges and produces capital and RWA](https://raw.githubusercontent.com/danielep71/K-FRTB-SA/main/docs/assets/market-risk/FRTB_uses.png)
++![Where FRTB-SA fits: the regulatory perimeter and supplied risk inputs feed the standardized approach, which applies the sensitivities-based method and the complementary charges and produces capital and RWA](https://raw.githubusercontent.com/danielep71/K-FRTB-ASA/main/docs/assets/market-risk/FRTB_uses.png)
+
+ ---
+@@ -102,5 +102,5 @@ RWA       = 12.5 x K_FRTB-SA                                         (MAR20.1)
+ ```
+
+-![FRTB-SA aggregation: SBM, DRC and RRAO branches from inputs to their capital, added into the standardized capital requirement and converted to RWA at 12.5 times capital](https://raw.githubusercontent.com/danielep71/K-FRTB-SA/main/docs/assets/market-risk/FRTB_aggregation.png)
++![FRTB-SA aggregation: SBM, DRC and RRAO branches from inputs to their capital, added into the standardized capital requirement and converted to RWA at 12.5 times capital](https://raw.githubusercontent.com/danielep71/K-FRTB-ASA/main/docs/assets/market-risk/FRTB_aggregation.png)
+
+ | Component | What it captures | How it aggregates | Page |
+@@ -112,8 +112,8 @@ RWA       = 12.5 x K_FRTB-SA                                         (MAR20.1)
+ ### 🎚️ Risk classes
+
+-MAR21 has seven risk classes. K-FRTB-SA implements five and rejects the other
++MAR21 has seven risk classes. K-FRTB-ASA implements five and rejects the other
+ two:
+
+-| Risk class | Code | K-FRTB-SA |
++| Risk class | Code | K-FRTB-ASA |
+ | --- | --- | --- |
+ | General interest rate risk | `GIRR` | Implemented |
+@@ -163,3 +163,3 @@ a missing component is never silently counted as zero.
+ - [Regulatory Sources](Regulatory-Sources) · [Regulatory Basis](Regulatory-Basis) · [Worked Examples](Worked-Examples) · [Home](Home)
+ - Official texts: [MAR20](https://www.bis.org/committees/bcbs/basel-framework/standard/mar/20/inforce/2023-01-01/published/2020-03-27) · [MAR21](https://www.bis.org/basel_framework/chapter/MAR/21.htm?inforce=20230101&published=20200327) · [MAR22](https://www.bis.org/basel_framework/chapter/MAR/22.htm?inforce=20230101&published=20200327) · [MAR23](https://www.bis.org/committees/bcbs/basel-framework/standard/mar/23/inforce/2023-01-01/published/2020-03-27)
+-- Repository: [methodology](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md) · [market risk diagrams](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/assets/market-risk/README.md)
++- Repository: [methodology](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md) · [market risk diagrams](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/assets/market-risk/README.md)
+diff --git a/Regulation/Regulatory-Basis.md b/Regulation/Regulatory-Basis.md
+index cc07ffb..8970696 100644
+--- a/Regulation/Regulatory-Basis.md
++++ b/Regulation/Regulatory-Basis.md
+@@ -10,7 +10,7 @@
+ </p>
+
+-> 📌 **Guide, not policy.** [docs/SCOPE.md](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/SCOPE.md) and the [methodology](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md) govern; where this page differs, the repository wins.
++> 📌 **Guide, not policy.** [docs/SCOPE.md](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/SCOPE.md) and the [methodology](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md) govern; where this page differs, the repository wins.
+
+-This page states which regulation K-FRTB-SA follows, what part of it the
++This page states which regulation K-FRTB-ASA follows, what part of it the
+ prototype implements, which choices a user can make, and what the existing
+ evidence does and does not establish.
+@@ -101,5 +101,5 @@ I decided the six readings of the methodology on October 27, 2026
+ ## 🧪 What the evidence establishes
+
+-The [validation record](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/validation.md)
++The [validation record](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/validation.md)
+ separates four kinds of evidence. They establish different things:
+
+@@ -120,5 +120,5 @@ that reading is correct. Excel compilation and runtime evidence is pending
+ ## 🗺️ Where the scope goes next
+
+-The [roadmap](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/ROADMAP.md)
++The [roadmap](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/ROADMAP.md)
+ sets the path from this prototype to a first certified release. The next
+ milestone fixes exactly what will be certified: the standard and its version,
+@@ -132,3 +132,3 @@ validator's role, the target platform and the supported Excel environments.
+
+ - [FRTB-SA Overview](FRTB-SA-Overview) · [Regulatory Sources](Regulatory-Sources) · [Open Items and Limitations](Open-Items-and-Limitations) · [Home](Home)
+-- Repository: [scope](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/SCOPE.md) · [methodology, interpretations](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md#interpretations-and-simplifications-to-review) · [validation](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/validation.md)
++- Repository: [scope](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/SCOPE.md) · [methodology, interpretations](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md#interpretations-and-simplifications-to-review) · [validation](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/validation.md)
+diff --git a/Regulation/Regulatory-Sources.md b/Regulation/Regulatory-Sources.md
+index 8697cc3..ae7c477 100644
+--- a/Regulation/Regulatory-Sources.md
++++ b/Regulation/Regulatory-Sources.md
+@@ -10,7 +10,7 @@
+ </p>
+
+-> 📌 **Guide, not policy.** The [BIS check](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md#bis-check) of the methodology and the [source and validation policy](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/SCOPE.md#source-and-validation-policy) govern; where this page differs, the repository wins.
++> 📌 **Guide, not policy.** The [BIS check](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md#bis-check) of the methodology and the [source and validation policy](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/SCOPE.md#source-and-validation-policy) govern; where this page differs, the repository wins.
+
+-K-FRTB-SA cites its rules from the chapters of the Basel Framework. This page
++K-FRTB-ASA cites its rules from the chapters of the Basel Framework. This page
+ lists those chapters, what each is relied on for, in which version it was
+ read and when, and what has deliberately not been checked.
+@@ -28,5 +28,5 @@ engine produces from it; that is the job of the tests (see
+ - **EU CRR:** binding EU legislation. The authentic acts are those published
+   in the Official Journal; a consolidated EUR-Lex text is a reference tool
+-  with no legal effect of its own. K-FRTB-SA has **no EU profile**: the CRR
++  with no legal effect of its own. K-FRTB-ASA has **no EU profile**: the CRR
+   is listed as a research reference only.
+
+@@ -46,5 +46,5 @@ engine produces from it; that is the job of the tests (see
+ ### Context only (diagrams)
+
+-These chapters are cited by the [market risk diagrams](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/assets/market-risk/README.md)
++These chapters are cited by the [market risk diagrams](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/assets/market-risk/README.md)
+ to place FRTB-SA among the other approaches. Nothing in the engine depends
+ on them.
+@@ -71,5 +71,5 @@ on them.
+
+ On 2026-10-17 every parameter and rule of the
+-[methodology](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md)
++[methodology](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md)
+ was compared with the BIS Basel Framework pages. The check confirmed the risk
+ weights, correlations, scenario formulas, curvature rules, DRC and RRAO
+@@ -87,5 +87,5 @@ parameters, and led to these corrections:
+ The parameter values the check confirmed are typed a second time,
+ independently of the workbook code, in
+-[`tests/regulatory_defaults.py`](https://github.com/danielep71/K-FRTB-SA/blob/main/tests/regulatory_defaults.py).
++[`tests/regulatory_defaults.py`](https://github.com/danielep71/K-FRTB-ASA/blob/main/tests/regulatory_defaults.py).
+ A test compares them with the `P_*` sheets of every build (see
+ [Test Catalogue](Test-Catalogue)).
+@@ -95,5 +95,5 @@ A test compares them with the `P_*` sheets of every build (see
+ ## 🧾 How a rule is recorded
+
+-The [source and validation policy](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/SCOPE.md#source-and-validation-policy)
++The [source and validation policy](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/SCOPE.md#source-and-validation-policy)
+ asks, before a rule is implemented, for:
+
+@@ -114,5 +114,5 @@ rule in the methodology and on the `P_*` sheets carries its MAR paragraph.
+ | --- | --- |
+ | Stored copies of the source texts, with hashes | Not kept: the sources are cited by URL and version only |
+-| A requirement → source → formula → parameter → test matrix | Planned for the regulatory baseline milestone ([roadmap](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/ROADMAP.md)) |
++| A requirement → source → formula → parameter → test matrix | Planned for the regulatory baseline milestone ([roadmap](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/ROADMAP.md)) |
+ | Published numerical examples | None used: expected values come from an independent reference and hand calculations (see [Validation Approach](Validation-Approach)) |
+ | National implementations (EU CRR3, other jurisdictions) | Not checked |
+@@ -123,3 +123,3 @@ rule in the methodology and on the `P_*` sheets carries its MAR paragraph.
+
+ - [FRTB-SA Overview](FRTB-SA-Overview) · [Regulatory Basis](Regulatory-Basis) · [Validation Approach](Validation-Approach) · [Home](Home)
+-- Repository: [methodology, BIS check](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md#bis-check) · [scope, source policy](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/SCOPE.md#source-and-validation-policy) · [market risk diagrams, sources](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/assets/market-risk/README.md)
++- Repository: [methodology, BIS check](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md#bis-check) · [scope, source policy](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/SCOPE.md#source-and-validation-policy) · [market risk diagrams, sources](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/assets/market-risk/README.md)
+diff --git a/Regulation/Residual-Risk-Add-On.md b/Regulation/Residual-Risk-Add-On.md
+index 1371acc..46f0d93 100644
+--- a/Regulation/Residual-Risk-Add-On.md
++++ b/Regulation/Residual-Risk-Add-On.md
+@@ -10,5 +10,5 @@
+ </p>
+
+-> 📌 **Guide, not policy.** [docs/methodology.md](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md#-residual-risk-add-on-mar23) governs; where this page differs, the repository wins.
++> 📌 **Guide, not policy.** [docs/methodology.md](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md#-residual-risk-add-on-mar23) governs; where this page differs, the repository wins.
+
+ The residual risk add-on (RRAO) is a simple, conservative charge for risks
+@@ -66,5 +66,5 @@ RRAO = 1.0% x 5,000,000 + 0.1% x (20,000,000 + 7,500,000) = 50,000 + 27,500 = 77
+
+ **Eligibility is an input.** The user decides whether an instrument bears
+-residual risk and in which category; K-FRTB-SA does not classify
++residual risk and in which category; K-FRTB-ASA does not classify
+ instruments. MAR23.8 also requires that the RRAO scope does not change the
+ risk factors covered by delta, vega, curvature and DRC: an RRAO instrument
+@@ -91,3 +91,3 @@ Supervisors may add a Pillar 2 charge where the RRAO is not prudent enough
+ - [FRTB-SA Overview](FRTB-SA-Overview) · [Worked Examples](Worked-Examples) · [Inputs](Inputs#-in_rrao) · [Home](Home)
+ - Official text: [MAR23](https://www.bis.org/committees/bcbs/basel-framework/standard/mar/23/inforce/2023-01-01/published/2020-03-27)
+-- Repository: [methodology, RRAO](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md#-residual-risk-add-on-mar23) · [`CORE_RRAO`](https://github.com/danielep71/K-FRTB-SA/blob/main/src/modules/CORE_RRAO.bas)
++- Repository: [methodology, RRAO](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md#-residual-risk-add-on-mar23) · [`CORE_RRAO`](https://github.com/danielep71/K-FRTB-ASA/blob/main/src/modules/CORE_RRAO.bas)
+diff --git a/Regulation/Risk-Classes-and-Parameters.md b/Regulation/Risk-Classes-and-Parameters.md
+index ccb4450..5dbb9a2 100644
+--- a/Regulation/Risk-Classes-and-Parameters.md
++++ b/Regulation/Risk-Classes-and-Parameters.md
+@@ -10,5 +10,5 @@
+ </p>
+
+-> 📌 **Guide, not policy.** The `P_*` sheets of the [template](https://github.com/danielep71/K-FRTB-SA/blob/main/src/workbook/FRTB_Template.xlsx) and the [methodology](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md#risk-weights-and-correlations) govern; where this page differs, the repository wins.
++> 📌 **Guide, not policy.** The `P_*` sheets of the [template](https://github.com/danielep71/K-FRTB-ASA/blob/main/src/workbook/FRTB_Template.xlsx) and the [methodology](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md#risk-weights-and-correlations) govern; where this page differs, the repository wins.
+
+ The buckets, risk weights and correlations of the five implemented risk
+@@ -222,3 +222,3 @@ the sample portfolio no longer applies.
+ - [Sensitivities-Based Method](Sensitivities-Based-Method) · [Worked Examples](Worked-Examples) · [Inputs](Inputs) · [Home](Home)
+ - Official text: [MAR21](https://www.bis.org/basel_framework/chapter/MAR/21.htm?inforce=20230101&published=20200327)
+-- Repository: [methodology, risk weights and correlations](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md#risk-weights-and-correlations) · [`M_Setup` parameter tables](https://github.com/danielep71/K-FRTB-SA/blob/main/src/modules/M_Setup.bas) · [`tests/regulatory_defaults.py`](https://github.com/danielep71/K-FRTB-SA/blob/main/tests/regulatory_defaults.py)
++- Repository: [methodology, risk weights and correlations](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md#risk-weights-and-correlations) · [`M_Setup` parameter tables](https://github.com/danielep71/K-FRTB-ASA/blob/main/src/modules/M_Setup.bas) · [`tests/regulatory_defaults.py`](https://github.com/danielep71/K-FRTB-ASA/blob/main/tests/regulatory_defaults.py)
+diff --git a/Regulation/Sensitivities-Based-Method.md b/Regulation/Sensitivities-Based-Method.md
+index 9aafc7d..ff2c55e 100644
+--- a/Regulation/Sensitivities-Based-Method.md
++++ b/Regulation/Sensitivities-Based-Method.md
+@@ -10,5 +10,5 @@
+ </p>
+
+-> 📌 **Guide, not policy.** [docs/methodology.md](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md#-sensitivities-based-method) governs; where this page differs, the repository wins.
++> 📌 **Guide, not policy.** [docs/methodology.md](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md#-sensitivities-based-method) governs; where this page differs, the repository wins.
+
+ The sensitivities-based method (SBM) turns sensitivities to prescribed risk
+@@ -186,5 +186,5 @@ correlation for commodity. For other-sector buckets,
+ The curvature risk weights of MAR21.98–MAR21.99 are not used: the CVRs are
+ computed by the bank and already contain the shock, sized as the
+-[curvature input contract](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md#curvature-input-contract-mar215-mar2198-mar2199)
++[curvature input contract](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md#curvature-input-contract-mar215-mar2198-mar2199)
+ states (FX and equity: a relative shift equal to the delta risk weight;
+ GIRR, CSR and commodity: a parallel shift by the bucket's highest delta risk
+@@ -238,3 +238,3 @@ See [Outputs and Log](Outputs-and-Log).
+ - [Risk Classes and Parameters](Risk-Classes-and-Parameters) · [Worked Examples](Worked-Examples) · [Inputs](Inputs) · [Home](Home)
+ - Official text: [MAR21](https://www.bis.org/basel_framework/chapter/MAR/21.htm?inforce=20230101&published=20200327)
+-- Repository: [methodology, SBM](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md#-sensitivities-based-method) · [`CORE_SBM`](https://github.com/danielep71/K-FRTB-SA/blob/main/src/modules/CORE_SBM.bas)
++- Repository: [methodology, SBM](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md#-sensitivities-based-method) · [`CORE_SBM`](https://github.com/danielep71/K-FRTB-ASA/blob/main/src/modules/CORE_SBM.bas)
+diff --git a/Regulation/Worked-Examples.md b/Regulation/Worked-Examples.md
+index ddaea3d..36cb8a9 100644
+--- a/Regulation/Worked-Examples.md
++++ b/Regulation/Worked-Examples.md
+@@ -10,5 +10,5 @@
+ </p>
+
+-> 📌 **Guide, not policy.** The expected values embedded in [`M_Setup`](https://github.com/danielep71/K-FRTB-SA/blob/main/src/modules/M_Setup.bas) and the [independent reference](https://github.com/danielep71/K-FRTB-SA/blob/main/tests/frtb_reference.py) govern; where this page differs, the repository wins.
++> 📌 **Guide, not policy.** The expected values embedded in [`M_Setup`](https://github.com/danielep71/K-FRTB-ASA/blob/main/src/modules/M_Setup.bas) and the [independent reference](https://github.com/danielep71/K-FRTB-ASA/blob/main/tests/frtb_reference.py) govern; where this page differs, the repository wins.
+
+ This page works through parts of the sample portfolio by hand, with the
+@@ -209,3 +209,3 @@ in-workbook regression test (see [Test Catalogue](Test-Catalogue)).
+
+ - [Sensitivities-Based Method](Sensitivities-Based-Method) · [Risk Classes and Parameters](Risk-Classes-and-Parameters) · [Default Risk Charge](Default-Risk-Charge) · [Residual Risk Add-On](Residual-Risk-Add-On) · [Home](Home)
+-- Repository: [sample portfolio and expected values in `M_Setup`](https://github.com/danielep71/K-FRTB-SA/blob/main/src/modules/M_Setup.bas) · [hand-calculated tests](https://github.com/danielep71/K-FRTB-SA/blob/main/tests/test_reference.py)
++- Repository: [sample portfolio and expected values in `M_Setup`](https://github.com/danielep71/K-FRTB-ASA/blob/main/src/modules/M_Setup.bas) · [hand-calculated tests](https://github.com/danielep71/K-FRTB-ASA/blob/main/tests/test_reference.py)
+diff --git a/Workbook/Getting-Started.md b/Workbook/Getting-Started.md
+index f43396f..5827ee0 100644
+--- a/Workbook/Getting-Started.md
++++ b/Workbook/Getting-Started.md
+@@ -10,5 +10,5 @@
+ </p>
+
+-> 📌 **Guide, not policy.** [INSTALLATION.md](https://github.com/danielep71/K-FRTB-SA/blob/main/INSTALLATION.md) and the [workbook guide](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/workbook-guide.md) govern; where this page differs, the repository wins.
++> 📌 **Guide, not policy.** [INSTALLATION.md](https://github.com/danielep71/K-FRTB-ASA/blob/main/INSTALLATION.md) and the [workbook guide](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/workbook-guide.md) govern; where this page differs, the repository wins.
+
+ From a clone of the repository to a first run of the workbook. There is no
+@@ -20,5 +20,5 @@ released workbook yet: you build it from the template and the VBA source.
+ > synchronization, other hosts or the remaining manual cases. See
+ > [Validation Approach](Validation-Approach); report findings in an
+-> [issue](https://github.com/danielep71/K-FRTB-SA/issues).
++> [issue](https://github.com/danielep71/K-FRTB-ASA/issues).
+
+ ---
+@@ -39,9 +39,9 @@ The workbook needs no add-in, COM component, DLL or extra VBA reference.
+
+ Prototype work integrates on `release/v0.2.0`; `main` is the stable default
+-([governance](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/GOVERNANCE.md)).
++([governance](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/GOVERNANCE.md)).
+
+ ```sh
+-git clone https://github.com/danielep71/K-FRTB-SA.git
+-cd K-FRTB-SA
++git clone https://github.com/danielep71/K-FRTB-ASA.git
++cd K-FRTB-ASA
+ python3 tools/vba_lint.py
+ ```
+@@ -77,6 +77,6 @@ Without LibreOffice the reconciliation tests are skipped, unless
+    modules of `src\modules` and `tests\modules`, runs `FinishWorkbook` (sheet
+    buttons and saved view settings), the calculation and the regression
+-   test, and saves `dist\K-FRTB-SA.xlsm`.
+-3. Open `dist\K-FRTB-SA.xlsm` and run **Debug → Compile VBAProject** in the
++   test, and saves `dist\K-FRTB-ASA.xlsm`.
++3. Open `dist\K-FRTB-ASA.xlsm` and run **Debug → Compile VBAProject** in the
+    VBA editor (**Alt+F11**).
+
+@@ -155,5 +155,5 @@ After a synchronization, run **Debug → Compile VBAProject** and, in a
+ development workbook, the regression test.
+
+-See the [workbook guide](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/workbook-guide.md#updating-an-existing-workbook)
++See the [workbook guide](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/workbook-guide.md#updating-an-existing-workbook)
+ for the PowerShell options (`-WorkbookPath`, `-Mode`, `-SourceDir`, `-Force`,
+ `-NoBackup`, `-Visible`).
+@@ -164,3 +164,3 @@ for the PowerShell options (`-WorkbookPath`, `-Mode`, `-SourceDir`, `-Force`,
+
+ - [Workbook Guide](Workbook-Guide) · [Inputs](Inputs) · [Troubleshooting](Troubleshooting) · [Home](Home)
+-- Repository: [INSTALLATION.md](https://github.com/danielep71/K-FRTB-SA/blob/main/INSTALLATION.md) · [workbook guide, building](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/workbook-guide.md#building-the-workbook-windows-excel) · [README, quick start](https://github.com/danielep71/K-FRTB-SA/blob/main/README.md#quick-start)
++- Repository: [INSTALLATION.md](https://github.com/danielep71/K-FRTB-ASA/blob/main/INSTALLATION.md) · [workbook guide, building](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/workbook-guide.md#building-the-workbook-windows-excel) · [README, quick start](https://github.com/danielep71/K-FRTB-ASA/blob/main/README.md#quick-start)
+diff --git a/Workbook/How-It-Works.md b/Workbook/How-It-Works.md
+index 427ff15..01543a8 100644
+--- a/Workbook/How-It-Works.md
++++ b/Workbook/How-It-Works.md
+@@ -10,5 +10,5 @@
+ </p>
+
+-> 📌 **Guide, not policy.** The [workbook guide](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/workbook-guide.md#source-of-truth) and the [repository structure](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/REPOSITORY_STRUCTURE.md) govern; where this page differs, the repository wins.
++> 📌 **Guide, not policy.** The [workbook guide](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/workbook-guide.md#source-of-truth) and the [repository structure](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/REPOSITORY_STRUCTURE.md) govern; where this page differs, the repository wins.
+
+ How a run flows through the modules, which module owns what, and how the
+@@ -84,5 +84,5 @@ src/modules/*.bas  ──►  tools/build_template.py  ──►  src/workbook/F
+                                          tools/Build-Workbook.ps1 (Excel)
+                                                          ▼
+-                                     dist/K-FRTB-SA.xlsm   (build output, not committed)
++                                     dist/K-FRTB-ASA.xlsm   (build output, not committed)
+ ```
+
+@@ -95,5 +95,5 @@ src/modules/*.bas  ──►  tools/build_template.py  ──►  src/workbook/F
+   the expected values change. A test fails when the committed template
+   differs from a fresh build.
+-- **The workbook** `dist\K-FRTB-SA.xlsm` is built from the template plus the
++- **The workbook** `dist\K-FRTB-ASA.xlsm` is built from the template plus the
+   modules, and `/dist/` is ignored: no macro-enabled workbook is committed.
+
+@@ -148,3 +148,3 @@ identifiers on import. Neither tool has run on a real Excel export yet (see
+
+ - [Getting Started](Getting-Started) · [Test Catalogue](Test-Catalogue) · [Validation Approach](Validation-Approach) · [Home](Home)
+-- Repository: [workbook guide](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/workbook-guide.md) · [repository structure](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/REPOSITORY_STRUCTURE.md) · [src/README.md](https://github.com/danielep71/K-FRTB-SA/blob/main/src/README.md) · [tools/README.md](https://github.com/danielep71/K-FRTB-SA/blob/main/tools/README.md)
++- Repository: [workbook guide](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/workbook-guide.md) · [repository structure](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/REPOSITORY_STRUCTURE.md) · [src/README.md](https://github.com/danielep71/K-FRTB-ASA/blob/main/src/README.md) · [tools/README.md](https://github.com/danielep71/K-FRTB-ASA/blob/main/tools/README.md)
+diff --git a/Workbook/Inputs.md b/Workbook/Inputs.md
+index c7851b1..0cd6942 100644
+--- a/Workbook/Inputs.md
++++ b/Workbook/Inputs.md
+@@ -10,5 +10,5 @@
+ </p>
+
+-> 📌 **Guide, not policy.** The [methodology inputs](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md#-inputs), the [workbook guide](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/workbook-guide.md) and the template govern; where this page differs, the repository wins.
++> 📌 **Guide, not policy.** The [methodology inputs](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md#-inputs), the [workbook guide](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/workbook-guide.md) and the template govern; where this page differs, the repository wins.
+
+ The settings on **Control**, the five input sheets column by column, the
+@@ -117,5 +117,5 @@ divided by 1.5 when read; with `FX_CURVATURE_DIVISOR_ALL`, every FX row is.
+ For FX, use up to two rows per currency, one for each kind of option; they
+ are netted after the divisor. The shocks the CVRs must follow are in the
+-[curvature input contract](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md#curvature-input-contract-mar215-mar2198-mar2199).
++[curvature input contract](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md#curvature-input-contract-mar215-mar2198-mar2199).
+
+ > [!IMPORTANT]
+@@ -195,3 +195,3 @@ The values are on [Risk Classes and Parameters](Risk-Classes-and-Parameters).
+
+ - [Workbook Guide](Workbook-Guide) · [Outputs and Log](Outputs-and-Log) · [Troubleshooting](Troubleshooting) · [Home](Home)
+-- Repository: [methodology, inputs](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md#-inputs) · [workbook guide, numeric cells](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/workbook-guide.md#numeric-cells-and-numeric-text) · [`CORE_Params`](https://github.com/danielep71/K-FRTB-SA/blob/main/src/modules/CORE_Params.bas)
++- Repository: [methodology, inputs](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md#-inputs) · [workbook guide, numeric cells](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/workbook-guide.md#numeric-cells-and-numeric-text) · [`CORE_Params`](https://github.com/danielep71/K-FRTB-ASA/blob/main/src/modules/CORE_Params.bas)
+diff --git a/Workbook/Open-Items-and-Limitations.md b/Workbook/Open-Items-and-Limitations.md
+index 81549ec..fa7f25a 100644
+--- a/Workbook/Open-Items-and-Limitations.md
++++ b/Workbook/Open-Items-and-Limitations.md
+@@ -10,5 +10,5 @@
+ </p>
+
+-> 📌 **Guide, not policy.** The [README limitations](https://github.com/danielep71/K-FRTB-SA/blob/main/README.md#limitations), the [roadmap](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/ROADMAP.md) and the [live milestones](https://github.com/danielep71/K-FRTB-SA/milestones) govern; where this page differs, the repository wins.
++> 📌 **Guide, not policy.** The [README limitations](https://github.com/danielep71/K-FRTB-ASA/blob/main/README.md#limitations), the [roadmap](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/ROADMAP.md) and the [live milestones](https://github.com/danielep71/K-FRTB-ASA/milestones) govern; where this page differs, the repository wins.
+
+ What the prototype does not do, which decisions are still open, and where
+@@ -57,12 +57,12 @@ Details on [Regulatory Basis](Regulatory-Basis#-interpretations-still-open).
+ | Issue | Item |
+ | --- | --- |
+-| [#20](https://github.com/danielep71/K-FRTB-SA/issues/20) | The Excel VBA workbook prototype |
+-| [#28](https://github.com/danielep71/K-FRTB-SA/issues/28) | Excel host build, compile, execution and evidence, on a frozen `release/v0.3.0` candidate |
+-| [#30](https://github.com/danielep71/K-FRTB-SA/issues/30) | The Excel round trip of the template and modules |
+-| [#32](https://github.com/danielep71/K-FRTB-SA/issues/32) | Prototype evaluation and evidence closeout |
+-| [#29](https://github.com/danielep71/K-FRTB-SA/issues/29) | The interpretations above: decided and implemented; closed on October 31, 2026 |
++| [#20](https://github.com/danielep71/K-FRTB-ASA/issues/20) | The Excel VBA workbook prototype |
++| [#28](https://github.com/danielep71/K-FRTB-ASA/issues/28) | Excel host build, compile, execution and evidence, on a frozen `release/v0.3.0` candidate |
++| [#30](https://github.com/danielep71/K-FRTB-ASA/issues/30) | The Excel round trip of the template and modules |
++| [#32](https://github.com/danielep71/K-FRTB-ASA/issues/32) | Prototype evaluation and evidence closeout |
++| [#29](https://github.com/danielep71/K-FRTB-ASA/issues/29) | The interpretations above: decided and implemented; closed on October 31, 2026 |
+
+ The states of these issues change; the
+-[issue list](https://github.com/danielep71/K-FRTB-SA/issues) is current.
++[issue list](https://github.com/danielep71/K-FRTB-ASA/issues) is current.
+
+ ---
+@@ -70,5 +70,5 @@ The states of these issues change; the
+ ## 🗺️ Roadmap
+
+-The [roadmap](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/ROADMAP.md)
++The [roadmap](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/ROADMAP.md)
+ records the milestone plan from the repository setup to the first certified
+ release. Milestones carry no dates or release promises.
+@@ -87,5 +87,5 @@ release. Milestones carry no dates or release promises.
+
+ The milestone names and numbers on GitHub are authoritative; see the
+-[milestones](https://github.com/danielep71/K-FRTB-SA/milestones).
++[milestones](https://github.com/danielep71/K-FRTB-ASA/milestones).
+
+ ---
+@@ -94,3 +94,3 @@ The milestone names and numbers on GitHub are authoritative; see the
+
+ - [Regulatory Basis](Regulatory-Basis) · [Validation Approach](Validation-Approach) · [Getting Started](Getting-Started) · [Home](Home)
+-- Repository: [README, limitations](https://github.com/danielep71/K-FRTB-SA/blob/main/README.md#limitations) · [roadmap](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/ROADMAP.md) · [scope](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/SCOPE.md)
++- Repository: [README, limitations](https://github.com/danielep71/K-FRTB-ASA/blob/main/README.md#limitations) · [roadmap](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/ROADMAP.md) · [scope](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/SCOPE.md)
+diff --git a/Workbook/Outputs-and-Log.md b/Workbook/Outputs-and-Log.md
+index 3450ec8..6bfc474 100644
+--- a/Workbook/Outputs-and-Log.md
++++ b/Workbook/Outputs-and-Log.md
+@@ -10,5 +10,5 @@
+ </p>
+
+-> 📌 **Guide, not policy.** The [workbook guide](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/workbook-guide.md#sheets) and the engine modules govern; where this page differs, the repository wins.
++> 📌 **Guide, not policy.** The [workbook guide](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/workbook-guide.md#sheets) and the engine modules govern; where this page differs, the repository wins.
+
+ What each output sheet holds after **Run FRTB-SA**, how to read it, and the
+@@ -123,5 +123,5 @@ See [Default Risk Charge](Default-Risk-Charge).
+ Every run writes `Level`, `Source` and `Message` rows:
+
+-- `INFO` lines open and close the run (`K-FRTB-SA 0.2.0-prototype started`,
++- `INFO` lines open and close the run (`K-FRTB-ASA 0.2.0-prototype started`,
+   `Finished with n error(s) and m warning(s)`);
+ - `ERROR` lines name a rejected input row (`In_Delta row 12`) or the reason
+@@ -179,3 +179,3 @@ See [Troubleshooting](Troubleshooting).
+
+ - [Inputs](Inputs) · [Troubleshooting](Troubleshooting) · [Worked Examples](Worked-Examples) · [Home](Home)
+-- Repository: [workbook guide](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/workbook-guide.md#sheets) · [`M_Main`](https://github.com/danielep71/K-FRTB-SA/blob/main/src/modules/M_Main.bas) · [`CORE_SBM`](https://github.com/danielep71/K-FRTB-SA/blob/main/src/modules/CORE_SBM.bas) · [`CORE_DRC`](https://github.com/danielep71/K-FRTB-SA/blob/main/src/modules/CORE_DRC.bas)
++- Repository: [workbook guide](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/workbook-guide.md#sheets) · [`M_Main`](https://github.com/danielep71/K-FRTB-ASA/blob/main/src/modules/M_Main.bas) · [`CORE_SBM`](https://github.com/danielep71/K-FRTB-ASA/blob/main/src/modules/CORE_SBM.bas) · [`CORE_DRC`](https://github.com/danielep71/K-FRTB-ASA/blob/main/src/modules/CORE_DRC.bas)
+diff --git a/Workbook/Test-Catalogue.md b/Workbook/Test-Catalogue.md
+index ce8ad18..3b1bf36 100644
+--- a/Workbook/Test-Catalogue.md
++++ b/Workbook/Test-Catalogue.md
+@@ -10,5 +10,5 @@
+ </p>
+
+-> 📌 **Guide, not policy.** The [validation record](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/validation.md#automated-checks) and [tests/README.md](https://github.com/danielep71/K-FRTB-SA/blob/main/tests/README.md) govern; where this page differs, the repository wins.
++> 📌 **Guide, not policy.** The [validation record](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/validation.md#automated-checks) and [tests/README.md](https://github.com/danielep71/K-FRTB-ASA/blob/main/tests/README.md) govern; where this page differs, the repository wins.
+
+ What each check runs, how, and what it shows. Expected values are derived by
+@@ -122,3 +122,3 @@ The values are listed on [Worked Examples](Worked-Examples#-the-totals).
+
+ - [Validation Approach](Validation-Approach) · [Worked Examples](Worked-Examples) · [How It Works](How-It-Works) · [Home](Home)
+-- Repository: [validation](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/validation.md) · [tests/README.md](https://github.com/danielep71/K-FRTB-SA/blob/main/tests/README.md) · [independent reference](https://github.com/danielep71/K-FRTB-SA/blob/main/tests/frtb_reference.py) · [CI](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/CI.md)
++- Repository: [validation](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/validation.md) · [tests/README.md](https://github.com/danielep71/K-FRTB-ASA/blob/main/tests/README.md) · [independent reference](https://github.com/danielep71/K-FRTB-ASA/blob/main/tests/frtb_reference.py) · [CI](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/CI.md)
+diff --git a/Workbook/Troubleshooting.md b/Workbook/Troubleshooting.md
+index 2baa985..a79a161 100644
+--- a/Workbook/Troubleshooting.md
++++ b/Workbook/Troubleshooting.md
+@@ -9,5 +9,5 @@
+ </p>
+
+-> 📌 **Guide, not policy.** The [workbook guide](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/workbook-guide.md) governs; where this page differs, the repository wins.
++> 📌 **Guide, not policy.** The [workbook guide](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/workbook-guide.md) governs; where this page differs, the repository wins.
+
+ What to do when a run stops, a row is missing from the results, or the build
+@@ -98,9 +98,9 @@ sheet is empty.
+ ## 💬 Still stuck
+
+-Open an [issue](https://github.com/danielep71/K-FRTB-SA/issues) with the
++Open an [issue](https://github.com/danielep71/K-FRTB-ASA/issues) with the
+ commit you built from, the Excel version and the `Log` lines. Use synthetic
+ data only: never attach a real portfolio. Report a suspected vulnerability
+ privately, through the
+-[security policy](https://github.com/danielep71/K-FRTB-SA/blob/main/SECURITY.md).
++[security policy](https://github.com/danielep71/K-FRTB-ASA/blob/main/SECURITY.md).
+
+ ---
+@@ -109,3 +109,3 @@ privately, through the
+
+ - [Outputs and Log](Outputs-and-Log) · [Inputs](Inputs) · [Getting Started](Getting-Started) · [Home](Home)
+-- Repository: [workbook guide](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/workbook-guide.md) · [`CORE_Util`](https://github.com/danielep71/K-FRTB-SA/blob/main/src/modules/CORE_Util.bas)
++- Repository: [workbook guide](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/workbook-guide.md) · [`CORE_Util`](https://github.com/danielep71/K-FRTB-ASA/blob/main/src/modules/CORE_Util.bas)
+diff --git a/Workbook/Validation-Approach.md b/Workbook/Validation-Approach.md
+index 7eb30b6..9a7903d 100644
+--- a/Workbook/Validation-Approach.md
++++ b/Workbook/Validation-Approach.md
+@@ -10,7 +10,7 @@
+ </p>
+
+-> 📌 **Guide, not policy.** The [validation record](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/validation.md), [EXCEL_EVIDENCE.md](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/EXCEL_EVIDENCE.md) and the [source and validation policy](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/SCOPE.md#source-and-validation-policy) govern; where this page differs, the repository wins.
++> 📌 **Guide, not policy.** The [validation record](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/validation.md), [EXCEL_EVIDENCE.md](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/EXCEL_EVIDENCE.md) and the [source and validation policy](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/SCOPE.md#source-and-validation-policy) govern; where this page differs, the repository wins.
+
+-What kind of evidence K-FRTB-SA has, what each kind establishes, what is
++What kind of evidence K-FRTB-ASA has, what each kind establishes, what is
+ explicitly not validated, and how a desktop Excel run is recorded. **Treat
+ every result as unvalidated for regulatory use.**
+@@ -20,5 +20,5 @@ every result as unvalidated for regulatory use.**
+ ## 🧭 Principles
+
+-From the [source and validation policy](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/SCOPE.md#source-and-validation-policy):
++From the [source and validation policy](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/SCOPE.md#source-and-validation-policy):
+
+ - Expected results come from published examples or a **separately derived
+@@ -36,5 +36,5 @@ From the [source and validation policy](https://github.com/danielep71/K-FRTB-SA/
+ ## 🧪 Evidence classes
+
+-| Class | What K-FRTB-SA has | Establishes | Does not establish |
++| Class | What K-FRTB-ASA has | Establishes | Does not establish |
+ | --- | --- | --- | --- |
+ | **Static** | VBA lint; template freshness; parameter spot check against `tests/regulatory_defaults.py` | Well-formed source; parameters equal an independently typed list of the BIS values | Compilation or behavior in Excel |
+@@ -99,5 +99,5 @@ pass. A failing log is kept as it is, never replaced by a later passing run.
+
+ The full procedure, the record template and the validator commands are in
+-[EXCEL_EVIDENCE.md](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/EXCEL_EVIDENCE.md).
++[EXCEL_EVIDENCE.md](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/EXCEL_EVIDENCE.md).
+
+ ---
+@@ -105,5 +105,5 @@ The full procedure, the record template and the validator commands are in
+ ## 🗺️ Toward a certified release
+
+-The [roadmap](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/ROADMAP.md)
++The [roadmap](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/ROADMAP.md)
+ adds evidence milestone by milestone: an approved requirement-to-test matrix,
+ independently derived expected values for every included requirement, a
+@@ -118,3 +118,3 @@ only a Windows desktop Excel host can produce.
+
+ - [Test Catalogue](Test-Catalogue) · [Regulatory Basis](Regulatory-Basis) · [Open Items and Limitations](Open-Items-and-Limitations) · [Home](Home)
+-- Repository: [validation](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/validation.md) · [Excel evidence](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/EXCEL_EVIDENCE.md) · [scope, source policy](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/SCOPE.md#source-and-validation-policy) · [issue #28](https://github.com/danielep71/K-FRTB-SA/issues/28)
++- Repository: [validation](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/validation.md) · [Excel evidence](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/EXCEL_EVIDENCE.md) · [scope, source policy](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/SCOPE.md#source-and-validation-policy) · [issue #28](https://github.com/danielep71/K-FRTB-ASA/issues/28)
+diff --git a/Workbook/Workbook-Guide.md b/Workbook/Workbook-Guide.md
+index c3a9e88..ed22523 100644
+--- a/Workbook/Workbook-Guide.md
++++ b/Workbook/Workbook-Guide.md
+@@ -10,5 +10,5 @@
+ </p>
+
+-> 📌 **Guide, not policy.** The [workbook guide](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/workbook-guide.md#sheets) and the [template](https://github.com/danielep71/K-FRTB-SA/blob/main/src/workbook/FRTB_Template.xlsx) govern; where this page differs, the repository wins.
++> 📌 **Guide, not policy.** The [workbook guide](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/workbook-guide.md#sheets) and the [template](https://github.com/danielep71/K-FRTB-ASA/blob/main/src/workbook/FRTB_Template.xlsx) govern; where this page differs, the repository wins.
+
+ The 22 sheets of the workbook, what each is for, the buttons and the layout
+@@ -17,6 +17,6 @@ conventions shared by every sheet.
+ <p align="center">
+   <img width="100%"
+-       alt="K-FRTB-SA: total capital of the sample portfolio, SBM by correlation scenario and by risk class"
+-       src="https://raw.githubusercontent.com/danielep71/K-FRTB-SA/main/docs/assets/FRTB_social_preview.png">
++       alt="K-FRTB-ASA: total capital of the sample portfolio, SBM by correlation scenario and by risk class"
++       src="https://raw.githubusercontent.com/danielep71/K-FRTB-ASA/main/docs/assets/FRTB_social_preview.png">
+ </p>
+
+@@ -107,3 +107,3 @@ partial capital behind.
+
+ - [Getting Started](Getting-Started) · [Inputs](Inputs) · [Outputs and Log](Outputs-and-Log) · [How It Works](How-It-Works) · [Home](Home)
+-- Repository: [workbook guide, sheets](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/workbook-guide.md#sheets) · [`M_Setup`](https://github.com/danielep71/K-FRTB-SA/blob/main/src/modules/M_Setup.bas) · [`CORE_Config`](https://github.com/danielep71/K-FRTB-SA/blob/main/src/modules/CORE_Config.bas)
++- Repository: [workbook guide, sheets](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/workbook-guide.md#sheets) · [`M_Setup`](https://github.com/danielep71/K-FRTB-ASA/blob/main/src/modules/M_Setup.bas) · [`CORE_Config`](https://github.com/danielep71/K-FRTB-ASA/blob/main/src/modules/CORE_Config.bas)
+diff --git a/_Sidebar.md b/_Sidebar.md
+index 93dfa7f..65ba031 100644
+--- a/_Sidebar.md
++++ b/_Sidebar.md
+@@ -1,3 +1,3 @@
+-### 📈 [K-FRTB-SA](Home)
++### 📈 [K-FRTB-ASA](Home)
+
+ **⚖️ Regulation**

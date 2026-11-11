@@ -1,6 +1,6 @@
 <div align="center">
 
-# 📈 K-FRTB-SA
+# 📈 K-FRTB-ASA
 
 ### FRTB standardized approach for market risk in Excel VBA
 
@@ -18,22 +18,22 @@
 
 <br>
 
-[![Last commit](https://img.shields.io/github/last-commit/danielep71/K-FRTB-SA?style=flat-square&label=last%20commit&color=217346)](https://github.com/danielep71/K-FRTB-SA/commits)
-[![P1 issues](https://img.shields.io/github/issues/danielep71/K-FRTB-SA/P1?style=flat-square&label=P1&color=B60205)](https://github.com/danielep71/K-FRTB-SA/issues?q=is%3Aissue%20is%3Aopen%20label%3AP1)
-[![P2 issues](https://img.shields.io/github/issues/danielep71/K-FRTB-SA/P2?style=flat-square&label=P2&color=D93F0B)](https://github.com/danielep71/K-FRTB-SA/issues?q=is%3Aissue%20is%3Aopen%20label%3AP2)
-[![P3 issues](https://img.shields.io/github/issues/danielep71/K-FRTB-SA/P3?style=flat-square&label=P3&color=FBCA04)](https://github.com/danielep71/K-FRTB-SA/issues?q=is%3Aissue%20is%3Aopen%20label%3AP3)
-[![Stars](https://img.shields.io/github/stars/danielep71/K-FRTB-SA?style=flat-square&color=bf8700)](https://github.com/danielep71/K-FRTB-SA/stargazers)
-[![Clones](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fdanielep71%2FK-FRTB-SA%2Ftraffic-history%2Fdata%2Fbadges%2Fclones.json&style=flat-square&label=clones)](docs/TRAFFIC_HISTORY.md#badges)
-[![Visitors](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fdanielep71%2FK-FRTB-SA%2Ftraffic-history%2Fdata%2Fbadges%2Fvisitors.json&style=flat-square&label=visitors%20(14d))](docs/TRAFFIC_HISTORY.md#badges)
-[![Visits](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fdanielep71%2FK-FRTB-SA%2Ftraffic-history%2Fdata%2Fbadges%2Fvisits.json&style=flat-square&label=visits)](docs/TRAFFIC_HISTORY.md#badges)
+[![Last commit](https://img.shields.io/github/last-commit/danielep71/K-FRTB-ASA?style=flat-square&label=last%20commit&color=217346)](https://github.com/danielep71/K-FRTB-ASA/commits)
+[![P1 issues](https://img.shields.io/github/issues/danielep71/K-FRTB-ASA/P1?style=flat-square&label=P1&color=B60205)](https://github.com/danielep71/K-FRTB-ASA/issues?q=is%3Aissue%20is%3Aopen%20label%3AP1)
+[![P2 issues](https://img.shields.io/github/issues/danielep71/K-FRTB-ASA/P2?style=flat-square&label=P2&color=D93F0B)](https://github.com/danielep71/K-FRTB-ASA/issues?q=is%3Aissue%20is%3Aopen%20label%3AP2)
+[![P3 issues](https://img.shields.io/github/issues/danielep71/K-FRTB-ASA/P3?style=flat-square&label=P3&color=FBCA04)](https://github.com/danielep71/K-FRTB-ASA/issues?q=is%3Aissue%20is%3Aopen%20label%3AP3)
+[![Stars](https://img.shields.io/github/stars/danielep71/K-FRTB-ASA?style=flat-square&color=bf8700)](https://github.com/danielep71/K-FRTB-ASA/stargazers)
+[![Clones](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fdanielep71%2FK-FRTB-ASA%2Ftraffic-history%2Fdata%2Fbadges%2Fclones.json&style=flat-square&label=clones)](docs/TRAFFIC_HISTORY.md#badges)
+[![Visitors](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fdanielep71%2FK-FRTB-ASA%2Ftraffic-history%2Fdata%2Fbadges%2Fvisitors.json&style=flat-square&label=visitors%20(14d))](docs/TRAFFIC_HISTORY.md#badges)
+[![Visits](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fdanielep71%2FK-FRTB-ASA%2Ftraffic-history%2Fdata%2Fbadges%2Fvisits.json&style=flat-square&label=visits)](docs/TRAFFIC_HISTORY.md#badges)
 
 <br>
 
 **No add-in · No external reference · No DLL · No installer · Reviewable source for every calculation**
 
-[Website](https://danielep71.github.io/K-FRTB-SA/)
+[Website](https://danielep71.github.io/K-FRTB-ASA/)
 &nbsp;·&nbsp;
-[Wiki](https://github.com/danielep71/K-FRTB-SA/wiki)
+[Wiki](https://github.com/danielep71/K-FRTB-ASA/wiki)
 &nbsp;·&nbsp;
 [Quick start](#quick-start)
 &nbsp;·&nbsp;
@@ -53,7 +53,7 @@
 
 <p align="center">
   <img width="100%"
-       alt="K-FRTB-SA: total capital of the sample portfolio, SBM by correlation scenario and by risk class"
+       alt="K-FRTB-ASA: total capital of the sample portfolio, SBM by correlation scenario and by risk class"
        src="docs/assets/FRTB_social_preview.png">
 </p>
 
@@ -65,7 +65,7 @@
 
 > [!IMPORTANT]
 > **Version 0.2.0 is a prototype** of the
-> [v0.2.0 — SA prototype](https://github.com/danielep71/K-FRTB-SA/milestone/2)
+> [v0.2.0 — SA prototype](https://github.com/danielep71/K-FRTB-ASA/milestone/2)
 > milestone (issue #20). It implements the Basel standardized approach
 > (MAR21-MAR23) in Excel VBA with parameters checked against the BIS text,
 > and every output is reconciled with an independent Python reference.
@@ -96,7 +96,7 @@ SBM     = max over {low, medium, high} correlation scenarios of
           sum over risk classes of (delta + vega + curvature)
 ```
 
-**K-FRTB-SA** is the workbook prototype. You enter sensitivities and
+**K-FRTB-ASA** is the workbook prototype. You enter sensitivities and
 positions; the engine nets them per risk factor, applies the risk weights and
 correlations of each bucket, aggregates across buckets under three correlation
 scenarios and writes every intermediate result. It is built for market risk
@@ -157,8 +157,8 @@ day. The setup branch `release/v0.0.1` was deleted after the setup closeout
 [branch governance](docs/GOVERNANCE.md).
 
 ```sh
-git clone --branch release/v0.2.0 https://github.com/danielep71/K-FRTB-SA.git
-cd K-FRTB-SA
+git clone --branch release/v0.2.0 https://github.com/danielep71/K-FRTB-ASA.git
+cd K-FRTB-ASA
 python3 tools/vba_lint.py
 ```
 
@@ -177,7 +177,7 @@ whitespace and local documentation targets.
    powershell -ExecutionPolicy Bypass -File tools\Build-Workbook.ps1 -RunTests
    ```
 
-3. Open `dist\K-FRTB-SA.xlsm`, then run **Debug → Compile VBAProject** in the
+3. Open `dist\K-FRTB-ASA.xlsm`, then run **Debug → Compile VBAProject** in the
    VBA editor (**Alt+F11**).
 
 `-Production` leaves out the test modules. Double-clicking
@@ -272,7 +272,7 @@ what is **not** validated yet.
 | Automated checks and what is not validated | [Validation](docs/validation.md) |
 | Recording a desktop Excel run and validating the record | [Excel evidence](docs/EXCEL_EVIDENCE.md) |
 | Market risk and CVA method maps | [Diagrams](docs/assets/market-risk/README.md) |
-| Guided pages on the regulation and the workbook | [Wiki](https://github.com/danielep71/K-FRTB-SA/wiki) |
+| Guided pages on the regulation and the workbook | [Wiki](https://github.com/danielep71/K-FRTB-ASA/wiki) |
 | Local setup and verification commands | [Installation](INSTALLATION.md) |
 | Source, tests, generated files, and evidence placement | [Repository structure](docs/REPOSITORY_STRUCTURE.md) |
 | Universal maintenance CI and dependency updates | [Repository checks](docs/CI.md) |
@@ -287,10 +287,10 @@ what is **not** validated yet.
 | Development branches and integration | [Governance](docs/GOVERNANCE.md) |
 | Effective repository controls | [Settings baseline](docs/REPOSITORY_SETTINGS.md) |
 | Recorded changes | [Changelog](CHANGELOG.md) |
-| Prototype backlog | [v0.2.0 — SA prototype milestone](https://github.com/danielep71/K-FRTB-SA/milestone/2) |
-| Regulatory baseline and certification scope | [v0.3.0 milestone](https://github.com/danielep71/K-FRTB-SA/milestone/3) |
-| Closed setup baseline | [v0.1.0 — Repo setup milestone](https://github.com/danielep71/K-FRTB-SA/milestone/1) and [closeout record](docs/evidence/2026-10-18-setup-closeout.md) |
-| Privately report a potential vulnerability | [Private vulnerability reporting](https://github.com/danielep71/K-FRTB-SA/security/advisories/new) |
+| Prototype backlog | [v0.2.0 — SA prototype milestone](https://github.com/danielep71/K-FRTB-ASA/milestone/2) |
+| Regulatory baseline and certification scope | [v0.3.0 milestone](https://github.com/danielep71/K-FRTB-ASA/milestone/3) |
+| Closed setup baseline | [v0.1.0 — Repo setup milestone](https://github.com/danielep71/K-FRTB-ASA/milestone/1) and [closeout record](docs/evidence/2026-10-18-setup-closeout.md) |
+| Privately report a potential vulnerability | [Private vulnerability reporting](https://github.com/danielep71/K-FRTB-ASA/security/advisories/new) |
 
 Every issue must have **one priority label**, a milestone, and an assignee.
 P1 is reserved for confirmed calculation bugs. Pull requests link to their
@@ -313,10 +313,12 @@ prototype evaluation/closeout is #32. Traffic history is collecting daily
 ## 🏷️ Project name
 
 The documentation uses **FRTB-SA**, with the standard acronym FRTB, and the
-workbook is branded **K-FRTB-SA**. The GitHub repository has the same name,
-**K-FRTB-SA**, since October 26, 2026 (#95). It was created as
-**MKT-FTRB-SA**, with the letters of FRTB transposed; GitHub redirects the
-old URLs, but links and clones should use the new name.
+workbook is branded **K-FRTB-ASA**. The GitHub repository has the same name,
+**K-FRTB-ASA**, since November 11, 2026 (#261). It was created as
+**MKT-FTRB-SA**, with the letters of FRTB transposed, and was named
+**K-FRTB-SA** from October 26, 2026 (#95). GitHub redirects the old
+repository URLs, but not the old website address; links and clones should
+use the new name.
 
 ## 📄 License
 

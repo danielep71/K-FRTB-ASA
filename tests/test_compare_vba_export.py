@@ -182,7 +182,7 @@ def test_a_document_module_with_only_option_lines_passes(export):
 def test_a_sheet_exported_without_vb_base_is_a_document_by_its_manifest_type(export, tmp_path):
     folder = export("development")
     (folder / "Sheet1.cls").write_bytes(SHEET1 + b"Option Explicit\r\n")
-    book = workbook(tmp_path, "K-FRTB-SA.xlsm")
+    book = workbook(tmp_path, "K-FRTB-ASA.xlsm")
     write_manifest(folder, book, {"ThisWorkbook.cls": 100, "Sheet1.cls": 100, "CORE_SBM.bas": 1})
     code, output = run_tool(folder, "development", "--workbook", str(book))
     assert code == 0, output
@@ -192,7 +192,7 @@ def test_a_sheet_exported_without_vb_base_is_a_document_by_its_manifest_type(exp
 def test_a_sheet_without_vb_base_or_manifest_type_is_not_in_the_source(export, tmp_path):
     folder = export("development")
     (folder / "Sheet1.cls").write_bytes(SHEET1)
-    book = workbook(tmp_path, "K-FRTB-SA.xlsm")
+    book = workbook(tmp_path, "K-FRTB-ASA.xlsm")
     write_manifest(folder, book)
     code, output = run_tool(folder, "development", "--workbook", str(book))
     assert code == 1, output
@@ -202,7 +202,7 @@ def test_a_sheet_without_vb_base_or_manifest_type_is_not_in_the_source(export, t
 def test_a_manifest_document_type_cannot_hide_code(export, tmp_path):
     folder = export("development")
     (folder / "Sheet1.cls").write_bytes(SHEET1 + b"Sub Hidden()\r\nEnd Sub\r\n")
-    book = workbook(tmp_path, "K-FRTB-SA.xlsm")
+    book = workbook(tmp_path, "K-FRTB-ASA.xlsm")
     write_manifest(folder, book, {"Sheet1.cls": 100})
     code, output = run_tool(folder, "development", "--workbook", str(book))
     assert code == 1, output
@@ -211,7 +211,7 @@ def test_a_manifest_document_type_cannot_hide_code(export, tmp_path):
 
 def test_a_component_type_that_is_not_an_integer_fails_the_binding(export, tmp_path):
     folder = export("development")
-    book = workbook(tmp_path, "K-FRTB-SA.xlsm")
+    book = workbook(tmp_path, "K-FRTB-ASA.xlsm")
     write_manifest(folder, book, {"ThisWorkbook.cls": "100"})
     code, output = run_tool(folder, "development", "--workbook", str(book))
     assert code == 1, output
@@ -220,7 +220,7 @@ def test_a_component_type_that_is_not_an_integer_fails_the_binding(export, tmp_p
 
 def test_a_matching_manifest_verifies_the_binding(export, tmp_path):
     folder = export("development")
-    book = workbook(tmp_path, "K-FRTB-SA.xlsm")
+    book = workbook(tmp_path, "K-FRTB-ASA.xlsm")
     write_manifest(folder, book)
     code, output = run_tool(folder, "development", "--workbook", str(book))
     assert code == 0, output
@@ -229,7 +229,7 @@ def test_a_matching_manifest_verifies_the_binding(export, tmp_path):
 
 def test_a_manifest_without_workbook_stays_unverified(export, tmp_path):
     folder = export("development")
-    write_manifest(folder, workbook(tmp_path, "K-FRTB-SA.xlsm"))
+    write_manifest(folder, workbook(tmp_path, "K-FRTB-ASA.xlsm"))
     code, output = run_tool(folder, "development")
     assert code == 0, output
     assert "binding=UNVERIFIED" in output
@@ -238,7 +238,7 @@ def test_a_manifest_without_workbook_stays_unverified(export, tmp_path):
 
 def test_a_file_changed_after_the_export_fails_the_binding(export, tmp_path):
     folder = export("development")
-    book = workbook(tmp_path, "K-FRTB-SA.xlsm")
+    book = workbook(tmp_path, "K-FRTB-ASA.xlsm")
     write_manifest(folder, book)
     replace_in(folder / "CORE_SBM.bas", b"Option Explicit", b"option explicit")
     code, output = run_tool(folder, "development", "--workbook", str(book))
@@ -248,7 +248,7 @@ def test_a_file_changed_after_the_export_fails_the_binding(export, tmp_path):
 
 def test_another_workbook_fails_the_binding(export, tmp_path):
     folder = export("development")
-    write_manifest(folder, workbook(tmp_path, "K-FRTB-SA.xlsm"))
+    write_manifest(folder, workbook(tmp_path, "K-FRTB-ASA.xlsm"))
     other = workbook(tmp_path, "other.xlsm", b"another project")
     code, output = run_tool(folder, "development", "--workbook", str(other))
     assert code == 1, output
@@ -257,17 +257,17 @@ def test_another_workbook_fails_the_binding(export, tmp_path):
 
 def test_a_renamed_workbook_is_a_note(export, tmp_path):
     folder = export("development")
-    book = workbook(tmp_path, "K-FRTB-SA.xlsm")
+    book = workbook(tmp_path, "K-FRTB-ASA.xlsm")
     write_manifest(folder, book)
-    renamed = book.rename(tmp_path / "K-FRTB-SA (1).xlsm")
+    renamed = book.rename(tmp_path / "K-FRTB-ASA (1).xlsm")
     code, output = run_tool(folder, "development", "--workbook", str(renamed))
     assert code == 0, output
-    assert "NOTE export-manifest.json names the workbook K-FRTB-SA.xlsm" in output
+    assert "NOTE export-manifest.json names the workbook K-FRTB-ASA.xlsm" in output
 
 
 def test_a_workbook_without_vba_fails_the_binding(export, tmp_path):
     folder = export("development")
-    book = tmp_path / "K-FRTB-SA.xlsm"
+    book = tmp_path / "K-FRTB-ASA.xlsm"
     with zipfile.ZipFile(book, "w") as archive:
         archive.writestr("[Content_Types].xml", "<Types/>")
     write_manifest(folder, book)

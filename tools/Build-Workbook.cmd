@@ -1,10 +1,10 @@
 @echo off
 setlocal EnableExtensions
-rem Builds dist\K-FRTB-SA.xlsm from the template and the VBA modules of this
+rem Builds dist\K-FRTB-ASA.xlsm from the template and the VBA modules of this
 rem repository checkout with tools\Build-Workbook.ps1.
 set "REPO_ROOT=%~dp0.."
 set "SCRIPT=%~dp0Build-Workbook.ps1"
-set "OUTPUT=%REPO_ROOT%\dist\K-FRTB-SA.xlsm"
+set "OUTPUT=%REPO_ROOT%\dist\K-FRTB-ASA.xlsm"
 
 if not exist "%SCRIPT%" (
     echo ERROR: PowerShell script not found:

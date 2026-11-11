@@ -1,7 +1,8 @@
 {
   "schema_version": 1,
-  "description": "What an Excel evidence record of K-FRTB-SA must contain; read by tools/check_excel_evidence.py (docs/EXCEL_EVIDENCE.md).",
-  "repository": "danielep71/K-FRTB-SA",
+  "description": "What an Excel evidence record of K-FRTB-ASA must contain; read by tools/check_excel_evidence.py (docs/EXCEL_EVIDENCE.md).",
+  "repository": "danielep71/K-FRTB-ASA",
+  "former_repositories": ["danielep71/K-FRTB-SA"],
   "regression_items": 52,
   "required_references": [
     "Visual Basic For Applications",

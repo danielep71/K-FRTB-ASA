@@ -1,7 +1,7 @@
 # ✅ v0.0.1 setup closeout record
 
 Closeout record for issue #8 and the
-[v0.0.1 — Repo setup](https://github.com/danielep71/K-FRTB-SA/milestone/1)
+[v0.0.1 — Repo setup](https://github.com/danielep71/K-FRTB-ASA/milestone/1)
 milestone. Readback on October 18, 2026 (Europe/Rome), at main,
 `release/v0.0.1` and `release/v0.1.0` = `d487ee293f6762f38041ed06dc055ac02b43adf9`.
 `release/v0.0.1` was fast-forwarded to main by the owner before this record.
@@ -29,7 +29,7 @@ Issues #1–#7, #23 and #25 are closed as completed.
 
 | Check | Result |
 | --- | --- |
-| Labels | Live catalogue equals `.github/labels.json`: 20 of 20 names, colors and descriptions, none extra. [Drift run 39105486786](https://github.com/danielep71/K-FRTB-SA/actions/runs/39105486786) on main passed. `labels-sync.mjs --mode validate` plans 0 changes |
+| Labels | Live catalogue equals `.github/labels.json`: 20 of 20 names, colors and descriptions, none extra. [Drift run 39105486786](https://github.com/danielep71/K-FRTB-ASA/actions/runs/39105486786) on main passed. `labels-sync.mjs --mode validate` plans 0 changes |
 | Metadata | All 20 issues and all 29 PRs are assigned to danielep71 and carry exactly one priority and a milestone; P1 is used only for the confirmed calculation bugs #41, #45 and #48 |
 | Fresh checkout | Clone of `release/v0.0.1` at `d487ee2`. Each command passed: `tools/check_repository.py` (79 files plus label and traffic self-tests), `tools/vba_lint.py` (11 modules, 0 problems), the label self-tests and `REQUIRE_LIBREOFFICE=1 pytest` (97 passed, 21 subtests passed). Live drift detection needs a token locally; the hosted run covers it |
 | Required check | Main ruleset 25319557 and release ruleset 25319604 require `Repository integrity` (GitHub Actions, app 15368); main also requires up-to-date branches. Dependabot PR #37 was `blocked` only by the missing check |
@@ -38,9 +38,9 @@ Issues #1–#7, #23 and #25 are closed as completed.
 | Repository | Description and topics updated by the owner to describe the Excel/VBA prototype with its pending Excel evidence; public; default branch main; Pages and Discussions off; automatic deletion of merged branches on; merge methods enabled globally and narrowed by rulesets |
 | Forms and policies on main | Three issue forms, `config.yml` with blank issues disabled and the private-reporting link, PR template, `SECURITY.md` and `CODE_OF_CONDUCT.md` |
 | License | `LICENSE` is MIT with copyright Daniele Penza; GitHub detects MIT. README, contribution and policy documents link it, and the maintenance scripts carry `SPDX-License-Identifier: MIT` |
-| Last setup-only commit `7ee0ced` | The #36 merge, 45 files, no VBA modules or workbook. It predates the closeout (no release procedure or closeout record; its documents describe completed controls as pending), so it is not a tag candidate. Fresh checkout of that commit: `tools/check_repository.py` passed (45 files plus label and traffic self-tests), and `labels-sync.mjs --mode validate` plans 0 changes. Hosted [Repository integrity run 39077036863](https://github.com/danielep71/K-FRTB-SA/actions/runs/39077036863) passed on it |
+| Last setup-only commit `7ee0ced` | The #36 merge, 45 files, no VBA modules or workbook. It predates the closeout (no release procedure or closeout record; its documents describe completed controls as pending), so it is not a tag candidate. Fresh checkout of that commit: `tools/check_repository.py` passed (45 files plus label and traffic self-tests), and `labels-sync.mjs --mode validate` plans 0 changes. Hosted [Repository integrity run 39077036863](https://github.com/danielep71/K-FRTB-ASA/actions/runs/39077036863) passed on it |
 | Wiki | Enabled for collaborators. The owner published a Home page (wiki commit `3725aa9`) that links to the versioned repository documents; it holds no other content |
-| Traffic history | [Run 39105087826](https://github.com/danielep71/K-FRTB-SA/actions/runs/39105087826) published data commit `af6a68a`; the first window has zero counts |
+| Traffic history | [Run 39105087826](https://github.com/danielep71/K-FRTB-ASA/actions/runs/39105087826) published data commit `af6a68a`; the first window has zero counts |
 
 ## 🧭 Adopted and deferred practices
 

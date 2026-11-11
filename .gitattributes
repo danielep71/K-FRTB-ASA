@@ -4,10 +4,10 @@
 # obtain one at https://mozilla.org/MPL/2.0/.
 # See docs/licenses/THIRD_PARTY_NOTICES.txt.
 #==============================================================================
-# K-FRTB-SA .gitattributes
+# K-FRTB-ASA .gitattributes
 #------------------------------------------------------------------------------
 # PURPOSE
-#   Define Git behavior for K-FRTB-SA: line endings, binary handling, diff
+#   Define Git behavior for K-FRTB-ASA: line endings, binary handling, diff
 #   and merge behavior, GitHub language reporting and source archives.
 #
 # POLICY
