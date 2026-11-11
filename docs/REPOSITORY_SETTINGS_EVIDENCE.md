@@ -56,10 +56,10 @@ the observed baseline and outstanding dependencies.
 
 | Ruleset | Target | Enforced behavior | Bypass actors |
 | --- | --- | --- | --- |
-| [Protect main](https://github.com/danielep71/K-FRTB-SA/rules/25319557) | Default branch | PR required; resolved conversations; merge commits only; no deletion or force pushes | Repository admin, through PRs only |
-| [Protect release branches](https://github.com/danielep71/K-FRTB-SA/rules/25319604) | release/** | PR required; resolved conversations; squash only; no force pushes; deletion restriction | Repository admin, always, subject to the separate deletion rule |
-| [Prevent release branch deletion](https://github.com/danielep71/K-FRTB-SA/rules/25319621) | release/** | Deletion blocked independently | None |
-| [Protect release tags](https://github.com/danielep71/K-FRTB-SA/rules/25319649) | v* tags | Updates, deletion and force pushes blocked | None |
+| [Protect main](https://github.com/danielep71/K-FRTB-ASA/rules/25319557) | Default branch | PR required; resolved conversations; merge commits only; no deletion or force pushes | Repository admin, through PRs only |
+| [Protect release branches](https://github.com/danielep71/K-FRTB-ASA/rules/25319604) | release/** | PR required; resolved conversations; squash only; no force pushes; deletion restriction | Repository admin, always, subject to the separate deletion rule |
+| [Prevent release branch deletion](https://github.com/danielep71/K-FRTB-ASA/rules/25319621) | release/** | Deletion blocked independently | None |
+| [Protect release tags](https://github.com/danielep71/K-FRTB-ASA/rules/25319649) | v* tags | Updates, deletion and force pushes blocked | None |
 
 All four rulesets have active enforcement. Required approval count is zero,
 conversation resolution is required.
@@ -127,7 +127,7 @@ only because the required check had not run.
 | Dependabot version updates | No configuration | Added under #7; #51 consolidates three entries, on release/v0.2.0 since #118 (active on main through #120); PRs have no milestone under #104; scheduling uses the configuration on main; targets in CI.md |
 | Dependabot security update PRs | Off | Remain off; version-update targets do not govern security PRs; changing this is a new explicit settings decision (CI.md). Superseded by #191: on since October 31, 2026 ([settings](REPOSITORY_SETTINGS.md#security)) |
 
-[CodeQL setup evidence](https://github.com/danielep71/K-FRTB-SA/actions/runs/39070451926).
+[CodeQL setup evidence](https://github.com/danielep71/K-FRTB-ASA/actions/runs/39070451926).
 The detected language at setup was **GitHub Actions**, not an FRTB calculation
 engine. CodeQL setup and scan results do not certify calculation correctness.
 No paid feature or agentic autofix was enabled.
@@ -163,5 +163,5 @@ Traffic ruleset **25321321** is active for `traffic-history`, blocks deletion
 and non-fast-forward updates, and has no bypass actors. The `analytics`
 environment is restricted to branch `main` (no tags) and holds the
 `TRAFFIC_TOKEN` secret. The first successful collection ran on October 18,
-2026 ([run 39105087826](https://github.com/danielep71/K-FRTB-SA/actions/runs/39105087826),
+2026 ([run 39105087826](https://github.com/danielep71/K-FRTB-ASA/actions/runs/39105087826),
 data commit `af6a68a`); #23 is closed.

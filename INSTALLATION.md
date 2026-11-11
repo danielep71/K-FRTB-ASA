@@ -12,8 +12,8 @@ with Python 3.13.18 and Node.js 24.22.2 for the integrity gate.
 ## Check out the active work
 
 ```sh
-git clone --branch release/v0.2.0 https://github.com/danielep71/K-FRTB-SA.git
-cd K-FRTB-SA
+git clone --branch release/v0.2.0 https://github.com/danielep71/K-FRTB-ASA.git
+cd K-FRTB-ASA
 git branch --show-current
 git rev-parse HEAD
 git --version
@@ -64,7 +64,7 @@ an engine or Excel, test a workbook, or establish verified capital results.
 
 ## SA prototype (v0.2.0)
 
-The [v0.2.0 — SA prototype](https://github.com/danielep71/K-FRTB-SA/milestone/2)
+The [v0.2.0 — SA prototype](https://github.com/danielep71/K-FRTB-ASA/milestone/2)
 work integrates on `release/v0.2.0` (issue #20). Its approved Excel/VBA
 evaluation scope does not resolve the long-term platform decision or the
 remaining methodology questions in [Scope](docs/SCOPE.md).

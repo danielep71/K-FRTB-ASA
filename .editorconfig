@@ -7,7 +7,7 @@
 # .editorconfig
 #------------------------------------------------------------------------------
 # PURPOSE
-#   Editing baseline for K-FRTB-SA: the exported VBA modules of src/modules
+#   Editing baseline for K-FRTB-ASA: the exported VBA modules of src/modules
 #   and tests/modules, the Python tools and tests, the PowerShell and cmd
 #   launchers for Windows, the GitHub configuration, the web page and the
 #   documentation.

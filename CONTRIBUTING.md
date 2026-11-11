@@ -111,7 +111,7 @@ commands do not execute Excel or validate FRTB calculations. A future engine
 must define its runtime and evidence contract before claiming support.
 
 Do not disclose suspected vulnerabilities in public issues or PRs. Use
-[private vulnerability reporting](https://github.com/danielep71/K-FRTB-SA/security/advisories/new),
+[private vulnerability reporting](https://github.com/danielep71/K-FRTB-ASA/security/advisories/new),
 enabled in the [settings baseline](docs/REPOSITORY_SETTINGS.md).
 See the dedicated security and conduct policies for reporting and moderation.
 

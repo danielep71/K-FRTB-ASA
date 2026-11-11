@@ -37,22 +37,22 @@ tags and release evidence follow [Releasing](../RELEASING.md).
 
 ## ✅ v0.1.0 — Repo setup (closed)
 
-[Milestone](https://github.com/danielep71/K-FRTB-SA/milestone/1) ·
+[Milestone](https://github.com/danielep71/K-FRTB-ASA/milestone/1) ·
 [milestone guide](Milestones/v0.0.1.md) ·
 [closeout record](evidence/2026-10-18-setup-closeout.md)
 
 | Issue | Deliverable |
 | --- | --- |
-| [#1](https://github.com/danielep71/K-FRTB-SA/issues/1) | Canonical labels, safe reconciliation, drift detection, and triage rules |
-| [#2](https://github.com/danielep71/K-FRTB-SA/issues/2) | Effective GitHub settings, protection, security, required check and review verification |
-| [#3](https://github.com/danielep71/K-FRTB-SA/issues/3) | Project identity, accurate scope, navigation, and starting instructions |
-| [#4](https://github.com/danielep71/K-FRTB-SA/issues/4) | Governance, integration branches, contribution rules, and milestone guide |
-| [#5](https://github.com/danielep71/K-FRTB-SA/issues/5) | Minimal source, test, documentation, and tooling structure |
-| [#6](https://github.com/danielep71/K-FRTB-SA/issues/6) | Issue forms, PR template, and contribution/security policies |
-| [#7](https://github.com/danielep71/K-FRTB-SA/issues/7) | Universal repository-integrity checks and dependency updates |
-| [#8](https://github.com/danielep71/K-FRTB-SA/issues/8) | Release procedure and evidence-based setup closeout |
-| [#23](https://github.com/danielep71/K-FRTB-SA/issues/23) | Traffic history: protected data branch and daily collection |
-| [#25](https://github.com/danielep71/K-FRTB-SA/issues/25) | Label pruning guard |
+| [#1](https://github.com/danielep71/K-FRTB-ASA/issues/1) | Canonical labels, safe reconciliation, drift detection, and triage rules |
+| [#2](https://github.com/danielep71/K-FRTB-ASA/issues/2) | Effective GitHub settings, protection, security, required check and review verification |
+| [#3](https://github.com/danielep71/K-FRTB-ASA/issues/3) | Project identity, accurate scope, navigation, and starting instructions |
+| [#4](https://github.com/danielep71/K-FRTB-ASA/issues/4) | Governance, integration branches, contribution rules, and milestone guide |
+| [#5](https://github.com/danielep71/K-FRTB-ASA/issues/5) | Minimal source, test, documentation, and tooling structure |
+| [#6](https://github.com/danielep71/K-FRTB-ASA/issues/6) | Issue forms, PR template, and contribution/security policies |
+| [#7](https://github.com/danielep71/K-FRTB-ASA/issues/7) | Universal repository-integrity checks and dependency updates |
+| [#8](https://github.com/danielep71/K-FRTB-ASA/issues/8) | Release procedure and evidence-based setup closeout |
+| [#23](https://github.com/danielep71/K-FRTB-ASA/issues/23) | Traffic history: protected data branch and daily collection |
+| [#25](https://github.com/danielep71/K-FRTB-ASA/issues/25) | Label pruning guard |
 
 The milestone closed without a tag or release. No main commit is both
 setup-only and complete, so the closed milestone and the closeout record are
@@ -60,7 +60,7 @@ the setup baseline.
 
 ## 🧪 v0.2.0 — SA prototype
 
-[Live milestone](https://github.com/danielep71/K-FRTB-SA/milestone/2) ·
+[Live milestone](https://github.com/danielep71/K-FRTB-ASA/milestone/2) ·
 [milestone guide](Milestones/v0.2.0.md) ·
 [interim evaluation](evidence/2026-10-27-prototype-evaluation.md) ·
 [Excel run](evidence/2026-10-31-excel-run-323260b.md),
@@ -73,42 +73,42 @@ then, #20, #30, #79 and #82 have closed with the
 
 | Issue | State on October 27, 2026 | Deliverable |
 | --- | --- | --- |
-| [#20](https://github.com/danielep71/K-FRTB-SA/issues/20) | Open | Excel VBA workbook prototype: SBM (delta, vega, curvature) for five risk classes, DRC non-securitization, RRAO, independent Python reference and reconciliation |
-| [#28](https://github.com/danielep71/K-FRTB-SA/issues/28) | Open | Excel host build, compile, execution and evidence |
-| [#30](https://github.com/danielep71/K-FRTB-SA/issues/30) | Open | Committed template and modules layout; remaining Excel round trip |
-| [#32](https://github.com/danielep71/K-FRTB-SA/issues/32) | Open | Milestone guide, evaluation and evidence closeout |
-| [#31](https://github.com/danielep71/K-FRTB-SA/issues/31) | Closed | Bring `release/v0.1.0` up to date with main and reconcile governance |
-| [#40](https://github.com/danielep71/K-FRTB-SA/issues/40) | Closed | Remaining prototype documentation inconsistencies |
-| [#41](https://github.com/danielep71/K-FRTB-SA/issues/41) | Closed | Reject invalid required parameters; consistent numeric-text parsing |
-| [#45](https://github.com/danielep71/K-FRTB-SA/issues/45) | Closed | Reject blank or invalid parameter-table values and vertex lists; clear outputs on failure |
-| [#48](https://github.com/danielep71/K-FRTB-SA/issues/48) | Closed | Reject blank keys and gaps in required parameter tables |
-| [#51](https://github.com/danielep71/K-FRTB-SA/issues/51) | Closed | Retire the setup line: Dependabot targets and branch guidance |
-| [#55](https://github.com/danielep71/K-FRTB-SA/issues/55) | Closed | This milestone plan |
-| [#59](https://github.com/danielep71/K-FRTB-SA/issues/59) | Closed | Post-closeout documentation consistency |
-| [#62](https://github.com/danielep71/K-FRTB-SA/issues/62) | Closed | Historical setup-branch deletion and corrected guidance |
-| [#66](https://github.com/danielep71/K-FRTB-SA/issues/66) | Closed | Obsolete release-branch lifecycle |
-| [#68](https://github.com/danielep71/K-FRTB-SA/issues/68) | Closed | Remove duplicated AGENTS.md guidance |
-| [#72](https://github.com/danielep71/K-FRTB-SA/issues/72) | Open | VBA synchronization implemented; desktop Excel and Windows verification pending #28 |
-| [#76](https://github.com/danielep71/K-FRTB-SA/issues/76) | Closed | Saved template style and source-build print areas |
-| [#77](https://github.com/danielep71/K-FRTB-SA/issues/77) | Closed | Synchronization-tool documentation |
-| [#79](https://github.com/danielep71/K-FRTB-SA/issues/79) | Open | Read-only export and comparison implemented; actual Excel round trip pending #28/#30 |
-| [#82](https://github.com/danielep71/K-FRTB-SA/issues/82) | Open | Evidence contract and validator implemented; actual Excel bundle pending #28 |
-| [#85](https://github.com/danielep71/K-FRTB-SA/issues/85) | Open | Output-placeholder fix verified in LibreOffice; desktop Excel verification pending #28 |
-| [#87](https://github.com/danielep71/K-FRTB-SA/issues/87) | Closed | Repository-specific comments and supported file policies |
-| [#93](https://github.com/danielep71/K-FRTB-SA/issues/93) | Closed | Maintenance-audit documentation reconciliation |
-| [#95](https://github.com/danielep71/K-FRTB-SA/issues/95) | Closed | Repository references after the rename to K-FRTB-SA |
-| [#98](https://github.com/danielep71/K-FRTB-SA/issues/98) | Closed | Market risk and CVA method maps |
-| [#100](https://github.com/danielep71/K-FRTB-SA/issues/100) | Closed | Project website, live on GitHub Pages |
-| [#102](https://github.com/danielep71/K-FRTB-SA/issues/102) | Closed | Market risk framework diagram as a map of approaches |
-| [#104](https://github.com/danielep71/K-FRTB-SA/issues/104) | Closed | Milestones for issues only |
-| [#110](https://github.com/danielep71/K-FRTB-SA/issues/110) | Closed | Root README brought up to date |
-| [#112](https://github.com/danielep71/K-FRTB-SA/issues/112) | Closed | Documentation aligned with the renumbered milestones |
-| [#113](https://github.com/danielep71/K-FRTB-SA/issues/113) | Closed | Prototype version `0.2.0-prototype` |
-| [#115](https://github.com/danielep71/K-FRTB-SA/issues/115) | Closed | MAR paragraph references corrected |
-| [#117](https://github.com/danielep71/K-FRTB-SA/issues/117) | Closed | Integration moved to `release/v0.2.0` |
-| [#118](https://github.com/danielep71/K-FRTB-SA/issues/118) | Closed | Dependabot targets `release/v0.2.0` |
-| [#124](https://github.com/danielep71/K-FRTB-SA/issues/124) | Closed | Timeout on the LibreOffice install step |
-| [#126](https://github.com/danielep71/K-FRTB-SA/issues/126) | Closed | Preview image version 0.2.0 and README wiki link |
+| [#20](https://github.com/danielep71/K-FRTB-ASA/issues/20) | Open | Excel VBA workbook prototype: SBM (delta, vega, curvature) for five risk classes, DRC non-securitization, RRAO, independent Python reference and reconciliation |
+| [#28](https://github.com/danielep71/K-FRTB-ASA/issues/28) | Open | Excel host build, compile, execution and evidence |
+| [#30](https://github.com/danielep71/K-FRTB-ASA/issues/30) | Open | Committed template and modules layout; remaining Excel round trip |
+| [#32](https://github.com/danielep71/K-FRTB-ASA/issues/32) | Open | Milestone guide, evaluation and evidence closeout |
+| [#31](https://github.com/danielep71/K-FRTB-ASA/issues/31) | Closed | Bring `release/v0.1.0` up to date with main and reconcile governance |
+| [#40](https://github.com/danielep71/K-FRTB-ASA/issues/40) | Closed | Remaining prototype documentation inconsistencies |
+| [#41](https://github.com/danielep71/K-FRTB-ASA/issues/41) | Closed | Reject invalid required parameters; consistent numeric-text parsing |
+| [#45](https://github.com/danielep71/K-FRTB-ASA/issues/45) | Closed | Reject blank or invalid parameter-table values and vertex lists; clear outputs on failure |
+| [#48](https://github.com/danielep71/K-FRTB-ASA/issues/48) | Closed | Reject blank keys and gaps in required parameter tables |
+| [#51](https://github.com/danielep71/K-FRTB-ASA/issues/51) | Closed | Retire the setup line: Dependabot targets and branch guidance |
+| [#55](https://github.com/danielep71/K-FRTB-ASA/issues/55) | Closed | This milestone plan |
+| [#59](https://github.com/danielep71/K-FRTB-ASA/issues/59) | Closed | Post-closeout documentation consistency |
+| [#62](https://github.com/danielep71/K-FRTB-ASA/issues/62) | Closed | Historical setup-branch deletion and corrected guidance |
+| [#66](https://github.com/danielep71/K-FRTB-ASA/issues/66) | Closed | Obsolete release-branch lifecycle |
+| [#68](https://github.com/danielep71/K-FRTB-ASA/issues/68) | Closed | Remove duplicated AGENTS.md guidance |
+| [#72](https://github.com/danielep71/K-FRTB-ASA/issues/72) | Open | VBA synchronization implemented; desktop Excel and Windows verification pending #28 |
+| [#76](https://github.com/danielep71/K-FRTB-ASA/issues/76) | Closed | Saved template style and source-build print areas |
+| [#77](https://github.com/danielep71/K-FRTB-ASA/issues/77) | Closed | Synchronization-tool documentation |
+| [#79](https://github.com/danielep71/K-FRTB-ASA/issues/79) | Open | Read-only export and comparison implemented; actual Excel round trip pending #28/#30 |
+| [#82](https://github.com/danielep71/K-FRTB-ASA/issues/82) | Open | Evidence contract and validator implemented; actual Excel bundle pending #28 |
+| [#85](https://github.com/danielep71/K-FRTB-ASA/issues/85) | Open | Output-placeholder fix verified in LibreOffice; desktop Excel verification pending #28 |
+| [#87](https://github.com/danielep71/K-FRTB-ASA/issues/87) | Closed | Repository-specific comments and supported file policies |
+| [#93](https://github.com/danielep71/K-FRTB-ASA/issues/93) | Closed | Maintenance-audit documentation reconciliation |
+| [#95](https://github.com/danielep71/K-FRTB-ASA/issues/95) | Closed | Repository references after the rename to K-FRTB-ASA |
+| [#98](https://github.com/danielep71/K-FRTB-ASA/issues/98) | Closed | Market risk and CVA method maps |
+| [#100](https://github.com/danielep71/K-FRTB-ASA/issues/100) | Closed | Project website, live on GitHub Pages |
+| [#102](https://github.com/danielep71/K-FRTB-ASA/issues/102) | Closed | Market risk framework diagram as a map of approaches |
+| [#104](https://github.com/danielep71/K-FRTB-ASA/issues/104) | Closed | Milestones for issues only |
+| [#110](https://github.com/danielep71/K-FRTB-ASA/issues/110) | Closed | Root README brought up to date |
+| [#112](https://github.com/danielep71/K-FRTB-ASA/issues/112) | Closed | Documentation aligned with the renumbered milestones |
+| [#113](https://github.com/danielep71/K-FRTB-ASA/issues/113) | Closed | Prototype version `0.2.0-prototype` |
+| [#115](https://github.com/danielep71/K-FRTB-ASA/issues/115) | Closed | MAR paragraph references corrected |
+| [#117](https://github.com/danielep71/K-FRTB-ASA/issues/117) | Closed | Integration moved to `release/v0.2.0` |
+| [#118](https://github.com/danielep71/K-FRTB-ASA/issues/118) | Closed | Dependabot targets `release/v0.2.0` |
+| [#124](https://github.com/danielep71/K-FRTB-ASA/issues/124) | Closed | Timeout on the LibreOffice install step |
+| [#126](https://github.com/danielep71/K-FRTB-ASA/issues/126) | Closed | Preview image version 0.2.0 and README wiki link |
 
 States were read back on October 27, 2026; the live milestone is authoritative.
 At that checkpoint main and `release/v0.2.0` both pointed to `46ae228`, after
@@ -119,7 +119,7 @@ and an [interim evaluation](evidence/2026-10-27-prototype-evaluation.md)
 exist; the final closeout record follows the Excel run of #28 (#32).
 
 I decided the six methodology interpretations of
-[#29](https://github.com/danielep71/K-FRTB-SA/issues/29) on October 27, 2026;
+[#29](https://github.com/danielep71/K-FRTB-ASA/issues/29) on October 27, 2026;
 they are implemented (#134, #136, #138, #140, #142, #144) and recorded in the
 [methodology](methodology.md#interpretations-and-simplifications-to-review).
 They are my readings, not independently reviewed; v0.3.0 reviews them for
@@ -128,9 +128,9 @@ decisions; it does not complete the later milestones' exit conditions.
 
 ## 📐 v0.3.0 — Regulatory baseline and certification scope
 
-[Live milestone](https://github.com/danielep71/K-FRTB-SA/milestone/3),
+[Live milestone](https://github.com/danielep71/K-FRTB-ASA/milestone/3),
 integration branch `release/v0.3.0` (#132). It holds the methodology
 decisions of
-[#29](https://github.com/danielep71/K-FRTB-SA/issues/29), decided on October
+[#29](https://github.com/danielep71/K-FRTB-ASA/issues/29), decided on October
 27, 2026 and implemented; its exit condition, including their review for the
 certified scope, is in the plan above.

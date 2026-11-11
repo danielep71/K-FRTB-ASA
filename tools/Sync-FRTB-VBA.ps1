@@ -66,10 +66,10 @@
     Show the Excel instance while it works.
 
 .EXAMPLE
-    powershell -NoProfile -ExecutionPolicy Bypass -File tools\Sync-FRTB-VBA.ps1 -WorkbookPath dist\K-FRTB-SA.xlsm -Mode Development
+    powershell -NoProfile -ExecutionPolicy Bypass -File tools\Sync-FRTB-VBA.ps1 -WorkbookPath dist\K-FRTB-ASA.xlsm -Mode Development
 
 .EXAMPLE
-    powershell -NoProfile -ExecutionPolicy Bypass -File tools\Sync-FRTB-VBA.ps1 -WorkbookPath C:\FRTB\K-FRTB-SA.xlsm -SourceDir "$env:USERPROFILE\Downloads"
+    powershell -NoProfile -ExecutionPolicy Bypass -File tools\Sync-FRTB-VBA.ps1 -WorkbookPath C:\FRTB\K-FRTB-ASA.xlsm -SourceDir "$env:USERPROFILE\Downloads"
 #>
 [CmdletBinding()]
 param(

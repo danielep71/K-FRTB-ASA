@@ -4,7 +4,7 @@
 # obtain one at https://mozilla.org/MPL/2.0/.
 # See docs/licenses/THIRD_PARTY_NOTICES.txt.
 #==============================================================================
-# K-FRTB-SA .gitignore
+# K-FRTB-ASA .gitignore
 #------------------------------------------------------------------------------
 # PURPOSE
 #   Keep the repository source-first, reviewable, reproducible, and safe to
@@ -83,14 +83,14 @@
 # the same way, in the issue that introduces it.
 !/src/workbook/FRTB_Template.xlsx
 #
-# Built workbooks (dist/K-FRTB-SA.xlsm by default) and the safety copies of
+# Built workbooks (dist/K-FRTB-ASA.xlsm by default) and the safety copies of
 # tools/Sync-FRTB-VBA.ps1 are never re-included.
 
 
 #------------------------------------------------------------------------------
 # RELEASE / BUILD STAGING
 #------------------------------------------------------------------------------
-# tools/Build-Workbook.ps1 writes dist/K-FRTB-SA.xlsm by default; build/ and
+# tools/Build-Workbook.ps1 writes dist/K-FRTB-ASA.xlsm by default; build/ and
 # release-assets/ hold local packages (docs/REPOSITORY_STRUCTURE.md). Root
 # anchoring prevents a generated-directory name from hiding an authoritative
 # nested source or evidence directory.

@@ -1,6 +1,6 @@
 # 🖼️ Documentation images
 
-The images in this directory illustrate K-FRTB-SA. They do not certify the
+The images in this directory illustrate K-FRTB-ASA. They do not certify the
 engine or replace the [methodology](../methodology.md).
 
 ## 🪧 Social preview
