@@ -236,6 +236,44 @@ def test_vega_girr_underlying_maturity(p):
     assert capital["GIRR"]["MEDIUM"] == approx(math.sqrt(a * a + b * b + 2 * rho * a * b))
 
 
+
+def test_vega_girr_inflation_and_xccy_risk_factors(p):
+    # MAR21.8 FAQ4: inflation and cross-currency basis vega along the option maturity only
+    rows = [
+        ["1", "GIRR", "EUR", None, None, 1, 5, 400_000],            # yield surface (blank sub-type)
+        ["2", "GIRR", "EUR", "HICP", "INFLATION", 1, None, 300_000],
+        ["3", "GIRR", "EUR", "FR_CPI", "INFLATION", 5, None, -100_000],
+        ["4", "GIRR", "EUR", "EURUSD", "XCCY", 1, None, 200_000],
+    ]
+    rfs = ref.vega_risk_factors(p, rows)
+    assert sorted(f.sub for f in rfs) == ["INFLATION", "INFLATION", "XCCY", "YIELD"]
+    capital, _, _ = ref.sbm_component(p, "VEGA", rfs)
+    y, i1, i2, x = 400_000.0, 300_000.0, -100_000.0, 200_000.0   # vega RW for GIRR is 100%
+    opt_1_5 = math.exp(-0.01 * 4 / 1)
+    pairs = (0.4 * y * i1                     # yield x inflation: 40% (MAR21.48), same option maturity
+             + opt_1_5 * 0.4 * y * i2
+             + opt_1_5 * 0.999 * i1 * i2)     # two inflation curves: 99.9% (MAR21.47 FAQ)
+    # cross-currency basis: 0% with every other GIRR risk factor (MAR21.49)
+    expected = math.sqrt(y * y + i1 * i1 + i2 * i2 + x * x + 2 * pairs)
+    assert capital["GIRR"]["MEDIUM"] == approx(expected)
+
+
+def test_vega_girr_same_inflation_curve_correlates_by_option_maturity_only(p):
+    rows = [["1", "GIRR", "EUR", "HICP", "INFLATION", 1, None, 300_000],
+            ["2", "GIRR", "EUR", "HICP", "INFLATION", 5, None, -100_000]]
+    capital, _, _ = ref.sbm_component(p, "VEGA", ref.vega_risk_factors(p, rows))
+    rho = math.exp(-0.01 * 4 / 1)
+    a, b = 300_000.0, -100_000.0
+    assert capital["GIRR"]["MEDIUM"] == approx(math.sqrt(a * a + b * b + 2 * rho * a * b))
+
+
+def test_vega_girr_invalid_rows_are_skipped(p):
+    rows = [["1", "GIRR", "EUR", "HICP", "INFLATION", 1, 5, 300_000],  # inflation takes no underlying maturity
+            ["2", "GIRR", "EUR", "", "XCCY", 1, 0, 200_000],          # nor does the cross-currency basis
+            ["3", "GIRR", "EUR", "", "CDS", 1, 5, 100_000],           # unknown GIRR sub-type
+            ["4", "GIRR", "EUR", "", "YIELD", 1, None, 100_000]]      # a yield surface needs it
+    assert ref.vega_risk_factors(p, rows) == []
+
 # --------------------------------------------------------------------------
 # Curvature
 # --------------------------------------------------------------------------
@@ -284,12 +322,21 @@ def test_curvature_fx_divisor(p):
     assert run_curv(p, rows)[0]["FX"]["MEDIUM"] == approx(40_000)
 
 
-def test_curvature_reporting_ccy_flag_must_be_boolean(p):
-    rows = [["1", "FX", "USD", "USD", None, 30_000, 0, "maybe"], ["2", "FX", "GBP", "GBP", None, 10_000, 0, "no"],
-            ["3", "EQ", 8, "A", None, 5_000, 0, 2]]
+@pytest.mark.parametrize("flag", ["maybe", "YES", "y", "No", "N", "1", "-1", "0", 1, -1, 0, 2, 0.5])
+def test_curvature_reporting_ccy_flag_rejects_other_values(p, flag):
+    # Only TRUE, FALSE or blank are accepted; an alias skips the row (#144)
+    rows = [["1", "FX", "USD", "USD", None, 30_000, 0, flag], ["2", "FX", "GBP", "GBP", None, 10_000, 0, None]]
     capital, _, _ = run_curv(p, rows)
     assert capital["FX"]["MEDIUM"] == approx(10_000)
-    assert capital["EQ"]["MEDIUM"] == approx(0.0)
+
+
+@pytest.mark.parametrize("flag, divided", [(None, True), ("", True), ("  ", True), (False, True), ("false", True),
+                                           (" FALSE ", True), (True, False), ("TRUE", False), ("true", False)])
+def test_curvature_reporting_ccy_flag_accepts_true_false_or_blank(p, flag, divided):
+    p.fx_curv_divisor_on = True
+    rows = [["1", "FX", "USD", "USD", None, 30_000, 0, flag]]
+    capital, _, _ = run_curv(p, rows)
+    assert capital["FX"]["MEDIUM"] == approx(20_000 if divided else 30_000)
 
 
 def test_curvature_other_bucket(p):
@@ -468,3 +515,19 @@ def test_drc_cash_equity_maturity_is_three_months_or_one_year(p):
     # The rule applies to cash equity only: a senior bond at 0.5 years is still scaled.
     _, obl, _ = ref.drc(p, [drc_row("A", "CORP", "BBB", "SENIOR", 100, 95, maturity=0.5)])
     assert obl["A"][3] == approx(70 * 0.5)
+
+
+def test_input_reader_reads_a_boolean_formatted_number_as_the_flag_it_shows():
+    # LibreOffice saves TRUE as 1 with a TRUE/FALSE format; a plain 1 is no flag (#144)
+    import openpyxl
+
+    ws = openpyxl.Workbook().active
+    assert ws is not None
+    fmt = '"TRUE";"TRUE";"FALSE"'
+    cells: list[tuple[int | str, str]] = [
+        (1, fmt), (0, fmt), (2, fmt), (-1, fmt), (1, "General"), (0, "#,##0.####"), ("TRUE", "@")
+    ]
+    for i, (v, f) in enumerate(cells, start=1):
+        ws.cell(1, i).value = v
+        ws.cell(1, i).number_format = f
+    assert [ref._cell_value(ws.cell(1, i)) for i in range(1, 8)] == [True, False, True, True, 1, 0, "TRUE"]

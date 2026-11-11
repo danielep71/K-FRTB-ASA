@@ -9,7 +9,6 @@ import lo_runner
 from conftest import require_libreoffice
 from test_vba_engine import FIRST_COL, log_rows, reconcile, sheet_rows
 
-
 OUTPUT_SHEETS = ("Results", "Out_Summary", "Out_RiskClass", "Out_Buckets", "Out_DRC", "Log")
 NO_RESULTS = "No results yet: press Run FRTB-SA."
 

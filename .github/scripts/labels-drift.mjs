@@ -88,9 +88,16 @@ function splitRepository(repository) {
   return parts.map(encodeURIComponent);
 }
 
-function apiUrl(repository, suffix) {
+// The REST API root: GITHUB_API_URL in Actions (it differs on a GitHub
+// Enterprise host), else github.com. Trailing slashes are removed.
+function apiRoot(environment = process.env) {
+  const configured = String(environment.GITHUB_API_URL ?? "").replace(/\/+$/, "");
+  return configured || "https://api.github.com";
+}
+
+function apiUrl(repository, suffix, root = apiRoot()) {
   const [owner, repo] = splitRepository(repository);
-  return `https://api.github.com/repos/${owner}/${repo}${suffix}`;
+  return `${root}/repos/${owner}/${repo}${suffix}`;
 }
 
 function sleep(milliseconds) {
@@ -306,13 +313,27 @@ function buildReport({ repository, manifestPath, manifest, desiredLabels, liveLa
   };
 }
 
+// Text for one Markdown line or table cell: pipes escaped and every line
+// break (CR, LF or CRLF) turned into a space.
 function markdownEscape(value) {
-  return String(value).replaceAll("|", "\\|").replaceAll("\n", " ");
+  return String(value).replace(/\r\n|\r|\n/g, " ").replaceAll("|", "\\|");
+}
+
+// A code span that holds exactly the value: its backtick fence is longer
+// than any backtick run in the value, and a space pads a value that starts
+// or ends with a backtick (CommonMark code spans). A fixed single backtick
+// would let an API value end the span early.
+export function codeSpan(value) {
+  const text = markdownEscape(value);
+  const longest = Math.max(0, ...(text.match(/`+/g) ?? []).map(run => run.length));
+  const fence = "`".repeat(longest + 1);
+  const pad = text.startsWith("`") || text.endsWith("`") ? " " : "";
+  return `${fence}${pad}${text}${pad}${fence}`;
 }
 
 function compactLabel(label) {
   if (label === null) return "—";
-  return `\`${markdownEscape(label.name)}\` / \`${label.color}\` / ${markdownEscape(label.description)}`;
+  return `${codeSpan(label.name)} / ${codeSpan(label.color)} / ${markdownEscape(label.description)}`;
 }
 
 function markdownReport(report) {
@@ -320,8 +341,8 @@ function markdownReport(report) {
     "# Repository label drift",
     "",
     `- Status: **${String(report.status).toUpperCase()}**`,
-    `- Repository: \`${report.repository ?? "fixture"}\``,
-    `- Manifest: \`${report.manifest}\``,
+    `- Repository: ${codeSpan(report.repository ?? "fixture")}`,
+    `- Manifest: ${codeSpan(report.manifest)}`,
     `- Desired / observed: **${report.counts.desired} / ${report.counts.observed}**`,
     `- Differences: **${report.counts.differences}**`,
     `- Create / update / delete: **${report.counts.create} / ${report.counts.update} / ${report.counts.delete}**`,
@@ -337,7 +358,7 @@ function markdownReport(report) {
     );
     for (const difference of report.differences) {
       lines.push(
-        `| ${difference.action} | \`${markdownEscape(difference.name)}\` | `
+        `| ${difference.action} | ${codeSpan(difference.name)} | `
         + `${difference.fields.length > 0 ? difference.fields.join(", ") : "—"} | `
         + `${compactLabel(difference.observed)} | ${compactLabel(difference.desired)} |`
       );
@@ -437,6 +458,24 @@ async function runSelfTest(manifestPath) {
   assert.equal(JSON.stringify(drifted), driftedBefore, "drift check must not mutate live input");
   assert.match(markdownReport(driftFirst), /simulated out-of-band change/);
   assert.match(markdownReport(driftFirst), new RegExp(missing.name));
+
+
+  // Summary values from the API stay inside one code span (#217)
+  assert.equal(codeSpan("plain"), "`plain`");
+  assert.equal(codeSpan("a`b"), "``a`b``");
+  assert.equal(codeSpan("x``y"), "```x``y```");
+  assert.equal(codeSpan("`edge`"), "`` `edge` ``");
+  assert.equal(codeSpan("a|b"), "`a\\|b`");
+  assert.equal(codeSpan("line1\r\nline2\rline3\nline4"), "`line1 line2 line3 line4`");
+
+  // The API root comes from GITHUB_API_URL, with github.com as the fallback (#234)
+  assert.equal(apiRoot({}), "https://api.github.com");
+  assert.equal(apiRoot({ GITHUB_API_URL: "" }), "https://api.github.com");
+  assert.equal(apiRoot({ GITHUB_API_URL: "https://ghe.example/api/v3" }), "https://ghe.example/api/v3");
+  assert.equal(apiRoot({ GITHUB_API_URL: "https://ghe.example/api/v3//" }), "https://ghe.example/api/v3");
+  assert.equal(apiUrl("o/r", "/labels", apiRoot({ GITHUB_API_URL: "https://ghe.example/api/v3/" })),
+    "https://ghe.example/api/v3/repos/o/r/labels");
+  assert.equal(apiUrl("o/r", "/labels", apiRoot({})), "https://api.github.com/repos/o/r/labels");
 
   process.stdout.write(
     "SELF-TEST PASS: retry delays and deterministic no-drift and create/update/delete drift fixtures are read-only and match the canonical reconciler.\n"

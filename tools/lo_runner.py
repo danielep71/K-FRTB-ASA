@@ -29,7 +29,9 @@ import subprocess
 import sys
 import tempfile
 import time
+from collections.abc import Callable, Mapping
 from pathlib import Path
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 VBA_DIRS = [REPO_ROOT / "src" / "modules", REPO_ROOT / "tests" / "modules"]
@@ -76,10 +78,17 @@ def module_source(path: Path) -> str:
 def free_port() -> int:
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
-        return s.getsockname()[1]
+        port: int = s.getsockname()[1]
+        return port
 
 
-def run(output: Path, macros: list[str], input_book: Path | None = None, post_process=None, expected_results=None) -> list[str]:
+def run(  # noqa: C901 -- one LibreOffice session: start, load, run, save, shut down
+    output: Path,
+    macros: list[str],
+    input_book: Path | None = None,
+    post_process: Callable[[Any], object] | None = None,
+    expected_results: Mapping[str, object] | None = None,
+) -> list[str]:
     """Run macros and save the document as .xlsx.
 
     post_process, when given, is called with the UNO document after the
@@ -88,7 +97,7 @@ def run(output: Path, macros: list[str], input_book: Path | None = None, post_pr
     import uno  # noqa: PLC0415 - only available where LibreOffice is installed
     from com.sun.star.beans import PropertyValue  # noqa: PLC0415
 
-    def prop(name, value):
+    def prop(name: str, value: object) -> Any:
         p = PropertyValue()
         p.Name = name
         p.Value = value

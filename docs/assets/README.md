@@ -32,5 +32,11 @@ scope.
 
 ## 📸 Screenshots
 
-None yet. Workbook screenshots will be taken in Excel for Windows once the
-workbook has been built and compiled there.
+[`screenshots/`](screenshots/) holds the README, Control, Results, P_General
+and Test_Expected sheets of the development workbook built from `323260b`.
+I took them in desktop Excel for Windows (Excel 16.0, 64-bit, comma decimal
+separator) on October 31, 2026, during the run recorded in
+[the Excel evidence](../evidence/2026-10-31-excel-run-323260b.md). The README
+screenshot is cropped to the workbook. They show the sample portfolio with
+the default settings, and the frozen panes and Control column widths before
+#203.

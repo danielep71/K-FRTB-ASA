@@ -35,6 +35,9 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: write
+    # The history commit this run published, or the unchanged checkout.
+    outputs:
+      history-sha: ${{ steps.publish.outputs.sha }}
     env:
       PYTHONDONTWRITEBYTECODE: "1"
     steps:
@@ -109,6 +112,7 @@ jobs:
           --summary "$GITHUB_STEP_SUMMARY"
       # Publication uses only the built-in contents-write token, never the App token.
       - name: Atomically publish the merged history
+        id: publish
         env:
           GITHUB_TOKEN: ${{ github.token }}
           COLLECTED_AT: ${{ steps.prepare.outputs.collected_at }}
@@ -131,10 +135,20 @@ jobs:
         with:
           path: source
           persist-credentials: false
+      # The alert reads the commit its run's export published, not the branch,
+      # so a re-run or an outside push to traffic-history cannot change its data.
+      - name: Check the published history commit
+        env:
+          HISTORY_SHA: ${{ needs.export.outputs.history-sha }}
+        run: |
+          if [[ ! "$HISTORY_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::The export job published no valid history commit: '$HISTORY_SHA'"
+            exit 1
+          fi
       - name: Check out the published traffic history
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: traffic-history
+          ref: ${{ needs.export.outputs.history-sha }}
           path: history
           persist-credentials: false
       - name: Open the alert issue, if one is due

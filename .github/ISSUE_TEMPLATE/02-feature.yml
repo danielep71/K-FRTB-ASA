@@ -61,6 +61,14 @@ body:
       required: true
 
   - type: textarea
+    id: alternatives
+    attributes:
+      label: "🔀 Alternatives considered (optional)"
+      description: Other ways to meet the need, including doing nothing, and why the requested behavior is preferred.
+    validations:
+      required: false
+
+  - type: textarea
     id: acceptance
     attributes:
       label: "🏁 Acceptance criteria"
@@ -82,6 +90,15 @@ body:
     attributes:
       label: "💥 Compatibility impact"
       description: Effect on computed results, input or output sheet layouts, Control switches and supported hosts. Write "None" if there is none.
+    validations:
+      required: true
+
+  - type: input
+    id: target_end_date
+    attributes:
+      label: "📅 Target end date"
+      description: The planned completion date, as YYYY-MM-DD, no later than the due date of the issue's milestone. Issue triage checks it; a "**Target completion date:**" planning line in the body, if added later, takes precedence.
+      placeholder: "2026-11-30"
     validations:
       required: true
 

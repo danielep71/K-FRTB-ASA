@@ -19,7 +19,7 @@ never copied from the VBA under test.
 | `test_sync_script.py` | Offline PowerShell 7 tests of `tools/Sync-FRTB-VBA.ps1` (module selection, name checks, CRLF conversion, module sets); skipped without `pwsh` |
 | `test_numeric_contract.py` | Headless LibreOffice runtime regressions for the numeric-text and parameter-table contracts and the empty state of the output sheets (#41, #45, #48, #85) |
 | `conftest.py` | Shared LibreOffice fixtures |
-| `requirements.txt` | Pinned Python test dependencies |
+| `requirements.in`, `requirements.txt` | Python test dependencies: the direct pins, and the file compiled from them with every package pinned by hash ([Repository checks](../docs/CI.md#reproducible-runs-220)) |
 
 The sample portfolio and the test cases are synthetic, written for this
 project. Each hand-calculated case states its inputs and the MAR formula it

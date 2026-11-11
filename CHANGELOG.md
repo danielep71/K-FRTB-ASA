@@ -11,6 +11,73 @@ Unreleased describe integrated work, not a published version.
   with its exact candidate, one-host scope and remaining manual checks. The
   patch is under `docs/wiki-updates/`; wiki publication remains separate
   (#32).
+- The label sync and drift scripts build their API requests from
+  `GITHUB_API_URL`, with trailing slashes removed, and fall back to
+  `https://api.github.com` when it is unset, so they also run on a GitHub
+  Enterprise host (#234).
+- When the label sync refuses to prune, it names every planned deletion
+  that is still used, in one message, instead of stopping at the first one,
+  so one run shows every label to migrate (#235).
+- The traffic alert reads the history commit its own collection published,
+  or the unchanged commit when nothing changed, instead of the
+  `traffic-history` branch: `traffic_publish.py` writes it to the step
+  outputs, the export job exposes it as `history-sha`, and the alert checks
+  its format before checking it out. A re-run or an outside push to the
+  branch no longer changes the data an alert reads (#233).
+- The required integrity check runs Ruff (pyflakes, import order and a
+  complexity limit of 15), mypy in strict mode with `warn_unreachable`, and
+  actionlint on every workflow. Their versions are pinned with hashes or a
+  verified checksum, and in CI a missing tool fails the check. The tooling
+  and the tests are annotated to pass them (#219).
+- SECURITY lists what each entry point reads, writes and deletes, the host
+  settings the scripts need and the data rules, and adds a good-faith
+  research clause. Governance and the PR template require checks and review
+  on the final head SHA, renewed after a content push, and `docs/CI.md`
+  states that CodeQL runs as the default setup (#223).
+- The bug, feature and documentation forms require a target end date, and
+  offer an optional workaround or recovery (bug) and alternatives (feature).
+  Issue triage reports an issue in a closed milestone and a missing,
+  impossible or late target date, the body's planning line taking precedence
+  over the form field, and it now also runs on milestone events. Traffic
+  alerts write their schedule as `**Target completion date:**` planning
+  lines, so triage reads their date (#221).
+- `tools/check_repository.py` checks the `#fragment` of every local Markdown
+  link against the anchors of its target, GitHub heading slugs and HTML ids,
+  and rejects duplicated explicit anchors. A new weekly and manual workflow,
+  `link-check.yml`, requests the external links and separates verified,
+  unverifiable and broken ones, outside the required checks (#218).
+- CI is reproducible: the integrity gate runs on exact Python and Node.js
+  versions, both requirements files pin every package by hash and install
+  from wheels only, each integrity run uploads a report bound to its commit,
+  run and attempt, push runs are no longer cancelled by later pushes, and
+  PR milestone events have one concurrency group per PR (#220).
+- GIRR vega takes inflation and cross-currency basis risk factors along the
+  option maturity only (MAR21.8 FAQ4): `In_Vega` accepts the sub-types
+  `YIELD` (the default), `INFLATION` and `XCCY`, and rejects an underlying
+  maturity on the last two or any other sub-type. Their correlations are the
+  option maturity correlation times the delta correlation of the
+  corresponding risk factors (MAR21.94). The sample results and the 52
+  regression values are unchanged (#209).
+- The methodology records my review of the 59 FAQs of MAR21-MAR23 in the
+  Basel Framework MAR standard. The curvature input contract states the
+  relative commodity shock and the permitted CSR floor at zero, and the input
+  conventions, on the README sheet too, state that every variant of a
+  currency is one FX risk factor. The one gap the review found, GIRR vega
+  for inflation and cross-currency basis, is #209 (#210).
+- The first desktop Excel run is recorded in
+  `docs/evidence/2026-10-31-excel-run-323260b.md`, on `323260b`. Both builds,
+  both compiles, the regression test (52 of 52) and both round trips passed,
+  and the validator reports PASS. The checks by eye, the host and the log
+  digests are in the record, with five screenshots under
+  `docs/assets/screenshots/`. The README badge, the website note and
+  `docs/validation.md` now state this evidence and what it leaves untested
+  (#28).
+- `tools\Record-FRTB-ExcelRun.cmd` records the Excel run in one step. It
+  reads the environment from Excel and the registry into `session.log`,
+  builds, compiles, exports and compares both workbooks, and calls
+  `tools/record_excel_run.py`, which writes `host.json` from the logs only and
+  validates it. The manual procedure stays; only the checks a person must
+  judge are left by hand (#199).
 - Dependabot security updates are on. The settings document, its evidence and
   CI record the change and how a security update PR, which opens against
   main, is retargeted to the active release branch (#191).
@@ -110,6 +177,27 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- The label sync and drift summaries put names, colors, paths and API
+  errors in code spans whose backtick fence outlasts any backtick in the
+  value, and turn CR, LF and CRLF into spaces, so an API value can no longer
+  end its span or break a table row (#217).
+- `Results`, `Control`, `Test_Expected` and the `P_*` sheets freeze only
+  their header rows, so no frozen line runs through their narrow tables; the
+  `In_*`, `Out_*` and `Log` sheets keep their key columns in view. The
+  Control Description column is wide enough for every description. Found in
+  the first Excel run; no value changes (#203).
+- The first recorded Excel run found three faults in the tools. The
+  recorder now calls the VBA editor through IDispatch, which Windows
+  PowerShell needs for its objects, and records the references before the
+  compile. `Export-FRTB-VBA.ps1` records each component's type in
+  `export-manifest.json`, and `compare_vba_export.py` takes the document
+  modules from it, because the VBE's export of `ThisWorkbook` and the sheets
+  has no `VB_Base` line (#201).
+- `RefReportingCcy` on `In_Curvature` accepts only TRUE, FALSE or blank, as
+  documented. Aliases such as YES, NO, Y, N, 1 and 0 were read as flags; they
+  now reject the row, in the VBA and the reference. A cell that LibreOffice
+  saves as a number formatted TRUE or FALSE is read as the flag it shows. The
+  LibreOffice variant logs four rejected flags (#144).
 - A DRC obligor whose positions name different buckets is logged as an error
   and skipped with all its positions, instead of taking the first position's
   bucket (MAR22.22). When its positions differ in credit quality, the worst

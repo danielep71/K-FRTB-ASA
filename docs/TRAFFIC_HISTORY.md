@@ -103,8 +103,18 @@ one issue, titled `Traffic alert: <snapshot date>`, when any of these holds:
 A count blank in the older snapshot raises nothing. At most one issue is
 opened per snapshot date: the job skips a date whose issue exists, open or
 closed. Like every issue it is assigned to me, labelled `P3` and
-`repository`, and filed under the open milestone with the earliest due date,
-so it passes *Issue triage*.
+`repository`, and filed under the open milestone with the earliest due date.
+Its target completion date is seven days after the snapshot, or the
+milestone's due date if that is sooner, so it passes *Issue triage*.
+
+The job reads the history commit its own run's export job published, not
+the `traffic-history` branch. `tools/traffic_publish.py` writes that commit
+to the step output `sha`, and the export job exposes it as `history-sha`. When
+nothing changed, the output is the unchanged commit the collection merged
+into. The alert job checks that the value is a full 40-character SHA, stops
+otherwise, and checks out that commit. A re-run of the alert job of an
+earlier run, or a push to `traffic-history` from outside the workflow,
+therefore cannot make an alert read data its run did not collect.
 
 The job uses the workflow token with `issues: write` and `contents: read`. It
 has no environment, so it never receives the App key or token.
@@ -127,7 +137,8 @@ has no environment, so it never receives the App key or token.
   written. `tools/traffic_publish.py` publishes the changed files as one
   commit on the checked-out parent, with a non-forced ref update. If the
   branch moved in between, the run fails rather than overwrite another
-  commit; the next run collects the same 14 days.
+  commit; the next run collects the same 14 days. The alert job reads the
+  published commit by SHA, never the branch tip (*Traffic alert* above).
 - Protect `traffic-history` against deletion and force pushes without requiring
   PRs for its ordinary automated data commits. Do not execute workflow code
   from the data branch.

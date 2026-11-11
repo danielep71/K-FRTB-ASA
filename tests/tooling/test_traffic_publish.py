@@ -2,16 +2,17 @@
 """Offline publication and workflow tests; no GitHub credentials or network."""
 import importlib.util
 import os
-from pathlib import Path
 import re
 import shlex
 import subprocess
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = importlib.util.spec_from_file_location("traffic_publish", ROOT / "tools/traffic_publish.py")
+assert SPEC is not None and SPEC.loader is not None
 publisher = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(publisher)
 WORKFLOW = ROOT / ".github/workflows/traffic-export.yml"
@@ -105,6 +106,26 @@ class WorkflowTests(unittest.TestCase):
         checkout = named["Check out the traffic history without credentials"]
         self.assertIn("persist-credentials: false", checkout)
 
+    def test_alert_reads_the_commit_its_export_published(self):
+        workflow = WORKFLOW.read_text()
+        export, alert = workflow.split("\n  alert:\n", 1)
+        self.assertIn("    outputs:\n      history-sha: ${{ steps.publish.outputs.sha }}\n", export)
+        _, named = steps(workflow)
+        self.assertIn("        id: publish\n", named["Atomically publish the merged history"])
+        blocks = re.split(r"^      - name: ", alert, flags=re.MULTILINE)
+        names = [block.splitlines()[0] for block in blocks[1:]]
+        check, checkout = names.index("Check the published history commit"), \
+            names.index("Check out the published traffic history")
+        self.assertLess(check, checkout)
+        guard = blocks[1 + check]
+        self.assertIn("HISTORY_SHA: ${{ needs.export.outputs.history-sha }}", guard)
+        self.assertIn('[[ ! "$HISTORY_SHA" =~ ^[0-9a-f]{40}$ ]]', guard)
+        self.assertIn("exit 1", guard)
+        run = guard.split("run: |", 1)[1]
+        self.assertNotIn("${{", run)  # the value reaches the script through env only
+        self.assertIn("ref: ${{ needs.export.outputs.history-sha }}", blocks[1 + checkout])
+        self.assertNotIn("ref: traffic-history", alert)
+
     def test_alert_job_has_no_environment_or_app_credentials(self):
         alert = WORKFLOW.read_text().split("\n  alert:\n", 1)[1]
         self.assertNotRegex(alert, r"(?m)^    environment:")
@@ -182,6 +203,38 @@ class PublishTests(unittest.TestCase):
                     publisher.main(["--history", str(root), "--collected-at", "2026-10-18T06:00:00Z"])
                 with self.assertRaisesRegex(ValueError, "collection time"):
                     publisher.main(["--history", str(root), "--collected-at", "yesterday"])
+
+    def run_main(self, root, writer):
+        """main() on a history checkout, with the API replaced by writer; the step outputs."""
+        with tempfile.TemporaryDirectory() as outputs:
+            output = Path(outputs) / "github_output"
+            environment = {"GITHUB_REF": "refs/heads/main", "GITHUB_REPOSITORY": "owner/repo",
+                           "GITHUB_TOKEN": "t", "GITHUB_OUTPUT": str(output)}
+            with patch.dict(publisher.os.environ, environment, clear=True), \
+                    patch.object(publisher, "GitHub", lambda token: writer):
+                self.assertEqual(publisher.main(["--history", str(root), "--collected-at", "2026-10-18T06:00:00Z"]), 0)
+            return output.read_text(encoding="utf-8") if output.exists() else ""
+
+    def test_the_published_commit_is_the_step_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            history(root)
+            parent = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"], check=True,
+                                    capture_output=True, text=True).stdout.strip()
+            # nothing changed: the alert reads the checkout the collection merged into
+            self.assertEqual(self.run_main(root, Writer(head=parent)), f"sha={parent}\n")
+            (root / "data/daily.csv").write_text("date\n2026-10-17\n", encoding="utf-8")
+            self.assertEqual(self.run_main(root, Writer(head=parent)), "sha=" + "c" * 40 + "\n")
+
+    def test_no_output_outside_actions_and_never_a_malformed_sha(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "github_output"
+            with patch.dict(publisher.os.environ, {}, clear=True):
+                publisher.write_output("sha", PARENT)  # no GITHUB_OUTPUT: nothing to write
+            with patch.dict(publisher.os.environ, {"GITHUB_OUTPUT": str(output)}, clear=True):
+                with self.assertRaisesRegex(ValueError, "full commit SHA"):
+                    publisher.write_output("sha", "main")
+            self.assertFalse(output.exists())
 
 
 if __name__ == "__main__":

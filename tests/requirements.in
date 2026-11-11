@@ -1,0 +1,5 @@
+# Test and tooling dependencies (LibreOffice and python3-uno come from the OS).
+# Compile with: pip-compile --generate-hashes --allow-unsafe tests/requirements.in
+numpy==2.5.4
+openpyxl==3.1.5
+pytest==9.2.0

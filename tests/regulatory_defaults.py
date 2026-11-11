@@ -26,7 +26,7 @@ CSR_BUCKETS = {
 
 # Upper triangle of MAR21.57 Table 5 (sector of buckets 1/9 .. 7/15, 8, 16, 17, 18)
 CSR_SECTOR_GROUPS = ["1", "2", "3", "4", "5", "6", "7", "8", "16", "17", "18"]
-CSR_SECTOR_UPPER = [
+CSR_SECTOR_UPPER: list[list[float]] = [
     [1, 0.75, 0.10, 0.20, 0.25, 0.20, 0.15, 0.10, 0, 0.45, 0.45],
     [1, 0.05, 0.15, 0.20, 0.15, 0.10, 0.10, 0, 0.45, 0.45],
     [1, 0.05, 0.15, 0.20, 0.05, 0.20, 0, 0.45, 0.45],
@@ -77,8 +77,8 @@ def com_gamma(b: int, c: int) -> float:
     return 0.0 if 11 in (b, c) else 0.20
 
 
-def csr_sector() -> dict:
-    out = {}
+def csr_sector() -> dict[tuple[str, str], float]:
+    out: dict[tuple[str, str], float] = {}
     for i, row in enumerate(CSR_SECTOR_UPPER):
         for k, v in enumerate(row):
             j = i + k
