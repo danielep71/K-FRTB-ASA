@@ -68,10 +68,12 @@
 > [v0.2.0 — SA prototype](https://github.com/danielep71/K-FRTB-SA/milestone/2)
 > milestone (issue #20). It implements the Basel standardized approach
 > (MAR21-MAR23) in Excel VBA with parameters checked against the BIS text,
-> and every output is reconciled with an independent Python reference. It has
-> **not yet been compiled or run in Excel**, the engine platform decision is
-> still open ([scope](docs/SCOPE.md#platform-and-environment)), and no result
-> is validated for regulatory use ([validation](docs/validation.md)).
+> and every output is reconciled with an independent Python reference.
+> **One desktop Excel run is recorded**, on `323260b` and one host
+> ([evidence](docs/evidence/2026-10-31-excel-run-323260b.md)); the remaining
+> manual Excel checks are in #28, #72, #85 and #206. The long-term platform
+> decision is open ([scope](docs/SCOPE.md#platform-and-environment)), and no
+> result is validated for regulatory use ([validation](docs/validation.md)).
 
 > [!NOTE]
 > The macro-enabled workbook is **not stored in the repository**.
@@ -245,12 +247,17 @@ what is **not** validated yet.
 
 ## ⚠️ Limitations
 
-- Not compiled or run in Excel yet; LibreOffice's VBA support is not Excel's.
-- CSR securitization (non-CTP and CTP) and securitization DRC are not
-  implemented and are rejected.
+- One desktop Excel run is recorded, on `323260b` and one host. Changes
+  after that commit, other Excel versions and other regional settings are
+  untested in Excel, and LibreOffice's VBA support is not Excel's.
+- CSR securitization (non-CTP and CTP) is not implemented, and its rows are
+  rejected. Securitization DRC is out of scope: `In_DRC` has no field that
+  identifies a securitization, so do not enter securitization positions.
 - Sensitivities and CVRs are inputs: the workbook does not price instruments.
-- The [interpretations](docs/methodology.md#interpretations-and-simplifications-to-review)
-  listed in the methodology still need a decision.
+- The six [interpretations](docs/methodology.md#interpretations-and-simplifications-to-review)
+  listed in the methodology are my readings, decided on October 27, 2026
+  and implemented (#29). They are not independently reviewed; v0.3.0
+  reviews them for the certified scope.
 - No regulatory compliance, verified capital calculation or production
   readiness is claimed. Keep examples and datasets synthetic: never submit
   client, counterparty, position or credential data.
@@ -259,7 +266,7 @@ what is **not** validated yet.
 
 | Need | Start here |
 | --- | --- |
-| Formulas, parameters, BIS check, open interpretations | [Methodology](docs/methodology.md) |
+| Formulas, parameters, BIS check, interpretations | [Methodology](docs/methodology.md) |
 | Source layout, build, sheets, inputs, running | [Workbook guide](docs/workbook-guide.md) |
 | Automated checks and what is not validated | [Validation](docs/validation.md) |
 | Recording a desktop Excel run and validating the record | [Excel evidence](docs/EXCEL_EVIDENCE.md) |
