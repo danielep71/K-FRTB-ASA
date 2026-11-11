@@ -87,6 +87,12 @@ def test_the_script_never_pushes_and_keeps_its_excel_to_itself():
     assert "$before -notcontains $_.ProcessId" in watchdog
     assert "[/-]automation" in watchdog and "Stop-Process -Id $_.ProcessId" in watchdog
     assert "Get-Process -Name EXCEL" not in watchdog
+    # Past the limit it keeps closing them until the run stops it, and no
+    # stage starts after the limit
+    assert "while ($true)" in watchdog
+    body = text.split("$watchdog = Start-Job", 1)[1]
+    stages = [line for line in body.splitlines() if line.strip().startswith(("Write-Host '==", 'Write-Host "=='))]
+    assert stages and body.count("Assert-TimeLeft") == len(stages)
 
 
 def test_each_launcher_is_judged_by_its_own_success_line():

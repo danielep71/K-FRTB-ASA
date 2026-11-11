@@ -476,9 +476,9 @@ Unreleased describe integrated work, not a published version.
 ### Added
 
 - `tools\Check-FRTB-Excel.cmd` runs every Excel check of a branch
-  unattended, as K-SACCR's certification and K-PRICING's one-click check do.
-  It checks the branch out, records the run with `Record-FRTB-ExcelRun.ps1`,
-  and runs `TEST_Acceptance` in Excel: the sample run, the failed-run and
+  unattended. It checks the branch out, records the run with
+  `Record-FRTB-ExcelRun.ps1`, and runs `TEST_Acceptance` in Excel: the
+  sample run, the failed-run and
   Clear outputs state (#85), numeric text, the frozen panes, the autofilters,
   the Control descriptions (#203) and the invalid-row variant (#28). It also
   runs the `-FromSource` and `-Template` builds, the Trust Center error path

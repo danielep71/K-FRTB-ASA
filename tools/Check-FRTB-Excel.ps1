@@ -228,6 +228,14 @@ function Test-ProjectCompiles {
     return -not [bool](Get-ComProperty $control 'Enabled')
 }
 
+function Assert-TimeLeft {
+    # No stage starts after the time limit: the watchdog closes the Excel
+    # instances still running, and the stages left are reported as not run
+    if ((Get-Date) -ge $script:deadline) {
+        throw "the $TimeoutMinutes-minute limit was reached; the remaining checks did not run"
+    }
+}
+
 function Find-TagRow {
     # The row of a tagged table, as CORE_Util.FindTagRow finds it; that
     # module is private to the VBA project, so Application.Run cannot call it
@@ -320,14 +328,20 @@ Write-Host ''
 # Watchdog: once the limit passes, it closes the Excel instances started by
 # automation during this run. Excel started through COM, by this script or by
 # the tools it runs, has /automation on its command line; an Excel the
-# operator opens has not, so it is never closed (#274)
+# operator opens has not, so it is never closed. It keeps closing them until
+# the run stops it, and the run starts no new stage after the limit (#274)
 $excelBefore = @(Get-Process -Name EXCEL -ErrorAction SilentlyContinue | ForEach-Object { $_.Id })
-$watchdog = Start-Job -ArgumentList @($excelBefore, $TimeoutMinutes) -ScriptBlock {
-    param($before, $minutes)
-    Start-Sleep -Seconds ([int]$minutes * 60)
-    Get-CimInstance -ClassName Win32_Process -Filter "Name = 'EXCEL.EXE'" -ErrorAction SilentlyContinue |
-        Where-Object { ($before -notcontains $_.ProcessId) -and ([string]$_.CommandLine -match '(?i)[/-]automation\b') } |
-        ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+$script:deadline = (Get-Date).AddMinutes($TimeoutMinutes)
+$watchdog = Start-Job -ArgumentList @($excelBefore, $script:deadline.ToString('o')) -ScriptBlock {
+    param($before, $deadlineText)
+    $limit = [DateTime]::Parse($deadlineText, $null, [System.Globalization.DateTimeStyles]::RoundtripKind)
+    while ((Get-Date) -lt $limit) { Start-Sleep -Seconds 5 }
+    while ($true) {
+        Get-CimInstance -ClassName Win32_Process -Filter "Name = 'EXCEL.EXE'" -ErrorAction SilentlyContinue |
+            Where-Object { ($before -notcontains $_.ProcessId) -and ([string]$_.CommandLine -match '(?i)[/-]automation\b') } |
+            ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+        Start-Sleep -Seconds 5
+    }
 }
 
 $development = Join-Path $repoRoot "dist\K-FRTB-ASA-development.xlsm"
@@ -335,6 +349,7 @@ $production = Join-Path $repoRoot "dist\K-FRTB-ASA-production.xlsm"
 
 try {
     # -------------------------------------------------------- 1. recorded run
+    Assert-TimeLeft
     Write-Host '== Recorded run (builds, compiles, regression, round trips)'
     $recordArgs = @('-File', 'tools\Record-FRTB-ExcelRun.ps1')
     if ($trustChange) { $recordArgs += @('-TrustChange', $trustChange) }
@@ -350,6 +365,7 @@ try {
     }
 
     # ------------------------------------------------------ 2. acceptance
+    Assert-TimeLeft
     Write-Host '== Acceptance checks in Excel'
     $copy = Join-Path $script:bundle 'acceptance.xlsm'
     Copy-Item -LiteralPath $development -Destination $copy -Force
@@ -379,6 +395,7 @@ try {
     }
 
     # Pictures of the states #85 and #203 are about, for the record
+    Assert-TimeLeft
     Write-Host '== Pictures'
     $copy = Join-Path $script:bundle 'pictures.xlsm'
     Copy-Item -LiteralPath $development -Destination $copy -Force
@@ -409,11 +426,13 @@ try {
     }
 
     # ------------------------------------------------------------ 3. builds
+    Assert-TimeLeft
     Write-Host '== Build from source with the regression test'
     $code = Invoke-Tool 'build-from-source.log' @('-File', 'tools\Build-Workbook.ps1', '-FromSource', '-RunTests',
                                                  '-OutputPath', (Join-Path $script:bundle 'from-source.xlsm'), '-Force')
     Add-Result 'BUILD_FROM_SOURCE' $(if ($code -eq 0) { 'PASS' } else { 'FAIL' }) "exit code $code"
 
+    Assert-TimeLeft
     Write-Host '== Template built by Excel'
     $excelTemplate = Join-Path $script:bundle 'FRTB_Template-excel.xlsx'
     $code = Invoke-Tool 'build-template.log' @('-File', 'tools\Build-Workbook.ps1', '-Template',
@@ -433,6 +452,7 @@ try {
 
     # ------------------------------------------------- 4. Trust Center path
     if ($runTrustCheck) {
+        Assert-TimeLeft
         Write-Host '== Trust Center error path'
         $before = (Get-VbaAccess $excelVersion).Value
         try {
@@ -455,6 +475,7 @@ try {
     $syncDir = Join-Path $script:bundle 'sync'
     [void](New-Item -ItemType Directory -Path $syncDir -Force)
     foreach ($mode in @('Production', 'Development')) {
+        Assert-TimeLeft
         Write-Host "== Synchronization: $mode"
         $source = if ($mode -eq 'Production') { $production } else { $development }
         $copy = Join-Path $syncDir "sync-$($mode.ToLowerInvariant()).xlsm"
@@ -490,6 +511,7 @@ try {
         } finally { Close-Excel $excel $workbook }
     }
 
+    Assert-TimeLeft
     Write-Host '== Synchronization from a folder'
     $folder = Join-Path $syncDir 'downloads'
     [void](New-Item -ItemType Directory -Path $folder -Force)
@@ -500,6 +522,7 @@ try {
     $replaced = Select-String -Path (Join-Path $script:bundle 'sync-folder.log') -Pattern 'CORE_Config\s+replaced' -Quiet
     Add-Result 'SYNC_FOLDER' $(if ($code -eq 0 -and $replaced) { 'PASS' } else { 'FAIL' }) "exit code $code; CORE_Config replaced: $replaced"
 
+    Assert-TimeLeft
     Write-Host '== Synchronization failure path (workbook open in another Excel)'
     $locker = $null; $locked = $null
     try {
@@ -515,6 +538,7 @@ try {
     Add-Result 'SYNC_FAILURE' $(if ($ok) { 'PASS' } else { 'FAIL' }) "exit code $code; safety copy kept: $($safety.Count -ge 1); workbook unchanged: $unchanged"
     $safety | Remove-Item -Force -ErrorAction SilentlyContinue
 
+    Assert-TimeLeft
     Write-Host '== Synchronization launchers'
     # Each launcher prints its own success line
     foreach ($launcher in @(@{ Name = 'Sync-FRTB-VBA.cmd'; Answers = "D`r`n`r`n"; Success = 'SUCCESS: VBA synchronized.' },
