@@ -359,6 +359,8 @@ def delta_risk_factors(  # noqa: C901 -- follows the MAR21 steps in order, to be
             if not _in(t, p.vertices["COM_TENORS"]):
                 continue
         elif rc == "FX":
+            if sub:
+                continue  # an FX risk factor has no sub-type
             q, sub, t = b, "", 0.0
         if not q:
             continue
@@ -411,6 +413,15 @@ def vega_rw(p: Params, rc, bucket) -> float:
     return min(p.vega_rw_sigma * math.sqrt(lh / 10.0), 1.0)
 
 
+def _same_name_sub_type(rc: str, sub: str) -> bool:
+    """Vega and curvature sub-types outside GIRR. CSR may name the bond or CDS
+    curve and equity the spot price, both one risk factor per name; equity repo
+    rates have no vega or curvature (MAR21.12), FX has no sub-type, and a
+    commodity's sub-type is its delivery location (free text)."""
+    allowed = {"CSR_NS": ("", "BOND", "CDS"), "EQ": ("", "SPOT"), "FX": ("",)}
+    return rc not in allowed or sub in allowed[rc]
+
+
 def vega_risk_factors(p: Params, rows):
     rfs = []
     mats = p.vertices["VEGA_MATURITIES"]
@@ -439,6 +450,8 @@ def vega_risk_factors(p: Params, rows):
                 continue
         else:
             tund = 0.0
+            if not _same_name_sub_type(rc, sub):
+                continue
             if rc in ("CSR_NS", "EQ", "COM"):
                 sub = ""  # vega risk factors: name (or commodity) and option maturity only
             elif rc == "FX":
@@ -468,7 +481,11 @@ def curvature_risk_factors(p: Params, rows):
         divided = p.fx_curv_divisor_all_on or (p.fx_curv_divisor_on and not ref_ccy)
         div = p.fx["CURVATURE_DIVISOR"] if divided else 1.0
         if rc == "GIRR":
+            if sub not in ("", "YIELD"):
+                continue  # MAR21.8: no curvature for inflation or cross-currency basis
             q, sub = "", ""
+        elif not _same_name_sub_type(rc, sub):
+            continue
         elif rc in ("CSR_NS", "EQ", "COM"):
             sub = ""  # one curvature risk factor per issuer or commodity
         elif rc == "FX":

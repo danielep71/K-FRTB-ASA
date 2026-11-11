@@ -274,6 +274,27 @@ def test_vega_girr_invalid_rows_are_skipped(p):
             ["4", "GIRR", "EUR", "", "YIELD", 1, None, 100_000]]      # a yield surface needs it
     assert ref.vega_risk_factors(p, rows) == []
 
+def test_vega_sub_types_outside_girr(p):
+    # CSR bond/CDS and equity spot are one vega risk factor per name; the
+    # commodity sub-type is the delivery location (#245)
+    rows = [["1", "CSR_NS", 1, "X", "BOND", 1, None, 100_000],
+            ["2", "CSR_NS", 1, "X", "CDS", 1, None, 50_000],
+            ["3", "EQ", 8, "A", "SPOT", 1, None, 70_000],
+            ["4", "COM", 2, "BRENT", "ROTTERDAM", 1, None, 30_000]]
+    rfs = ref.vega_risk_factors(p, rows)
+    assert sorted((f.rc, f.qual, f.a1) for f in rfs) == [("COM", "BRENT", 30_000), ("CSR_NS", "X", 150_000),
+                                                     ("EQ", "A", 70_000)]
+    rejected = [["5", "CSR_NS", 1, "X", "LOAN", 1, None, 1_000],  # not a CSR curve
+                ["6", "EQ", 8, "A", "REPO", 1, None, 1_000],      # repo rates have no vega (MAR21.12)
+                ["7", "FX", "USD", "", "SPOT", 1, None, 1_000]]   # FX takes no sub-type
+    assert ref.vega_risk_factors(p, rejected) == []
+
+
+def test_delta_fx_takes_no_sub_type(p):
+    assert ref.delta_risk_factors(p, [["1", "FX", "USD", "", "SPOT", None, 1_000]]) == []
+    assert len(ref.delta_risk_factors(p, [["1", "FX", "USD", "", None, None, 1_000]])) == 1
+
+
 # --------------------------------------------------------------------------
 # Curvature
 # --------------------------------------------------------------------------
@@ -291,6 +312,24 @@ def test_curvature_bucket_selection_and_psi(p):
     assert capital["EQ"]["MEDIUM"] == approx(k_dn)
     assert buckets[("EQ", "MEDIUM", "8")][1] == approx(-20_000)
     assert buckets[("EQ", "MEDIUM", "8")][3] == "DOWN"
+
+
+def test_curvature_rejects_sub_types_without_curvature(p):
+    # MAR21.8: no GIRR curvature for inflation or cross-currency basis; MAR21.12:
+    # no equity repo curvature; FX takes no sub-type (#245)
+    accepted = [["1", "GIRR", "EUR", "", "YIELD", 1_000, 2_000, None],
+                ["2", "GIRR", "EUR", "", None, 1_000, 2_000, None],
+                ["3", "CSR_NS", 1, "X", "CDS", 1_000, 2_000, None],
+                ["4", "EQ", 8, "A", "SPOT", 1_000, 2_000, None]]
+    rfs = ref.curvature_risk_factors(p, accepted)
+    assert sorted((f.rc, f.qual, f.a1) for f in rfs) == [("CSR_NS", "X", 1_000), ("EQ", "A", 1_000),
+                                                      ("GIRR", "", 2_000)]
+    rejected = [["5", "GIRR", "EUR", "", "INFLATION", 1_000, 2_000, None],
+                ["6", "GIRR", "EUR", "", "XCCY", 1_000, 2_000, None],
+                ["7", "CSR_NS", 1, "X", "LOAN", 1_000, 2_000, None],
+                ["8", "EQ", 8, "A", "REPO", 1_000, 2_000, None],
+                ["9", "FX", "USD", "", "SPOT", 1_000, 2_000, None]]
+    assert ref.curvature_risk_factors(p, rejected) == []
 
 
 def test_curvature_both_negative_has_no_cross_term(p):

@@ -27,7 +27,7 @@ Later readback on 2026-10-31, after I turned on Dependabot security updates: the
 
 Owner: @danielep71. Recheck the four general values and all five complete rulesets after approved settings changes; record targets, exclusions, bypass actors, merge methods, status-check source/strictness and creation exception. Keep portable defaults separate from repository evidence. Security and Actions settings below are historical until independently reverified. The current API confirms Pages enabled; the historical statement below that Pages was disabled is superseded.
 
-## Historical baseline — preserved verbatim
+## Historical baseline, with later annotations
 
 # Repository settings baseline
 
@@ -125,7 +125,7 @@ only because the required check had not run.
 | Secret push protection | Off | Enabled |
 | CodeQL | Not configured | Default setup for GitHub Actions and Python (added automatically when Python code arrived), default query suite, weekly schedule; setup run succeeded; read back October 18, 2026 |
 | Dependabot version updates | No configuration | Added under #7; #51 consolidates three entries, on release/v0.2.0 since #118 (active on main through #120); PRs have no milestone under #104; scheduling uses the configuration on main; targets in CI.md |
-| Dependabot security update PRs | Off | Remain off; version-update targets do not govern security PRs; changing this is a new explicit settings decision (CI.md) |
+| Dependabot security update PRs | Off | Remain off; version-update targets do not govern security PRs; changing this is a new explicit settings decision (CI.md). Superseded by #191: on since October 31, 2026 ([settings](REPOSITORY_SETTINGS.md#security)) |
 
 [CodeQL setup evidence](https://github.com/danielep71/K-FRTB-SA/actions/runs/39070451926).
 The detected language at setup was **GitHub Actions**, not an FRTB calculation

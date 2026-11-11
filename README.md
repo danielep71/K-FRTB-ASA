@@ -68,10 +68,12 @@
 > [v0.2.0 — SA prototype](https://github.com/danielep71/K-FRTB-SA/milestone/2)
 > milestone (issue #20). It implements the Basel standardized approach
 > (MAR21-MAR23) in Excel VBA with parameters checked against the BIS text,
-> and every output is reconciled with an independent Python reference. It has
-> **not yet been compiled or run in Excel**, the engine platform decision is
-> still open ([scope](docs/SCOPE.md#platform-and-environment)), and no result
-> is validated for regulatory use ([validation](docs/validation.md)).
+> and every output is reconciled with an independent Python reference.
+> **One desktop Excel run is recorded**, on `323260b` and one host
+> ([evidence](docs/evidence/2026-10-31-excel-run-323260b.md)); the remaining
+> manual Excel checks are in #28, #72, #85 and #206. The long-term platform
+> decision is open ([scope](docs/SCOPE.md#platform-and-environment)), and no
+> result is validated for regulatory use ([validation](docs/validation.md)).
 
 > [!NOTE]
 > The macro-enabled workbook is **not stored in the repository**.
@@ -134,7 +136,7 @@ need to **check** an FRTB-SA number:
 | Discretions | sqrt(2) for specified GIRR currencies and FX pairs (with first-order crosses), FX curvature divisor 1.5 for options not referencing the reporting currency, or for all FX with supervisory approval |
 | DRC | Non-securitization JTD, maturity scaling, obligor netting by seniority, hedge benefit ratio per bucket |
 | RRAO | Exotic (1.0%) and other (0.1%) residual risks |
-| Input validation | Unknown risk classes, buckets, tenors, sub-types, ratings and seniorities, non-numeric amounts and the reporting currency as an FX bucket are rejected and logged |
+| Input validation | Unknown risk classes, buckets, tenors and sub-types (including a vega or curvature sub-type the risk class does not define), ratings and seniorities, non-numeric amounts and the reporting currency as an FX bucket are rejected and logged |
 | Parameters | Eight `P_*` sheets with MAR references, checked against the BIS Basel Framework on 2026-10-17 |
 | Testing | Hand-calculated formula tests, an independent Python reference, headless LibreOffice runs of the VBA, an in-workbook regression test, a static VBA lint, and offline tests of the sync, export-comparison and evidence tools |
 | Deployment | Plain exported VBA; no add-in, COM component, DLL or extra VBA reference |
@@ -193,7 +195,8 @@ To update the VBA of a workbook you already built, drag it onto
 The workbook ships with a synthetic sample portfolio. On **Control**, click
 **Run FRTB-SA**: Results, the `Out_*` sheets and Log are rewritten. Then click
 **Run regression test**: `Test_Expected` compares 52 results with the values
-of the independent reference and shows PASS or FAIL per item.
+of the independent reference and shows PASS or FAIL per item. The regression
+test is in development builds only; a `-Production` build leaves it out.
 
 <a id="how-a-run-works"></a>
 
@@ -245,12 +248,17 @@ what is **not** validated yet.
 
 ## ⚠️ Limitations
 
-- Not compiled or run in Excel yet; LibreOffice's VBA support is not Excel's.
-- CSR securitization (non-CTP and CTP) and securitization DRC are not
-  implemented and are rejected.
+- One desktop Excel run is recorded, on `323260b` and one host. Changes
+  after that commit, other Excel versions and other regional settings are
+  untested in Excel, and LibreOffice's VBA support is not Excel's.
+- CSR securitization (non-CTP and CTP) is not implemented, and its rows are
+  rejected. Securitization DRC is out of scope: `In_DRC` has no field that
+  identifies a securitization, so do not enter securitization positions.
 - Sensitivities and CVRs are inputs: the workbook does not price instruments.
-- The [interpretations](docs/methodology.md#interpretations-and-simplifications-to-review)
-  listed in the methodology still need a decision.
+- The six [interpretations](docs/methodology.md#interpretations-and-simplifications-to-review)
+  listed in the methodology are my readings, decided on October 27, 2026
+  and implemented (#29). They are not independently reviewed; v0.3.0
+  reviews them for the certified scope.
 - No regulatory compliance, verified capital calculation or production
   readiness is claimed. Keep examples and datasets synthetic: never submit
   client, counterparty, position or credential data.
@@ -259,7 +267,7 @@ what is **not** validated yet.
 
 | Need | Start here |
 | --- | --- |
-| Formulas, parameters, BIS check, open interpretations | [Methodology](docs/methodology.md) |
+| Formulas, parameters, BIS check, interpretations | [Methodology](docs/methodology.md) |
 | Source layout, build, sheets, inputs, running | [Workbook guide](docs/workbook-guide.md) |
 | Automated checks and what is not validated | [Validation](docs/validation.md) |
 | Recording a desktop Excel run and validating the record | [Excel evidence](docs/EXCEL_EVIDENCE.md) |
@@ -277,7 +285,7 @@ what is **not** validated yet.
 | Label usage, issue priorities, and metadata checks | [Labels and triage](docs/LABELS.md) |
 | How to contribute | [Contributing](CONTRIBUTING.md) |
 | Development branches and integration | [Governance](docs/GOVERNANCE.md) |
-| Effective repository controls and outstanding settings work | [Settings baseline](docs/REPOSITORY_SETTINGS.md) |
+| Effective repository controls | [Settings baseline](docs/REPOSITORY_SETTINGS.md) |
 | Recorded changes | [Changelog](CHANGELOG.md) |
 | Prototype backlog | [v0.2.0 — SA prototype milestone](https://github.com/danielep71/K-FRTB-SA/milestone/2) |
 | Regulatory baseline and certification scope | [v0.3.0 milestone](https://github.com/danielep71/K-FRTB-SA/milestone/3) |
@@ -312,6 +320,8 @@ old URLs, but links and clones should use the new name.
 
 ## 📄 License
 
-This project is distributed under the [MIT License](LICENSE).
+This project is distributed under the [MIT License](LICENSE), except the files
+listed in [THIRD_PARTY_NOTICES.txt](docs/licenses/THIRD_PARTY_NOTICES.txt),
+which remain under the Mozilla Public License 2.0 (MPL-2.0).
 
 Maintained by [Daniele Penza](https://github.com/danielep71).
