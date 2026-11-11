@@ -192,8 +192,11 @@ environment before pytest discovers the shared maintenance tests. Its
 LibreOffice installation step tries the runner's package mirror first, with
 short apt timeouts and limits of 2 minutes for the index and 5 for the
 packages. When that mirror does not answer, it installs again from
-`archive.ubuntu.com` over HTTPS and prints a warning (#263). The step stops
-after 12 minutes, within the job's 25-minute limit, so a hung mirror still fails
+`mirrors.edge.kernel.org/ubuntu` over HTTPS and prints a warning (#263): the
+runner could not resolve any ubuntu.com host, so neither another ubuntu.com
+mirror nor HTTPS helped. Apt still checks the Ubuntu archive signatures, so
+the other mirror changes where packages come from, not what is trusted. The
+step stops after 12 minutes, within the job's 25-minute limit, so a hung mirror still fails
 early (#124). The
 universal job remains a separate, runtime-independent check.
 Do not require a check on a line before installing it there.

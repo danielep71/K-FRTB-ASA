@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 """The LibreOffice install step of the prototype checks falls back to
-archive.ubuntu.com over HTTPS when the runner's mirror does not answer (#263).
+the kernel.org mirror over HTTPS when the ubuntu.com mirrors do not answer
+(#263).
 
 The step's script runs with stand-ins for sudo and apt-get, and with the apt
 configuration paths moved into a temporary folder, so nothing is installed.
@@ -47,9 +48,9 @@ class MirrorFallbackTests(unittest.TestCase):
         self.calls = self.root / "calls.log"
         bin_dir = self.root / "bin"
         bin_dir.mkdir()
-        # apt-get fails while the mirror list still names the Azure mirror
+        # apt-get fails while the mirror list still names an ubuntu.com mirror
         self.stub(bin_dir / "apt-get", f'echo "apt-get $*" >> "{self.calls}"\n'
-                                       f'grep -q azure "{self.apt / "apt-mirrors.txt"}" && exit 100\nexit 0\n')
+                                       f'grep -q ubuntu.com "{self.apt / "apt-mirrors.txt"}" && exit 100\nexit 0\n')
         self.stub(bin_dir / "sudo", 'exec "$@"\n')
         self.env = {**os.environ, "PATH": f"{bin_dir}{os.pathsep}{os.environ['PATH']}"}
 
@@ -73,15 +74,14 @@ class MirrorFallbackTests(unittest.TestCase):
         self.assertNotIn("::warning::", result.stdout)
 
     @unittest.skipUnless(LINUX_TOOLS, "needs Linux with GNU timeout and sed")
-    def test_a_silent_mirror_falls_back_to_archive_ubuntu_com_over_https(self) -> None:
+    def test_silent_ubuntu_mirrors_fall_back_to_kernel_org_over_https(self) -> None:
         result = self.run_step(AZURE)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn("::warning::The runner's package mirror did not answer", result.stdout)
+        self.assertIn("::warning::The ubuntu.com mirrors did not answer", result.stdout)
         mirrors = (self.apt / "apt-mirrors.txt").read_text(encoding="utf-8")
-        self.assertNotIn("azure", mirrors)
-        self.assertNotIn("http://", mirrors)  # HTTPS only: plain HTTP is what stalled
-        self.assertIn("https://archive.ubuntu.com/ubuntu/", mirrors)
-        self.assertIn("https://security.ubuntu.com/ubuntu/", mirrors)
+        self.assertNotIn("ubuntu.com", mirrors)  # the runner could not resolve any of them
+        self.assertNotIn("http://", mirrors)
+        self.assertEqual(mirrors.count("https://mirrors.edge.kernel.org/ubuntu/\tpriority:"), 3)
         calls = self.calls.read_text(encoding="utf-8").splitlines()
         self.assertEqual(sum(" install " in call for call in calls), 1)  # only the fallback got that far
         self.assertTrue(all("Acquire::http::Timeout=" in call for call in calls))
