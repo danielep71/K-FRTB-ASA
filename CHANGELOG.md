@@ -15,8 +15,12 @@ Unreleased describe integrated work, not a published version.
   social preview and two market-risk diagrams follow. The Excel evidence
   policy requires `danielep71/K-FRTB-ASA` and still accepts the former name
   for records made before the rename, such as the `323260b` run. The export
-  format identifier `k-frtb-sa-vba-export-1` is unchanged. A wiki patch
-  renames the wiki pages.
+  format identifier `k-frtb-sa-vba-export-1` is unchanged. The wiki pages
+  use the new name (wiki commit `ede036d`).
+- Milestone 2 is titled v0.2.0 — ASA prototype, after the rename to
+  K-FRTB-ASA. The current documents, the PR template and the documentation
+  index use the new title and stage name; dated records and the CHANGELOG
+  history keep the old one (#268).
 - The documentation no longer contradicts itself or the configuration.
   Milestone due dates are planning targets, not release promises; the website
   is no longer listed outside the prototype scope; Issue triage also runs on
@@ -63,10 +67,11 @@ Unreleased describe integrated work, not a published version.
   enables three discretions, with `FX_CURVATURE_DIVISOR_ALL` in a separate
   run; the README says that securitization DRC must not be entered, since
   `In_DRC` cannot identify one. Dated records are unchanged (#248).
-- Prepared a reviewed wiki update for the first recorded desktop Excel run,
-  with its exact candidate, one-host scope and remaining manual checks. The
-  patch is under `docs/wiki-updates/`; wiki publication remains separate
-  (#32).
+- The wiki describes the first recorded desktop Excel run, with its exact
+  candidate, one-host scope and remaining manual checks (#32). The update
+  was prepared as a patch and published with the rename on November 11,
+  2026 as wiki commit `ede036d`; the patches are removed from the
+  repository.
 - The label sync and drift scripts build their API requests from
   `GITHUB_API_URL`, with trailing slashes removed, and fall back to
   `https://api.github.com` when it is unset, so they also run on a GitHub

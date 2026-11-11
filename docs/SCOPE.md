@@ -3,8 +3,8 @@
 ## Current stage
 
 Repository setup (v0.1.0 — Repo setup) is closed. The active workstream is the
-SA prototype and repository maintenance on release/v0.2.0, milestone 2,
-v0.2.0 — SA prototype (#117).
+ASA prototype and repository maintenance on release/v0.2.0, milestone 2,
+v0.2.0 — ASA prototype (#117).
 Main and release/v0.2.0 contain the setup controls, Excel/VBA prototype,
 committed macro-free template and independent Python reference.
 The setup branch release/v0.0.1 was deleted after the closeout; its history

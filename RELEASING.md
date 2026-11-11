@@ -16,7 +16,7 @@ version.
 No version has been tagged or published. v0.1.0, first named v0.0.1, is the
 **repository setup baseline**: labels, governance, settings, forms, CI and
 traffic analytics. It is not a working or regulatory-validated calculator.
-v0.2.0 is the Excel/VBA **SA prototype**; its LibreOffice evidence exists,
+v0.2.0 is the Excel/VBA **ASA prototype**; its LibreOffice evidence exists,
 and one desktop Excel run, with both round trips, is recorded on `323260b`, on
 one host ([Excel run](docs/evidence/2026-10-31-excel-run-323260b.md)). The
 remaining manual Excel checks are in #28, #72, #85 and #206. I decided its six
@@ -36,7 +36,7 @@ keep the names and versions in effect when they were written.
 | --- | --- | --- |
 | Version number | [Semantic Versioning](https://semver.org/) `MAJOR.MINOR.PATCH`; before 1.0.0, MINOR marks a functional stage and PATCH a maintenance increment | `0.2.0`, `0.2.1` |
 | Pre-release | SemVer pre-release identifier | `0.2.0-prototype` |
-| Milestone | Version plus a short title | `v0.2.0 — SA prototype` |
+| Milestone | Version plus a short title | `v0.2.0 — ASA prototype` |
 | Integration branch | `release/` plus the tag name; `release/v0.2.0` superseded `release/v0.1.0`, named before the renumbering (#117) | `release/v0.2.0` |
 | Tag | `v` plus the version, annotated, on a main commit | `v0.2.0` |
 | Changelog section | Version and release date | `## [0.2.0] - YYYY-MM-DD` |
@@ -99,7 +99,7 @@ milestone and leave the others under `[Unreleased]`.
 
    ```sh
    git fetch origin
-   git tag -a v0.2.0 <candidate-commit> -m "v0.2.0 — SA prototype"
+   git tag -a v0.2.0 <candidate-commit> -m "v0.2.0 — ASA prototype"
    git push origin v0.2.0
    ```
 
