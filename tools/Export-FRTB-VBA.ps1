@@ -32,7 +32,7 @@
     A new or empty folder for the exported files and the manifest.
 
 .EXAMPLE
-    powershell -NoProfile -ExecutionPolicy Bypass -File tools\Export-FRTB-VBA.ps1 -WorkbookPath dist\K-FRTB-SA.xlsm -OutDir C:\FRTB\export
+    powershell -NoProfile -ExecutionPolicy Bypass -File tools\Export-FRTB-VBA.ps1 -WorkbookPath dist\K-FRTB-ASA.xlsm -OutDir C:\FRTB\export
 #>
 [CmdletBinding()]
 param(

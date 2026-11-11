@@ -319,7 +319,7 @@ def hub(out: Path, name: str, title: str, subtitle: str, center: str, caption: s
 def frtb_uses(out: Path) -> None:
     hub(out, "FRTB_uses", "Where FRTB-SA fits in the capital framework",
         "A market-risk aggregation framework built around supplied risk measures",
-        "K-FRTB-SA | SENSITIVITIES TO CAPITAL",
+        "K-FRTB-ASA | SENSITIVITIES TO CAPITAL",
         "K_{FRTB-SA} = K_{SBM} + K_{DRC} + K_{RRAO}", [
             ("1 | Regulatory perimeter", ["Apply the trading-book boundary and the scope rules for FX and "
                                           "commodity positions."], "in"),
@@ -376,7 +376,7 @@ def frtb_aggregation(out: Path) -> None:
     d.text(800, 1182, "K_{FRTB-SA} = K_{SBM} + K_{DRC} + K_{RRAO}", 34, NAVY, True, "middle")
     d.text(800, 1226, "RWA_{FRTB-SA} = 12.5 × K_{FRTB-SA}", 27, BLUE, True, "middle")
     d.foot("Sources: Basel MAR20.1 and MAR20.4; MAR21, MAR22 and MAR23.",
-           "Full framework shown. The K-FRTB-SA prototype covers a subset; this diagram does not expand its "
+           "Full framework shown. The K-FRTB-ASA prototype covers a subset; this diagram does not expand its "
            "implemented scope.")
     d.save(out)
 

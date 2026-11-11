@@ -53,7 +53,7 @@ def run(tmp_path, repo):  # noqa: F811
         "session.log": session(sha),
         "build-development.log": (f"CANDIDATE={sha}\nImported CORE_Config.bas\n"
                                   "Regression test: Result: PASS (52 items)\n"
-                                  "Saved C:\\FRTB\\dist\\K-FRTB-SA-development.xlsm\n"),
+                                  "Saved C:\\FRTB\\dist\\K-FRTB-ASA-development.xlsm\n"),
         "build-production.log": f"CANDIDATE={sha}\nImported CORE_Config.bas\nSaved C:\\FRTB\\dist\\prod.xlsm\n",
         "round-trip-development.log": compare_log(sha, "development", template, WORKBOOK_DEV),
         "round-trip-production.log": compare_log(sha, "production", template, WORKBOOK_PROD),

@@ -56,7 +56,7 @@ def digest(data):
 
 def compare_log(sha, mode, template, workbook, result="PASS", binding="VERIFIED"):
     return (f"Candidate: {sha}\nMode:      {mode} (11 modules expected, 12 components exported)\n"
-            f"Template:  {tool.TEMPLATE} sha256 {template}\nWorkbook:  K-FRTB-SA.xlsm sha256 {workbook}\n"
+            f"Template:  {tool.TEMPLATE} sha256 {template}\nWorkbook:  K-FRTB-ASA.xlsm sha256 {workbook}\n"
             "Re-cased:  0 line(s) differ only in the letter case of code (ignored)\n"
             f"Binding:   {binding} - export-manifest.json records this workbook and every exported file\n"
             f"RESULT={result}; modules=11; differences={0 if result == 'PASS' else 1}; binding={binding}\n")
@@ -75,13 +75,13 @@ class Bundle:
             "session.log": f"CANDIDATE={sha}\nCompile development: no error\nCompile production: no error\n",
             "build-development.log": (f"CANDIDATE={sha}\nOpened a copy of src\\workbook\\FRTB_Template.xlsx\n"
                                       "Imported CORE_Config.bas\nRegression test: Result: PASS (52 items)\n"
-                                      "Saved C:\\FRTB\\dist\\K-FRTB-SA.xlsm\n"),
+                                      "Saved C:\\FRTB\\dist\\K-FRTB-ASA.xlsm\n"),
             "build-production.log": f"CANDIDATE={sha}\nImported CORE_Config.bas\nSaved C:\\FRTB\\dist\\prod.xlsm\n",
             "round-trip-development.log": compare_log(sha, "development", template, WORKBOOK_DEV),
             "round-trip-production.log": compare_log(sha, "production", template, WORKBOOK_PROD),
         }
         self.record = {
-            "schema_version": 1, "repository": "danielep71/K-FRTB-SA", "candidate_sha": sha,
+            "schema_version": 1, "repository": "danielep71/K-FRTB-ASA", "candidate_sha": sha,
             "execution": "manual", "availability_reason": None,
             "started_at": "2026-10-20T09:00:00+02:00", "finished_at": "2026-10-20T10:00:00+02:00",
             "operator": "Owner, workstation",
@@ -142,6 +142,19 @@ def test_a_complete_record_passes(bundle):
     assert check.errors == []
     assert check.outcomes == ["PASS"]
     assert set(check.statuses.values()) == {"PASS"}
+
+
+def test_a_record_under_the_former_repository_name_passes(bundle):
+    # The 323260b record names danielep71/K-FRTB-SA, the name before #261
+    bundle.record["repository"] = "danielep71/K-FRTB-SA"
+    check = bundle.validate()
+    assert check.errors == []
+    assert check.outcomes == ["PASS"]
+
+
+def test_a_record_of_another_repository_is_invalid(bundle):
+    bundle.record["repository"] = "danielep71/another-repository"
+    assert_invalid(bundle.validate(), "repository must be danielep71/K-FRTB-ASA")
 
 
 def test_policy_matches_the_source():

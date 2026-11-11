@@ -3,23 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>K-FRTB-SA — Traceable market risk capital</title>
-  <meta name="description" content="Explore the K-FRTB-SA Excel/VBA prototype: transparent SBM, default risk charge and residual risk add-on, with independent Python reconciliation.">
+  <title>K-FRTB-ASA — Traceable market risk capital</title>
+  <meta name="description" content="Explore the K-FRTB-ASA Excel/VBA prototype: transparent SBM, default risk charge and residual risk add-on, with independent Python reconciliation.">
   <meta name="theme-color" content="#00338d">
-  <link rel="canonical" href="https://danielep71.github.io/K-FRTB-SA/">
+  <link rel="canonical" href="https://danielep71.github.io/K-FRTB-ASA/">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="K-FRTB-SA — Traceable market risk capital">
+  <meta property="og:title" content="K-FRTB-ASA — Traceable market risk capital">
   <meta property="og:description" content="Understand the inputs. Inspect the aggregation. Explain the capital. An open-source FRTB-SA prototype.">
-  <meta property="og:url" content="https://danielep71.github.io/K-FRTB-SA/">
-  <meta property="og:image" content="https://danielep71.github.io/K-FRTB-SA/docs/assets/FRTB_social_preview.png">
+  <meta property="og:url" content="https://danielep71.github.io/K-FRTB-ASA/">
+  <meta property="og:image" content="https://danielep71.github.io/K-FRTB-ASA/docs/assets/FRTB_social_preview.png">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header><nav class="wrap" aria-label="Main navigation">
-  <a class="brand" href="./"><span class="mark" aria-hidden="true">K</span> K-FRTB-SA</a>
-  <div class="navlinks"><a href="#method">The calculation</a><a href="#start">Get started</a><a href="#evidence">Validation</a><a href="https://github.com/danielep71/K-FRTB-SA">GitHub ↗</a></div>
+  <a class="brand" href="./"><span class="mark" aria-hidden="true">K</span> K-FRTB-ASA</a>
+  <div class="navlinks"><a href="#method">The calculation</a><a href="#start">Get started</a><a href="#evidence">Validation</a><a href="https://github.com/danielep71/K-FRTB-ASA">GitHub ↗</a></div>
 </nav></header>
 <main id="main">
 <section class="hero"><div class="wrap hero-grid">
@@ -27,38 +27,38 @@
     <h1>Understand the risk.<br><em>Trace the capital.</em></h1>
     <p class="lead">A transparent implementation of the FRTB standardized approach.</p>
     <p class="hero-copy">Follow market risk inputs through sensitivities, default risk and residual risk to a capital requirement. Inspect the calculation and its intermediate results in an open-source Excel/VBA prototype.</p>
-    <div class="actions"><a class="button primary" href="#start">Explore the prototype ↓</a><a class="button ghost" href="https://github.com/danielep71/K-FRTB-SA/blob/main/docs/methodology.md">Read the methodology ↗</a></div>
+    <div class="actions"><a class="button primary" href="#start">Explore the prototype ↓</a><a class="button ghost" href="https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/methodology.md">Read the methodology ↗</a></div>
   </div>
-  <a class="hero-art" href="docs/assets/FRTB_social_preview.png"><img src="docs/assets/FRTB_social_preview.png" alt="Illustrative K-FRTB-SA sample portfolio: capital, correlation scenarios and risk-class contributions"></a>
+  <a class="hero-art" href="docs/assets/FRTB_social_preview.png"><img src="docs/assets/FRTB_social_preview.png" alt="Illustrative K-FRTB-ASA sample portfolio: capital, correlation scenarios and risk-class contributions"></a>
 </div><div class="wrap principles"><span>Reviewable VBA source</span><span>Independent Python reference</span><span>Traceable intermediate results</span><span>MIT licensed, with MPL-2.0 exceptions</span></div></section>
 <div class="wrap">
-  <aside class="status" aria-label="Prototype status"><p><strong>Prototype — one Excel run recorded.</strong> The VBA implementation has been reconciled with an independent Python reference in LibreOffice, and one desktop Excel run (build, compile, regression test and round trip) is recorded on a single host. The project is not validated for regulatory use. <a href="https://github.com/danielep71/K-FRTB-SA/blob/main/docs/validation.md">Read the evidence and limitations ↗</a></p></aside>
+  <aside class="status" aria-label="Prototype status"><p><strong>Prototype — one Excel run recorded.</strong> The VBA implementation has been reconciled with an independent Python reference in LibreOffice, and one desktop Excel run (build, compile, regression test and round trip) is recorded on a single host. The project is not validated for regulatory use. <a href="https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/validation.md">Read the evidence and limitations ↗</a></p></aside>
   <section id="method"><p class="eyebrow">01 / The calculation</p><h2>Three components. One traceable result.</h2>
-    <p class="intro">K-FRTB-SA supports benchmarking, model challenge, research and education. Sensitivities and positions are inputs; the prototype makes netting, weighting and aggregation visible.</p>
+    <p class="intro">K-FRTB-ASA supports benchmarking, model challenge, research and education. Sensitivities and positions are inputs; the prototype makes netting, weighting and aggregation visible.</p>
     <p class="formula" aria-label="Capital equals SBM plus DRC plus RRAO">Capital = SBM + DRC + RRAO</p>
     <div class="cards three">
       <article class="card"><span class="category">01 / Sensitivities</span><h3>Sensitivities-based method</h3><p>Delta, vega and curvature across general interest rate risk, non-securitization credit spread risk, equity, commodity and foreign exchange risk.</p><p>Aggregate across risk classes under low, medium and high correlation scenarios, then take the largest total.</p></article>
       <article class="card"><span class="category">02 / Default</span><h3>Default risk charge</h3><p>Non-securitization jump-to-default exposures, with maturity scaling, obligor netting by seniority and a hedge benefit ratio for each bucket.</p><p>Inspect net exposures and bucket contributions in the workbook outputs.</p></article>
       <article class="card"><span class="category">03 / Residual risk</span><h3>Residual risk add-on</h3><p>A separate add-on for instruments bearing exotic or other residual risks, based on the applicable gross notional amounts.</p><p>Keep residual risk contributions distinct from SBM and DRC.</p></article>
     </div>
-    <p class="note">The prototype uses the Basel MAR21–MAR23 framework. Securitization and correlation trading portfolio coverage are outside the current prototype. <a href="https://github.com/danielep71/K-FRTB-SA/blob/main/docs/SCOPE.md">Check the full scope ↗</a></p>
+    <p class="note">The prototype uses the Basel MAR21–MAR23 framework. Securitization and correlation trading portfolio coverage are outside the current prototype. <a href="https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/SCOPE.md">Check the full scope ↗</a></p>
   </section>
 </div>
 <section class="tint"><div class="wrap"><p class="eyebrow">02 / Inside the workbook</p><h2>Every step leaves an explanation.</h2>
   <ol class="steps"><li><span class="number">01 / INPUT</span><h3>Provide risk inputs</h3><p>Enter sensitivities and positions. Unknown classifications and invalid amounts are rejected and logged with their reasons.</p></li><li><span class="number">02 / CALCULATE</span><h3>Inspect the assumptions</h3><p>Review risk weights and correlations on the parameter sheets, alongside their Basel paragraph references.</p></li><li><span class="number">03 / RECONCILE</span><h3>Follow the outputs</h3><p>Inspect bucket-level results, default risk netting and the final totals. Compare outputs with the independent reference.</p></li></ol>
-  <a href="https://github.com/danielep71/K-FRTB-SA/blob/main/docs/workbook-guide.md">Open the workbook guide ↗</a>
+  <a href="https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/workbook-guide.md">Open the workbook guide ↗</a>
 </div></section>
 <section id="start"><div class="wrap"><p class="eyebrow">03 / Get started</p><h2>Build from reviewable source.</h2>
-  <div class="split"><div><h3>1. Clone the repository</h3><p>Use a Git clone to preserve the VBA checkout conventions. Current prototype development uses the integration branch below.</p><code class="code">git clone --branch release/v0.2.0 https://github.com/danielep71/K-FRTB-SA.git
-cd K-FRTB-SA</code><h3>2. Follow the Windows build guide</h3><p>The repository contains a macro-free template and exported VBA modules. The PowerShell build script assembles the macro-enabled workbook locally; the template alone does not run the engine.</p><a href="https://github.com/danielep71/K-FRTB-SA/blob/main/README.md#quick-start">Open the full setup instructions ↗</a></div>
-  <div><h3>Choose your starting point</h3><p class="resource"><a href="https://github.com/danielep71/K-FRTB-SA/tree/main/src/modules">Review the VBA modules ↗</a></p><p class="resource"><a href="https://github.com/danielep71/K-FRTB-SA/blob/main/src/workbook/FRTB_Template.xlsx">Inspect the macro-free template ↗</a></p><p class="resource"><a href="https://github.com/danielep71/K-FRTB-SA/blob/main/tests/frtb_reference.py">Explore the Python reference ↗</a></p><p class="resource"><a href="https://github.com/danielep71/K-FRTB-SA/blob/main/docs/ROADMAP.md">Read the roadmap ↗</a></p></div></div>
+  <div class="split"><div><h3>1. Clone the repository</h3><p>Use a Git clone to preserve the VBA checkout conventions. Current prototype development uses the integration branch below.</p><code class="code">git clone --branch release/v0.2.0 https://github.com/danielep71/K-FRTB-ASA.git
+cd K-FRTB-ASA</code><h3>2. Follow the Windows build guide</h3><p>The repository contains a macro-free template and exported VBA modules. The PowerShell build script assembles the macro-enabled workbook locally; the template alone does not run the engine.</p><a href="https://github.com/danielep71/K-FRTB-ASA/blob/main/README.md#quick-start">Open the full setup instructions ↗</a></div>
+  <div><h3>Choose your starting point</h3><p class="resource"><a href="https://github.com/danielep71/K-FRTB-ASA/tree/main/src/modules">Review the VBA modules ↗</a></p><p class="resource"><a href="https://github.com/danielep71/K-FRTB-ASA/blob/main/src/workbook/FRTB_Template.xlsx">Inspect the macro-free template ↗</a></p><p class="resource"><a href="https://github.com/danielep71/K-FRTB-ASA/blob/main/tests/frtb_reference.py">Explore the Python reference ↗</a></p><p class="resource"><a href="https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/ROADMAP.md">Read the roadmap ↗</a></p></div></div>
 </div></section>
 <section class="tint" id="evidence"><div class="wrap"><p class="eyebrow">04 / Evidence and boundaries</p><h2>Know what has been checked.</h2><div class="split">
-  <div><h3>Evidence available</h3><p>The project documents hand-calculated formula tests, an independent Python reference, headless LibreOffice runs of the VBA, static source checks and one recorded desktop Excel run on a single host. These establish different kinds of evidence; none of them is regulatory validation.</p><a href="https://github.com/danielep71/K-FRTB-SA/blob/main/docs/validation.md">Read validation evidence ↗</a></div>
-  <div><h3>Work still outstanding</h3><p>The remaining manual Excel checks, the final platform decision and the review of the methodology readings for a certified scope are tracked in the repository. Consult the live issue tracker for current progress.</p><a href="https://github.com/danielep71/K-FRTB-SA/issues">View open work ↗</a></div>
+  <div><h3>Evidence available</h3><p>The project documents hand-calculated formula tests, an independent Python reference, headless LibreOffice runs of the VBA, static source checks and one recorded desktop Excel run on a single host. These establish different kinds of evidence; none of them is regulatory validation.</p><a href="https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/validation.md">Read validation evidence ↗</a></div>
+  <div><h3>Work still outstanding</h3><p>The remaining manual Excel checks, the final platform decision and the review of the methodology readings for a certified scope are tracked in the repository. Consult the live issue tracker for current progress.</p><a href="https://github.com/danielep71/K-FRTB-ASA/issues">View open work ↗</a></div>
 </div></div></section>
 <section><div class="wrap"><p class="eyebrow">05 / The ecosystem</p><h2>Part of K-Risk Engines.</h2><p class="intro">Explore the wider portfolio of transparent financial risk models, from counterparty credit risk to interest rate risk in the banking book.</p><a href="https://danielep71.github.io/K-Risk-Engines/">Explore K-Risk Engines ↗</a></div></section>
 </main>
-<footer><div class="wrap"><p><strong>K-FRTB-SA</strong> · An independent open-source project by Daniele Penza.</p><p><a href="https://github.com/danielep71/K-FRTB-SA">Source repository</a> · <a href="https://github.com/danielep71/K-FRTB-SA/blob/main/LICENSE">MIT License</a> · <a href="https://github.com/danielep71/K-FRTB-SA/blob/main/docs/licenses/THIRD_PARTY_NOTICES.txt">MPL-2.0 files</a> · <a href="https://github.com/danielep71/K-FRTB-SA/blob/main/CONTRIBUTING.md">Contribute</a></p><p>Prototype for research, benchmarking and education. Not regulatory-certified.</p></div></footer>
+<footer><div class="wrap"><p><strong>K-FRTB-ASA</strong> · An independent open-source project by Daniele Penza.</p><p><a href="https://github.com/danielep71/K-FRTB-ASA">Source repository</a> · <a href="https://github.com/danielep71/K-FRTB-ASA/blob/main/LICENSE">MIT License</a> · <a href="https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/licenses/THIRD_PARTY_NOTICES.txt">MPL-2.0 files</a> · <a href="https://github.com/danielep71/K-FRTB-ASA/blob/main/CONTRIBUTING.md">Contribute</a></p><p>Prototype for research, benchmarking and education. Not regulatory-certified.</p></div></footer>
 </body>
 </html>

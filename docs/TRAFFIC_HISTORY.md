@@ -9,7 +9,7 @@
 the API's 14-day window. Once a day it collects views, clones, the top
 referrers and popular paths, and the repository's stars, forks, watchers and
 open issues; merges them into the CSV files of the data-only
-[traffic-history branch](https://github.com/danielep71/K-FRTB-SA/tree/traffic-history);
+[traffic-history branch](https://github.com/danielep71/K-FRTB-ASA/tree/traffic-history);
 writes the README traffic badges there; and opens an issue when traffic
 stands out (*Traffic alert* below). It is repository analytics, not CI.
 No visitor-level identities are collected.
@@ -232,18 +232,18 @@ collection do not run Excel or validate capital calculations.
 ## 📋 Live configuration record
 
 Verified on October 18, 2026 (Europe/Rome): the data-only branch exists;
-[Protect traffic history](https://github.com/danielep71/K-FRTB-SA/rules/25321321)
+[Protect traffic history](https://github.com/danielep71/K-FRTB-ASA/rules/25321321)
 is active for its exact ref, blocks deletion and non-fast-forward updates,
 and has no bypass actors. The `analytics` environment permits the main branch
 only (one branch, zero tags) and holds the `TRAFFIC_TOKEN` environment
 secret. The first real export succeeded in
-[run 39105087826](https://github.com/danielep71/K-FRTB-SA/actions/runs/39105087826)
+[run 39105087826](https://github.com/danielep71/K-FRTB-ASA/actions/runs/39105087826)
 and published data commit `af6a68a` on `traffic-history`; issue #23 is closed.
 This dated record describes the former personal-token setup.
 
 Updated on October 31, 2026 (Europe/Rome): the GitHub App migration (#181)
 is in operation. The main run
-[#17](https://github.com/danielep71/K-FRTB-SA/actions/runs/41216703015)
+[#17](https://github.com/danielep71/K-FRTB-ASA/actions/runs/41216703015)
 passed with the App token and published data commit `3cc986c`. After that
 run I deleted the `TRAFFIC_TOKEN` secret from `analytics` and revoked the
 personal token; the workflow has no fallback to it. This record is my

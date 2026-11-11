@@ -1,7 +1,7 @@
 THIRD-PARTY NOTICES
 ===================
 
-K-FRTB-SA is licensed under the MIT License (see LICENSE). The files listed
+K-FRTB-ASA is licensed under the MIT License (see LICENSE). The files listed
 below are copied or adapted from K-SFTs (https://github.com/danielep71/K-SFTs),
 Copyright 2026 Daniele Penza and contributors, and remain under the Mozilla
 Public License, version 2.0 (MPL-2.0). They are not relicensed under the MIT

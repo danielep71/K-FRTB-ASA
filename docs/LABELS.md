@@ -80,7 +80,7 @@ finding by hand. `python tools/check_issues.py --check-config`, run by
 `tools/check_repository.py`, checks offline that the forms, this guide and
 Dependabot agree with the catalogue, and that the three work forms require
 the target end date. For an offline audit of exported issues:
-`python tools/check_issues.py --input issues.json --repo-name danielep71/K-FRTB-SA`.
+`python tools/check_issues.py --input issues.json --repo-name danielep71/K-FRTB-ASA`.
 The label workflows manage the catalogue only: they do not assign issues,
 choose priorities or milestones, or close issues. The bug form defaults to
 P2, and feature/documentation forms to P3; all assign danielep71. Milestones
@@ -96,14 +96,14 @@ The PR milestone search should also return zero results.
 
 | Check | GitHub search query |
 | --- | --- |
-| Missing assignee | `repo:danielep71/K-FRTB-SA is:issue no:assignee` |
-| Wrong assignee | `repo:danielep71/K-FRTB-SA is:issue -assignee:danielep71` |
-| Missing milestone | `repo:danielep71/K-FRTB-SA is:issue no:milestone` |
-| PR incorrectly assigned a milestone | `repo:danielep71/K-FRTB-SA is:pr has:milestone` |
-| Missing priority | `repo:danielep71/K-FRTB-SA is:issue -label:P1 -label:P2 -label:P3` |
-| Conflicting priorities | `repo:danielep71/K-FRTB-SA is:issue label:P1 label:P2` |
-| Conflicting priorities | `repo:danielep71/K-FRTB-SA is:issue label:P1 label:P3` |
-| Conflicting priorities | `repo:danielep71/K-FRTB-SA is:issue label:P2 label:P3` |
+| Missing assignee | `repo:danielep71/K-FRTB-ASA is:issue no:assignee` |
+| Wrong assignee | `repo:danielep71/K-FRTB-ASA is:issue -assignee:danielep71` |
+| Missing milestone | `repo:danielep71/K-FRTB-ASA is:issue no:milestone` |
+| PR incorrectly assigned a milestone | `repo:danielep71/K-FRTB-ASA is:pr has:milestone` |
+| Missing priority | `repo:danielep71/K-FRTB-ASA is:issue -label:P1 -label:P2 -label:P3` |
+| Conflicting priorities | `repo:danielep71/K-FRTB-ASA is:issue label:P1 label:P2` |
+| Conflicting priorities | `repo:danielep71/K-FRTB-ASA is:issue label:P1 label:P3` |
+| Conflicting priorities | `repo:danielep71/K-FRTB-ASA is:issue label:P2 label:P3` |
 
 Review P1 issues individually to confirm a calculation bug is established;
 a search cannot verify the substance of that decision.
@@ -166,9 +166,9 @@ With `GITHUB_TOKEN` set securely in the environment and an explicit reviewed
 checkout, I can run live verification or reconciliation:
 
 ```sh
-node .github/scripts/labels-drift.mjs --repository danielep71/K-FRTB-SA
-node .github/scripts/labels-sync.mjs --mode reconcile --dry-run --repository danielep71/K-FRTB-SA
-node .github/scripts/labels-sync.mjs --mode reconcile --repository danielep71/K-FRTB-SA
+node .github/scripts/labels-drift.mjs --repository danielep71/K-FRTB-ASA
+node .github/scripts/labels-sync.mjs --mode reconcile --dry-run --repository danielep71/K-FRTB-ASA
+node .github/scripts/labels-sync.mjs --mode reconcile --repository danielep71/K-FRTB-ASA
 ```
 
 The scripts use bounded pagination and retries. Workflow actions are pinned to

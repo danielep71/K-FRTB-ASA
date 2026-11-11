@@ -20,7 +20,7 @@ index fc41a72..0f7b0a1 100644
 +rows. The first desktop Excel run, on October 31, 2026, covers candidate
 +`323260bb38116cd64c616e7acd73af7d8bdc9482` on `release/v0.3.0`: builds,
 +compiles, 52 regression items and both round trips passed on one Windows
-+host, as recorded in the [Excel record](https://github.com/danielep71/K-FRTB-SA/blob/4a3b97412e7a3b7f4c80b736d239a88377f851d5/docs/evidence/2026-10-31-excel-run-323260b.md). Further manual checks remain
++host, as recorded in the [Excel record](https://github.com/danielep71/K-FRTB-ASA/blob/4a3b97412e7a3b7f4c80b736d239a88377f851d5/docs/evidence/2026-10-31-excel-run-323260b.md). Further manual checks remain
 +under #28, #72, #85 and #206. No result is validated for regulatory use. See
  [Open Items and Limitations](Open-Items-and-Limitations).
 
@@ -35,7 +35,7 @@ index 9f795db..f5c52bd 100644
  **Status at prototype 0.2.0:** SBM for five risk classes, DRC for
 -non-securitizations and RRAO are implemented; the workbook has not yet run in
 -desktop Excel. See [Regulatory Basis](Regulatory-Basis).
-+non-securitizations and RRAO are implemented. The [Excel record](https://github.com/danielep71/K-FRTB-SA/blob/4a3b97412e7a3b7f4c80b736d239a88377f851d5/docs/evidence/2026-10-31-excel-run-323260b.md)
++non-securitizations and RRAO are implemented. The [Excel record](https://github.com/danielep71/K-FRTB-ASA/blob/4a3b97412e7a3b7f4c80b736d239a88377f851d5/docs/evidence/2026-10-31-excel-run-323260b.md)
 +records the first desktop Excel run on candidate `323260b`, not every
 +subsequent commit or host. See [Regulatory Basis](Regulatory-Basis).
 
@@ -52,7 +52,7 @@ index e5216ce..6c8e43c 100644
 -> The build and the workbook have **not yet been run in desktop Excel**. The
 -> VBA has run only headless in LibreOffice (see
 -> [Validation Approach](Validation-Approach)). Report what you find in an
-+> The [Excel record](https://github.com/danielep71/K-FRTB-SA/blob/4a3b97412e7a3b7f4c80b736d239a88377f851d5/docs/evidence/2026-10-31-excel-run-323260b.md) covers candidate `323260b` on `release/v0.3.0`,
++> The [Excel record](https://github.com/danielep71/K-FRTB-ASA/blob/4a3b97412e7a3b7f4c80b736d239a88377f851d5/docs/evidence/2026-10-31-excel-run-323260b.md) covers candidate `323260b` on `release/v0.3.0`,
 +> on one Windows/Excel host. It does not validate an arbitrary checkout,
 +> synchronization, other hosts or the remaining manual cases. See
 +> [Validation Approach](Validation-Approach); report findings in an
@@ -68,7 +68,7 @@ index 479d3ab..16a1870 100644
  | Area | Limitation |
  | --- | --- |
 -| Excel | Not compiled or run in desktop Excel yet; LibreOffice's VBA support is not Excel's (#28) |
-+| Excel | First build, compile, regression and round trips recorded at `323260b` on one Windows/Excel host ([Excel record](https://github.com/danielep71/K-FRTB-SA/blob/4a3b97412e7a3b7f4c80b736d239a88377f851d5/docs/evidence/2026-10-31-excel-run-323260b.md)); synchronization and other manual cases remain open (#28/#72/#85/#206) |
++| Excel | First build, compile, regression and round trips recorded at `323260b` on one Windows/Excel host ([Excel record](https://github.com/danielep71/K-FRTB-ASA/blob/4a3b97412e7a3b7f4c80b736d239a88377f851d5/docs/evidence/2026-10-31-excel-run-323260b.md)); synchronization and other manual cases remain open (#28/#72/#85/#206) |
  | Release | No published release, workbook download or user manual: build the workbook from source |
  | Risk classes | CSR securitization (non-CTP and CTP) not implemented; rows are rejected |
  | DRC | Securitizations and the correlation trading portfolio not implemented |
@@ -90,7 +90,7 @@ index 426fe17..62e74df 100644
  | Repository integrity | `python3 tools/check_repository.py` | Configuration, labels, tracked whitespace and local Markdown targets; maintenance only |
 
 -No test runs Excel.
-+No automated test in this catalogue runs Excel. The separate [Excel record](https://github.com/danielep71/K-FRTB-SA/blob/4a3b97412e7a3b7f4c80b736d239a88377f851d5/docs/evidence/2026-10-31-excel-run-323260b.md)
++No automated test in this catalogue runs Excel. The separate [Excel record](https://github.com/danielep71/K-FRTB-ASA/blob/4a3b97412e7a3b7f4c80b736d239a88377f851d5/docs/evidence/2026-10-31-excel-run-323260b.md)
 +records desktop Excel execution at `323260b`; it is manual host evidence,
 +not the result of these tests.
 
@@ -116,11 +116,11 @@ index 32aaba5..adbfd98 100644
 -> The workbook has not yet run in desktop Excel. The Excel-specific entries
 -> below follow the scripts and the documentation; report anything different
 -> in an [issue](https://github.com/danielep71/K-FRTB-SA/issues).
-+> The [Excel record](https://github.com/danielep71/K-FRTB-SA/blob/4a3b97412e7a3b7f4c80b736d239a88377f851d5/docs/evidence/2026-10-31-excel-run-323260b.md) covers one Windows/Excel host and candidate `323260b`.
++> The [Excel record](https://github.com/danielep71/K-FRTB-ASA/blob/4a3b97412e7a3b7f4c80b736d239a88377f851d5/docs/evidence/2026-10-31-excel-run-323260b.md) covers one Windows/Excel host and candidate `323260b`.
 +> It includes a failed calculation, but does not exercise every failure path
 +> or synchronization. The entries below also follow the source and
 +> documentation; report differences in an
-+> [issue](https://github.com/danielep71/K-FRTB-SA/issues).
++> [issue](https://github.com/danielep71/K-FRTB-ASA/issues).
 
  ---
 
@@ -142,7 +142,7 @@ index 67ec818..6d7de55 100644
  | **Independent numerical comparison** | A Python reference written separately from the VBA, and hand-calculated cases | The VBA reproduces every output of the reference on the sample, the variant and empty inputs | That the shared reading of MAR21–MAR23 is right |
  | **Methodology review** | The BIS check of 2026-10-17 | The parameters and rules match the BIS text as transcribed | The interpretation decisions of #29, which are mine, not reviewed independently; a review independent of the implementer |
 -| **Runtime (Excel)** | **None yet** (#28) | — | — |
-+| **Runtime (Excel)** | [Excel record](https://github.com/danielep71/K-FRTB-SA/blob/4a3b97412e7a3b7f4c80b736d239a88377f851d5/docs/evidence/2026-10-31-excel-run-323260b.md): candidate `323260bb38116cd64c616e7acd73af7d8bdc9482`, Windows 11 Enterprise 25H2, Excel 16.0.20430.20180 64-bit, decimal comma/list semicolon | Both template-based builds, both compiles, regression 52/52 and both round trips; limited manual checks | Other commits, hosts, synchronization, the invalid-row variant, typed decimal text or regulatory correctness |
++| **Runtime (Excel)** | [Excel record](https://github.com/danielep71/K-FRTB-ASA/blob/4a3b97412e7a3b7f4c80b736d239a88377f851d5/docs/evidence/2026-10-31-excel-run-323260b.md): candidate `323260bb38116cd64c616e7acd73af7d8bdc9482`, Windows 11 Enterprise 25H2, Excel 16.0.20430.20180 64-bit, decimal comma/list semicolon | Both template-based builds, both compiles, regression 52/52 and both round trips; limited manual checks | Other commits, hosts, synchronization, the invalid-row variant, typed decimal text or regulatory correctness |
 
  The checks behind each class are on [Test Catalogue](Test-Catalogue).
 
@@ -167,4 +167,4 @@ index 281c1d1..c89289b 100644
 +++ b/_Footer.md
 @@ -1 +1 @@
 -📈 **K-FRTB-SA** · ⚖️ Basel MAR20–MAR23 · 🧪 Prototype 0.2.0: reconciled with an independent reference in LibreOffice; Excel evidence pending; not validated for regulatory use · 🧮 No real portfolio data · [Repository](https://github.com/danielep71/K-FRTB-SA) · [Validation Approach](Validation-Approach) · [Open Items](Open-Items-and-Limitations)
-+📈 **K-FRTB-SA** · ⚖️ Basel MAR20–MAR23 · 🧪 Prototype 0.2.0: reconciled with an independent reference in LibreOffice; partial Excel evidence at `323260b` (one host; remaining checks under #28); not validated for regulatory use · 🧮 No real portfolio data · [Repository](https://github.com/danielep71/K-FRTB-SA) · [Validation Approach](Validation-Approach) · [Open Items](Open-Items-and-Limitations)
++📈 **K-FRTB-ASA** · ⚖️ Basel MAR20–MAR23 · 🧪 Prototype 0.2.0: reconciled with an independent reference in LibreOffice; partial Excel evidence at `323260b` (one host; remaining checks under #28); not validated for regulatory use · 🧮 No real portfolio data · [Repository](https://github.com/danielep71/K-FRTB-ASA) · [Validation Approach](Validation-Approach) · [Open Items](Open-Items-and-Limitations)

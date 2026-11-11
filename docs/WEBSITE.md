@@ -1,6 +1,6 @@
 # Project website
 
-The public address is https://danielep71.github.io/K-FRTB-SA/.
+The public address is https://danielep71.github.io/K-FRTB-ASA/.
 
 The buildless website uses root `index.html`, `assets/site.css`, and the
 existing `docs/assets/FRTB_social_preview.png`. It requires no JavaScript,

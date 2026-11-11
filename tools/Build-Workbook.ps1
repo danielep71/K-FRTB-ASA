@@ -19,7 +19,7 @@
     Center Settings > Macro Settings).
 
 .PARAMETER OutputPath
-    Target path. Defaults to dist\K-FRTB-SA.xlsm, or dist\FRTB_Template.xlsx
+    Target path. Defaults to dist\K-FRTB-ASA.xlsm, or dist\FRTB_Template.xlsx
     with -Template, under the repository root.
 
 .PARAMETER RunTests
@@ -78,7 +78,7 @@ if (-not $OutputPath) {
     if ($Template) {
         $OutputPath = Join-Path $repoRoot 'dist\FRTB_Template.xlsx'
     } else {
-        $OutputPath = Join-Path $repoRoot 'dist\K-FRTB-SA.xlsm'
+        $OutputPath = Join-Path $repoRoot 'dist\K-FRTB-ASA.xlsm'
     }
 }
 $OutputPath = [System.IO.Path]::GetFullPath($OutputPath)

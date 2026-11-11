@@ -27,4 +27,4 @@ Task PRs squash-merge into the integration branch. Explicitly requested main
 integrations use a merge commit. If work continues, synchronize the release
 branch through a reviewed merge-commit PR from main; after the
 milestone-final integration, delete the obsolete branch under the
-[release-branch lifecycle](https://github.com/danielep71/K-FRTB-SA/blob/main/docs/GOVERNANCE.md#release-branch-lifecycle).
+[release-branch lifecycle](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/GOVERNANCE.md#release-branch-lifecycle).

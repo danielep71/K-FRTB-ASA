@@ -33,7 +33,7 @@ changes.
 prototype on October 17, 2026 and created from main at
 `d150d3822d5d50f69aabfca153bf6d302e80f2e4` (the integration of #18);
 maintenance joined it on October 18
-([decision in #51](https://github.com/danielep71/K-FRTB-SA/issues/51#issuecomment-6254417218)).
+([decision in #51](https://github.com/danielep71/K-FRTB-ASA/issues/51#issuecomment-6254417218)).
 Its whole history is in `release/v0.2.0` and on main. It is deleted under the
 [release-branch lifecycle](#release-branch-lifecycle) once milestone 2 is
 closed. Dependabot version updates target `release/v0.2.0` since #118,
@@ -119,20 +119,20 @@ if either branch moves, reassess the new work before proceeding. Never reset
 or force an update.
 
 Record the PR, merge commit, branch readback, and applicable post-merge checks.
-PR [#242](https://github.com/danielep71/K-FRTB-SA/pull/242) shows the current
+PR [#242](https://github.com/danielep71/K-FRTB-ASA/pull/242) shows the current
 procedure: it integrated `release/v0.2.0` into main with a merge commit, and
-PRs [#243](https://github.com/danielep71/K-FRTB-SA/pull/243) and
-[#244](https://github.com/danielep71/K-FRTB-SA/pull/244), from the task
+PRs [#243](https://github.com/danielep71/K-FRTB-ASA/pull/243) and
+[#244](https://github.com/danielep71/K-FRTB-ASA/pull/244), from the task
 branches `chore/sync-release-v0.2.0-242` and `chore/sync-release-v0.3.0-242`,
 brought main back into `release/v0.2.0` and `release/v0.3.0` with merge
 commits that keep both parents. Later task PRs advance the release branches
 again; branches need match only at the integration checkpoint.
 
 Historical example, before the synchronization rule of #151: after PR
-[#13](https://github.com/danielep71/K-FRTB-SA/pull/13), merge commit
+[#13](https://github.com/danielep71/K-FRTB-ASA/pull/13), merge commit
 `c01f2ad6c71ea2d6f23eac2b5a07fcdd430456a4` preserved both parents and the
 retained release branch was fast-forwarded to it.
-[CodeQL passed](https://github.com/danielep71/K-FRTB-SA/actions/runs/39071612077).
+[CodeQL passed](https://github.com/danielep71/K-FRTB-ASA/actions/runs/39071612077).
 Do not repeat that fast-forward.
 
 ## Issue metadata and completion
@@ -212,10 +212,10 @@ checklist; this document owns its detailed procedures.
 
 ### Milestone management
 
-[v0.1.0 — Repo setup](https://github.com/danielep71/K-FRTB-SA/milestone/1)
+[v0.1.0 — Repo setup](https://github.com/danielep71/K-FRTB-ASA/milestone/1)
 closed on October 18, 2026; its [detailed guide](Milestones/v0.0.1.md) and
 [closeout record](evidence/2026-10-18-setup-closeout.md) remain the setup
-baseline. [v0.2.0 — SA prototype](https://github.com/danielep71/K-FRTB-SA/milestone/2)
+baseline. [v0.2.0 — SA prototype](https://github.com/danielep71/K-FRTB-ASA/milestone/2)
 is active: its [guide](Milestones/v0.2.0.md),
 [interim evaluation](evidence/2026-10-27-prototype-evaluation.md) and
 [Excel run](evidence/2026-10-31-excel-run-323260b.md) exist, prototype
