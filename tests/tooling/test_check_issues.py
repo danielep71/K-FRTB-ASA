@@ -313,5 +313,37 @@ class MainTests(unittest.TestCase):
             self.assertEqual(check_issues.main(["--repository", REPOSITORY]), 2)
 
 
+class ApiRootTests(unittest.TestCase):
+    # The API root comes from GITHUB_API_URL, with github.com as the fallback,
+    # as in the label scripts (#234, #247)
+    def test_api_root_falls_back_to_github_com(self) -> None:
+        self.assertEqual(check_issues.api_root({}), "https://api.github.com")
+        self.assertEqual(check_issues.api_root({"GITHUB_API_URL": ""}), "https://api.github.com")
+        self.assertEqual(check_issues.api_root({"GITHUB_API_URL": "/"}), "https://api.github.com")
+
+    def test_api_root_takes_github_api_url_without_trailing_slashes(self) -> None:
+        for value in ("https://ghe.example/api/v3", "https://ghe.example/api/v3/",
+                      "https://ghe.example/api/v3//"):
+            self.assertEqual(check_issues.api_root({"GITHUB_API_URL": value}),
+                             "https://ghe.example/api/v3")
+
+    def test_api_root_reads_the_process_environment_by_default(self) -> None:
+        with unittest.mock.patch.dict("os.environ", {"GITHUB_API_URL": "https://ghe.example/api/v3/"}):
+            self.assertEqual(check_issues.api_root(), "https://ghe.example/api/v3")
+
+    def test_live_mode_requests_the_configured_root(self) -> None:
+        urls: list[str] = []
+
+        def fetch(url: str, token: str) -> list[dict[str, object]]:
+            urls.append(url)
+            return []
+
+        with unittest.mock.patch.dict("os.environ", {"GITHUB_API_URL": "https://ghe.example/api/v3/"}), \
+                unittest.mock.patch.object(check_issues, "fetch", side_effect=fetch):
+            self.assertEqual(check_issues.load_live(REPOSITORY, "token"), ([], {}, set()))
+        self.assertEqual(urls, ["https://ghe.example/api/v3/repos/example-org/sample-project/issues"
+                                "?state=all&per_page=100&page=1"])
+
+
 if __name__ == "__main__":
     unittest.main()
