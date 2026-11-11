@@ -136,7 +136,7 @@ need to **check** an FRTB-SA number:
 | Discretions | sqrt(2) for specified GIRR currencies and FX pairs (with first-order crosses), FX curvature divisor 1.5 for options not referencing the reporting currency, or for all FX with supervisory approval |
 | DRC | Non-securitization JTD, maturity scaling, obligor netting by seniority, hedge benefit ratio per bucket |
 | RRAO | Exotic (1.0%) and other (0.1%) residual risks |
-| Input validation | Unknown risk classes, buckets, tenors, sub-types, ratings and seniorities, non-numeric amounts and the reporting currency as an FX bucket are rejected and logged |
+| Input validation | Unknown risk classes, buckets, tenors and sub-types (including a vega or curvature sub-type the risk class does not define), ratings and seniorities, non-numeric amounts and the reporting currency as an FX bucket are rejected and logged |
 | Parameters | Eight `P_*` sheets with MAR references, checked against the BIS Basel Framework on 2026-10-17 |
 | Testing | Hand-calculated formula tests, an independent Python reference, headless LibreOffice runs of the VBA, an in-workbook regression test, a static VBA lint, and offline tests of the sync, export-comparison and evidence tools |
 | Deployment | Plain exported VBA; no add-in, COM component, DLL or extra VBA reference |

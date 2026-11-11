@@ -60,6 +60,13 @@ deliverable and non-deliverable variants of a currency are one risk factor
 (MAR21.14(4) and its FAQ): enter KRW, not KRO, for every Korean won
 sensitivity.
 
+Vega and curvature take the delta sub-types that name the same risk factor:
+CSR `BOND` or `CDS` and equity `SPOT`, merged into one risk factor per name.
+Equity `REPO` has no vega or curvature (MAR21.12), GIRR `INFLATION` and
+`XCCY` have no curvature (MAR21.8), and FX takes no sub-type in any input;
+such rows are rejected and logged (#245). A commodity sub-type is the
+delivery location, free text.
+
 Vega risk factors are the underlying and the option maturity (0.5, 1, 3, 5,
 10y). GIRR vega has three sub-types (MAR21.8(4) and its FAQ4):
 

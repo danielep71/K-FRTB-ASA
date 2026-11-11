@@ -451,7 +451,7 @@ Private Sub BuildReadme()
         "Risk classes", "GIRR, CSR_NS (credit spread, non-securitization), EQ, COM, FX. CSR securitization and the correlation trading portfolio are not implemented and are rejected.", _
         "Buckets", "GIRR and FX: ISO currency code, one for all variants of a currency (KRW, not KRO). CSR_NS 1-18, EQ 1-13, COM 1-11 as in MAR21.51, MAR21.72 and MAR21.82 (see the P_* sheets).", _
         "Qualifier", "GIRR: curve name. CSR_NS and EQ: issuer or index. COM: commodity. FX: the currency.", _
-        "Sub-type", "GIRR: YIELD, INFLATION or XCCY. CSR_NS delta: BOND or CDS. EQ delta: SPOT or REPO. COM delta: delivery location.", _
+        "Sub-type", "GIRR: YIELD, INFLATION or XCCY; curvature YIELD only. CSR_NS: BOND or CDS. EQ: SPOT or REPO; vega and curvature SPOT only. COM: delivery location. FX: none.", _
         "Tenors", "GIRR 0.25-30y, CSR 0.5-10y, COM 0-30y; vega option and GIRR underlying maturities 0.5, 1, 3, 5, 10y. GIRR INFLATION and XCCY vega: option maturity only.", _
         "Amounts", "Sensitivities as defined in MAR21.19-26 (for example GIRR: PV change for 1bp / 0.0001). Vega: vega x implied volatility. Curvature: CVR up and CVR down per risk factor; RefReportingCcy TRUE marks FX options that reference the reporting currency (MAR21.98).", _
         "DRC", "Signed notional and market value (negative for shorts), maturity in years (cash equity: 0.25 or at least 1, MAR22.16), bucket CORP, SOV or LGM, credit quality AAA ... DEFAULTED, seniority EQUITY, NON_SENIOR, SENIOR or COVERED."))

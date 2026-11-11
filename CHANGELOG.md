@@ -188,6 +188,13 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- Vega and curvature rows now reject the sub-types MAR21 does not define for
+  them, as the delta already did: GIRR curvature for `INFLATION` or `XCCY`
+  (MAR21.8), equity vega and curvature for `REPO` (MAR21.12), a CSR sub-type
+  other than `BOND` or `CDS`, and any FX sub-type, also in delta. Such rows
+  were added to the capital; they are now skipped and logged. The reference
+  applies the same rules, the README sheet lists the sub-types each input
+  accepts, and the sample results are unchanged (#245).
 - The label sync and drift summaries put names, colors, paths and API
   errors in code spans whose backtick fence outlasts any backtick in the
   value, and turn CR, LF and CRLF into spaces, so an API value can no longer
