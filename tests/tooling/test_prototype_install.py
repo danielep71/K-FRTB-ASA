@@ -10,6 +10,7 @@ import os
 import shutil
 import stat
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -28,7 +29,11 @@ def step_script() -> str:
     return str(next(step["run"] for step in steps if step.get("name") == STEP))
 
 
-@unittest.skipUnless(shutil.which("bash"), "bash is not installed")
+# The step runs on the Ubuntu runner: its script needs GNU timeout and GNU sed -i,
+# which macOS and other hosts lack, so the script runs only on Linux.
+LINUX_TOOLS = sys.platform.startswith("linux") and all(shutil.which(tool) for tool in ("bash", "timeout", "sed"))
+
+
 class MirrorFallbackTests(unittest.TestCase):
     def setUp(self) -> None:
         directory = tempfile.TemporaryDirectory()
@@ -57,6 +62,7 @@ class MirrorFallbackTests(unittest.TestCase):
         return subprocess.run(["bash", "-e", "-c", script], env=self.env, capture_output=True, text=True,
                               timeout=60, check=False)
 
+    @unittest.skipUnless(LINUX_TOOLS, "needs Linux with GNU timeout and sed")
     def test_a_working_mirror_installs_on_the_first_attempt(self) -> None:
         result = self.run_step("http://mirror.example/ubuntu/\tpriority:1\n")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -65,6 +71,7 @@ class MirrorFallbackTests(unittest.TestCase):
         self.assertTrue(calls[0].endswith(" update") and " install " in calls[1])
         self.assertNotIn("::warning::", result.stdout)
 
+    @unittest.skipUnless(LINUX_TOOLS, "needs Linux with GNU timeout and sed")
     def test_a_silent_azure_mirror_falls_back_to_archive_ubuntu_com(self) -> None:
         result = self.run_step(AZURE)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
