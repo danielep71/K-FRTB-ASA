@@ -356,6 +356,10 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- When a synchronization launcher of the unattended Excel check passes its
+  3-minute limit, the check ends the launcher's whole process tree and the
+  Excel it started through COM, and waits for them, instead of ending only
+  `cmd.exe`. An Excel opened by hand is never closed (#279).
 - The prototype checks no longer fail when the runner cannot reach the
   ubuntu.com package mirrors: the LibreOffice install tries the runner's
   mirror with short apt timeouts and its own limits, then installs again
