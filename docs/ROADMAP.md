@@ -19,7 +19,7 @@ keep the names in effect when they were written.
 | Milestone | Objective | Exit condition |
 | --- | --- | --- |
 | ✅ v0.1.0 — Repo setup | Repository foundations: governance, protections, CI, issue management and the release procedure | Required checks active and release procedure verified; analytics kept separate from the certification path. Closed October 18, 2026 |
-| 🧪 v0.2.0 — SA prototype | Consolidate the existing prototype: SBM for the five implemented risk classes, non-securitization DRC and RRAO | Excel build and run documented, sample reconciliation, source round trip verified and limits stated explicitly |
+| 🧪 v0.2.0 — ASA prototype | Consolidate the existing prototype: SBM for the five implemented risk classes, non-securitization DRC and RRAO | Excel build and run documented, sample reconciliation, source round trip verified and limits stated explicitly |
 | 📐 v0.3.0 — Regulatory baseline and certification scope | Fix exactly what will be certified: standard and version, any CRR profile, included products, exclusions and interpretations | Approved requirement → source → formula → parameter → test matrix; the methodology decisions the scope needs are resolved; the meaning of certification, the validator's role, the target platform and the supported Excel environments are recorded |
 | ⚙️ v0.4.0 — Calculation engine completion | Complete and correct the engine for the approved scope, progressively separating calculation from worksheet access | Every included requirement implemented with independently derived expected values, input/output contracts defined and no known calculation defect open |
 | 🗂️ v0.5.0 — Workbook and user workflow | Guided workbook use: inputs, parameters, default restore, run, diagnostics and results | Full flow verified in Excel; understandable errors, no stale results, safe application state and documented handling of confidential portfolio data |
@@ -58,7 +58,7 @@ The milestone closed without a tag or release. No main commit is both
 setup-only and complete, so the closed milestone and the closeout record are
 the setup baseline.
 
-## 🧪 v0.2.0 — SA prototype
+## 🧪 v0.2.0 — ASA prototype
 
 [Live milestone](https://github.com/danielep71/K-FRTB-ASA/milestone/2) ·
 [milestone guide](Milestones/v0.2.0.md) ·
