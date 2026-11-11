@@ -1,7 +1,7 @@
 # 📈 Repository traffic history
 
 [![Purpose: analytics](https://img.shields.io/badge/purpose-analytics-1D76DB)](../README.md)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](../LICENSE)
+[![License: MIT and MPL-2.0](https://img.shields.io/badge/license-MIT%20and%20MPL--2.0-blue)](licenses/THIRD_PARTY_NOTICES.txt)
 
 ## 🎯 What is collected
 

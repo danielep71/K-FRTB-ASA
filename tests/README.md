@@ -16,6 +16,7 @@ never copied from the VBA under test.
 | `test_template.py` | The committed template matches a fresh build and a build from it runs and reconciles |
 | `test_compare_vba_export.py` | Offline tests of `tools/compare_vba_export.py` on synthetic exports of the source at `HEAD`, and static checks of `tools/Export-FRTB-VBA.ps1` |
 | `test_excel_evidence.py` | Offline tests of `tools/check_excel_evidence.py` with synthetic bundles in a temporary Git repository, and the policy check |
+| `test_record_excel_run.py` | Offline tests of `tools/record_excel_run.py` with synthetic bundles: `host.json` follows the logs; never Excel evidence |
 | `test_sync_script.py` | Offline PowerShell 7 tests of `tools/Sync-FRTB-VBA.ps1` (module selection, name checks, CRLF conversion, module sets); skipped without `pwsh` |
 | `test_numeric_contract.py` | Headless LibreOffice runtime regressions for the numeric-text and parameter-table contracts and the empty state of the output sheets (#41, #45, #48, #85) |
 | `conftest.py` | Shared LibreOffice fixtures |

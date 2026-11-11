@@ -12,7 +12,7 @@ issues, must have:
 - Assignee `danielep71`.
 - Exactly one priority: `P1`, `P2` or `P3`.
 - The milestone that owns its work; current prototype and repository maintenance
-  belong to **v0.2.0 — SA prototype** (milestone 2, approved in #51).
+  belong to **v0.2.0 — SA prototype** (milestone 2, approved in #117).
   Historical setup issues retain the closed **v0.1.0 — Repo setup** milestone.
   An open issue's milestone must be open.
 - A target date, `YYYY-MM-DD`, no later than the milestone's due date: the
@@ -45,12 +45,12 @@ catalogue description of P1 states the same rule.
 | `enhancement` | New capability or meaningful improvement |
 | `documentation` | Documentation for users or for my repository maintenance |
 | `tests` | Test coverage, fixtures or manual validation |
-| `refactor` | Internal restructuring that preserves behavior |
+| `refactor` | Internal restructuring intended to preserve supported behavior |
 | `behavior-change` | Intentional externally observable behavior change |
-| `ci` | Automated checks, workflows or certification |
+| `ci` | Automated quality checks, workflow maintenance, or release certification |
 | `repository` | Structure, governance, metadata or tooling |
-| `release` | Release preparation, evidence or packaging |
-| `security` | Disclosed security work or supply-chain hardening |
+| `release` | Release preparation, certification, evidence, packaging, or publication |
+| `security` | Security boundary, vulnerability handling, supply chain, or hardening |
 | `blocked` | Work cannot proceed until a named dependency is resolved |
 | `question` | I need further information or need to make a decision |
 | `help wanted` | External contributions or investigation are welcome |

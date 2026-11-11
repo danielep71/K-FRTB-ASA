@@ -1,8 +1,10 @@
 # Roadmap
 
 This roadmap records the milestone plan approved on October 18, 2026,
-from the repository setup to the first certified release. Milestones carry no
-dates or release promises. Each milestone after v0.3.0 is created on GitHub
+from the repository setup to the first certified release. A milestone's due
+date on GitHub is a planning target, not a release promise; issue triage
+checks each issue's target date against it ([labels and triage](LABELS.md)).
+Each milestone after v0.3.0 is created on GitHub
 when its predecessor has fixed its scope, as [governance](GOVERNANCE.md)
 requires; the issue tracker is authoritative for current progress.
 

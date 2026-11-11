@@ -118,5 +118,8 @@ See the dedicated security and conduct policies for reporting and moderation.
 ## Rights and licenses
 
 Submit only material you have the right to contribute. This project and
-contributions to it use the [MIT License](LICENSE). Preserve applicable
+contributions to it use the [MIT License](LICENSE), except the files listed in
+[THIRD_PARTY_NOTICES.txt](docs/licenses/THIRD_PARTY_NOTICES.txt), which
+remain under the MPL-2.0; a contribution to one of them is made under the
+MPL-2.0. Preserve applicable
 copyright and permission notices when redistributing project material.
