@@ -251,7 +251,7 @@ def test_variant_run_logs_every_invalid_row(lo_variant_run):
     assert sum(s.startswith("In_Delta") for s in sources) == 7
     assert sum(s.startswith("In_DRC") for s in sources) == 7
     assert any("Cash equity maturity" in r[2] for r in errors)
-    flag_errors = sorted(r[1] for r in errors if "RefReportingCcy must be TRUE, FALSE or blank" in r[2])
+    flag_errors = sorted(r[1] for r in errors if "(RefReportingCcy) must be TRUE, FALSE or blank" in r[2])
     assert len(flag_errors) == 4 and all(s.startswith("In_Curvature") for s in flag_errors), flag_errors
     # BANK_B, split across CORP and SOV, is skipped; BANK_A takes its worst quality (#142)
     assert any("BANK_B has positions in several buckets" in r[2] for r in errors)
@@ -336,6 +336,53 @@ def test_girr_vega_inflation_and_xccy_reconcile(lo_default_run, lo_default_path,
     before, after = girr_vega(lo_default_run), girr_vega(result)
     assert set(after) == {"LOW", "MEDIUM", "HIGH"}
     assert all(after[s] != pytest.approx(before[s]) for s in after)
+
+UNDEFINED_SUB_TYPE_ROWS: dict[str, list[list[Any]]] = {
+    # Sub-types MAR21 does not define for these risk factors: each row is rejected (#245)
+    "In_Delta": [["D_FX", "FX", "USD", "", "SPOT", None, 1_000]],
+    "In_Vega": [["V_CSR", "CSR_NS", 1, "ISSUER_X", "LOAN", 1, None, 1_000],
+                ["V_EQ", "EQ", 8, "BANK_A", "REPO", 1, None, 1_000],
+                ["V_FX", "FX", "USD", "", "SPOT", 1, None, 1_000]],
+    "In_Curvature": [["C_GI", "GIRR", "EUR", "", "INFLATION", 1_000, 1_000, None],
+                     ["C_GX", "GIRR", "EUR", "", "XCCY", 1_000, 1_000, None],
+                     ["C_CSR", "CSR_NS", 1, "ISSUER_X", "LOAN", 1_000, 1_000, None],
+                     ["C_EQ", "EQ", 8, "BANK_A", "REPO", 1_000, 1_000, None],
+                     ["C_FX", "FX", "USD", "", "SPOT", 1_000, 1_000, None]],
+}
+
+
+def test_undefined_vega_and_curvature_sub_types_are_rejected(lo_default_run, lo_default_path, tmp_path):
+    wb = openpyxl.load_workbook(lo_default_path)
+    for sheet, rows in UNDEFINED_SUB_TYPE_ROWS.items():
+        ws = wb[sheet]
+        r = FIRST_DATA_ROW
+        while ws.cell(r, FIRST_COL).value not in (None, ""):
+            r += 1
+        for values in rows:
+            for c, v in enumerate(values, start=FIRST_COL):
+                ws.cell(r, c).value = v
+            r += 1
+    source = tmp_path / "sub-types-in.xlsx"
+    wb.save(source)
+    out = tmp_path / "sub-types-out.xlsx"
+    assert lo_runner.run(out, ["M_Main.RunFRTB_Silent"], input_book=source) == []
+    result = openpyxl.load_workbook(out, data_only=True)
+    assert reconcile(result) == []
+    errors = sorted(r[2] for r in log_rows(result, "ERROR"))
+    girr = ("GIRR curvature takes sub-type YIELD or none: inflation and cross-currency basis have no curvature; "
+            "row skipped")
+    assert errors == sorted(["FX takes no sub-type; row skipped"] * 3 + [girr] * 2 + [
+        "CSR vega sub-type must be BOND, CDS or none; row skipped",
+        "CSR curvature sub-type must be BOND, CDS or none; row skipped",
+        "Equity vega takes sub-type SPOT or none: repo rates have no vega; row skipped",
+        "Equity curvature takes sub-type SPOT or none: repo rates have no curvature; row skipped"]), errors
+    # every row is skipped: the results are those of the sample, with nine errors
+    def summary(book):
+        return {r[0]: r[1] for r in sheet_rows(book, "Out_Summary")}
+    after, before = summary(result), summary(lo_default_run)
+    assert after.pop("ERRORS") == 9 and before.pop("ERRORS") == 0
+    assert after == before
+
 
 # --------------------------------------------------------------------------
 # Empty inputs

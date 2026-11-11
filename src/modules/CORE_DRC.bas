@@ -86,7 +86,7 @@ Public Sub RunDRC()
     ReDim pRank(1 To MaxL(n, 1))
     ReDim pJtd(1 To MaxL(n, 1))
 
-    ' 1. Gross JTD per position (MAR22.9-22.13) and maturity scaling (MAR22.15-22.18)
+    ' 1. Gross JTD per position (MAR22.11-MAR22.13) and maturity scaling (MAR22.15-MAR22.18)
     j = 0
     For r = LAYOUT_FIRST_DATA_ROW To LAYOUT_FIRST_DATA_ROW + n - 1
         src = SH_IN_DRC & " row " & r

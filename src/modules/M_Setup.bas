@@ -430,7 +430,7 @@ End Sub
 Private Sub BuildReadme()
     Dim ws As Object, r As Long
     Set ws = GetSheet(SH_README)
-    ApplyFrame ws, "ReadMe", APP_TITLE & " (Basel MAR21-MAR23) in Excel VBA. Prototype " & APP_VERSION & _
+    ApplyFrame ws, "ReadMe", APP_TITLE & " (Basel MAR21-MAR23) in Excel VBA. Version " & APP_VERSION & _
         ": results are not validated for regulatory use.", 4
     SetWidths ws, Array(55, 150)
 
@@ -451,9 +451,9 @@ Private Sub BuildReadme()
         "Risk classes", "GIRR, CSR_NS (credit spread, non-securitization), EQ, COM, FX. CSR securitization and the correlation trading portfolio are not implemented and are rejected.", _
         "Buckets", "GIRR and FX: ISO currency code, one for all variants of a currency (KRW, not KRO). CSR_NS 1-18, EQ 1-13, COM 1-11 as in MAR21.51, MAR21.72 and MAR21.82 (see the P_* sheets).", _
         "Qualifier", "GIRR: curve name. CSR_NS and EQ: issuer or index. COM: commodity. FX: the currency.", _
-        "Sub-type", "GIRR: YIELD, INFLATION or XCCY. CSR_NS delta: BOND or CDS. EQ delta: SPOT or REPO. COM delta: delivery location.", _
+        "Sub-type", "GIRR: YIELD, INFLATION or XCCY; curvature YIELD only. CSR_NS: BOND or CDS. EQ: SPOT or REPO; vega and curvature SPOT only. COM: delivery location. FX: none.", _
         "Tenors", "GIRR 0.25-30y, CSR 0.5-10y, COM 0-30y; vega option and GIRR underlying maturities 0.5, 1, 3, 5, 10y. GIRR INFLATION and XCCY vega: option maturity only.", _
-        "Amounts", "Sensitivities as defined in MAR21.19-26 (for example GIRR: PV change for 1bp / 0.0001). Vega: vega x implied volatility. Curvature: CVR up and CVR down per risk factor; RefReportingCcy TRUE marks FX options that reference the reporting currency (MAR21.98).", _
+        "Amounts", "Sensitivities as defined in MAR21.19-26 (for example GIRR: PV change for 1bp / 0.0001). Vega: vega x implied volatility. Curvature: CVR up and CVR down per risk factor; References reporting ccy TRUE marks FX options that reference the reporting currency (MAR21.98).", _
         "DRC", "Signed notional and market value (negative for shorts), maturity in years (cash equity: 0.25 or at least 1, MAR22.16), bucket CORP, SOV or LGM, credit quality AAA ... DEFAULTED, seniority EQUITY, NON_SENIOR, SENIOR or COVERED."))
 
     r = r + 1
@@ -504,7 +504,7 @@ Private Sub BuildControl()
     PutRow ws, r, Array("REPORTING_CCY", "EUR", "Reporting currency; FX sensitivities are against this currency", "MAR21.14")
     PutRow ws, r + 1, Array("GIRR_SPECIFIED_CCY_DISCRETION", False, "TRUE: GIRR delta risk weights (tenor, inflation and cross-currency basis) divided by sqrt(2) for the specified currencies and the reporting currency", "MAR21.44")
     PutRow ws, r + 2, Array("FX_SPECIFIED_PAIR_DISCRETION", False, "TRUE: FX risk weight divided by sqrt(2) for specified pairs and their first-order crosses", "MAR21.88")
-    PutRow ws, r + 3, Array("FX_CURVATURE_DIVISOR", False, "TRUE: FX curvature CVRs divided by 1.5 for options that do not reference the reporting currency (In_Curvature RefReportingCcy not TRUE)", "MAR21.98")
+    PutRow ws, r + 3, Array("FX_CURVATURE_DIVISOR", False, "TRUE: FX curvature CVRs divided by 1.5 for options that do not reference the reporting currency (In_Curvature References reporting ccy not TRUE)", "MAR21.98")
     PutRow ws, r + 4, Array("FX_CURVATURE_DIVISOR_ALL", False, "TRUE: all FX curvature CVRs divided by 1.5; needs supervisory approval and curvature sensitivities for all currencies, including the reporting currency", "MAR21.98")
     FormatParamRows ws, r, r + 4, 4, 2, 2, ""
     On Error Resume Next
@@ -540,7 +540,7 @@ Private Sub BuildOutputSheets()
     WriteOutputPlaceholder ws
 
     Set ws = GetSheet(SH_OUT_CLASS)
-    ApplyFrame ws, "Out_RiskClass", "Capital per risk class, component and scenario; AltSbUsed = Y when the alternative Sb of MAR21.4(5)(b) applied.", 9
+    ApplyFrame ws, "Out_RiskClass", "Capital per risk class, component and scenario; Alternative Sb used = Y when the alternative Sb of MAR21.4(5)(b) applied.", 9
     SetWidths ws, Array(12, 13, 11, 16, 9, 11)
     WriteOutputPlaceholder ws
 

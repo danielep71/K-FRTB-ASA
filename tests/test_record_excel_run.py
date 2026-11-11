@@ -6,6 +6,10 @@ they test that host.json follows the logs, and are never Excel evidence.
 """
 
 import json
+import os
+import shutil
+import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -13,6 +17,9 @@ import check_excel_evidence as validator
 import record_excel_run as recorder
 from test_excel_evidence import compare_log, repo  # noqa: F401  (repo is a fixture)
 
+ROOT = Path(__file__).resolve().parents[1]
+RECORDER_SCRIPT = ROOT / "tools" / "Record-FRTB-ExcelRun.ps1"
+PWSH = os.environ.get("PWSH") or shutil.which("pwsh")
 WORKBOOK_DEV = "c" * 64
 WORKBOOK_PROD = "d" * 64
 REFERENCES = ("Visual Basic For Applications|Microsoft Excel 16.0 Object Library|OLE Automation|"
@@ -166,3 +173,59 @@ def test_a_later_session_line_replaces_an_earlier_one(tmp_path):
     (tmp_path / "session.log").write_text("COMPILE_PRODUCTION=FAIL\nnot a key line\nCOMPILE_PRODUCTION=PASS\n",
                                           encoding="utf-8")
     assert recorder.read_session(tmp_path) == {"COMPILE_PRODUCTION": "PASS"}
+
+
+def script_body(text):
+    """The lines of a PowerShell script outside its function definitions."""
+    body, inside = [], False
+    for line in text.splitlines():
+        if line.startswith("function "):
+            inside = True
+        elif inside and line == "}":
+            inside = False
+        elif not inside:
+            body.append(line)
+    return body
+
+
+def test_the_checks_before_recording_exit_2():
+    # An uncaught throw exits 1, which the launcher reports as a run recorded
+    # with findings. Every check before the bundle exists ends the run through
+    # Stop-NotRecorded with exit code 2, NOT RECORDED (#247).
+    text = RECORDER_SCRIPT.read_text(encoding="ascii")
+    stop = text.split("function Stop-NotRecorded {", 1)[1].split("\n}", 1)[0]
+    assert "exit 2" in stop
+    body = script_body(text)
+    start, end = body.index("try {"), body.index("} catch {")
+    assert body[end + 1].strip() == "Stop-NotRecorded $_.Exception.Message"
+    checks = body[start:end]
+    throws = [line.strip() for line in body if "throw " in line]
+    assert len(throws) == 3
+    assert throws == [line.strip() for line in checks if "throw " in line]
+    joined = "\n".join(checks)
+    assert joined.index("Get-Command $tool") < joined.index("git status --porcelain") \
+        < joined.index("Get-VbaProjectAccess") < joined.index("New-Item")
+    assert "Write-Session" not in joined
+    launcher = (ROOT / "tools" / "Record-FRTB-ExcelRun.cmd").read_text(encoding="ascii")
+    assert 'else if "%RC%"=="1" (\n    echo RECORDED WITH FINDINGS' in launcher.replace("\r\n", "\n")
+    assert "echo NOT RECORDED: the run stopped with exit code %RC%" in launcher
+
+
+@pytest.mark.skipif(not PWSH, reason="PowerShell 7 (pwsh) is not installed")
+def test_a_missing_tool_exits_2_and_records_nothing(tmp_path):
+    tools = tmp_path / "tools"
+    tools.mkdir()
+    shutil.copy(RECORDER_SCRIPT, tools)
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    completed = subprocess.run(
+        [str(PWSH), "-NoProfile", "-NonInteractive", "-File", str(tools / RECORDER_SCRIPT.name)],
+        env={**os.environ, "PATH": str(empty)},
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=False,
+    )
+    assert completed.returncode == 2, completed.stderr + completed.stdout
+    assert "ERROR: git was not found on PATH" in completed.stdout + completed.stderr
+    assert not (tmp_path / "test-results").exists()

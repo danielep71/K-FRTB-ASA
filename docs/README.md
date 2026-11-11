@@ -7,9 +7,9 @@ procedures. Keep root entry documents linked rather than copying them here.
 
 | Need | Document |
 | --- | --- |
-| Prototype formulas, parameters and open interpretations | [Methodology](methodology.md) |
+| Prototype formulas, parameters and decided interpretations | [Methodology](methodology.md) |
 | Prototype source, template, build, sheets and inputs | [Workbook guide](workbook-guide.md) |
-| Prototype checks and missing Excel evidence | [Validation](validation.md) |
+| Prototype checks and what is not validated | [Validation](validation.md) |
 | Recording and validating an Excel run | [Excel evidence](EXCEL_EVIDENCE.md) |
 | Documentation assets and sources | [Assets](assets/README.md) |
 | Universal integrity and dependency updates | [🧪 Repository checks](CI.md) |
@@ -28,6 +28,7 @@ procedures. Keep root entry documents linked rather than copying them here.
 | Versions, tags and release evidence | [Releasing](../RELEASING.md) |
 | Setup closeout evidence | [Setup closeout](evidence/2026-10-18-setup-closeout.md) |
 | Prototype evaluation before the Excel run | [Interim evaluation](evidence/2026-10-27-prototype-evaluation.md) |
+| First desktop Excel run, on `323260b` | [Excel run](evidence/2026-10-31-excel-run-323260b.md) |
 | Recorded changes | [Changelog](../CHANGELOG.md) |
 
 Durable evidence records live in [evidence](evidence/) and milestone guides in

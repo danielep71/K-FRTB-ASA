@@ -20,8 +20,9 @@ October 27, 2026, after the milestone renumbering, and it was created from
 `release/v0.1.0` (#117).
 
 **`release/v0.3.0`** is the integration branch for milestone 3, v0.3.0 —
-Regulatory baseline and certification scope, starting with the methodology
-decisions of #29. I approved it on October 28, 2026, and it was
+Regulatory baseline and certification scope. Its work includes the review,
+for the certified scope, of the methodology readings I decided under #29 on
+October 27, 2026. I approved the branch on October 28, 2026, and it was
 created from `69e3df35781fc2e8a13bb523059d596d9da08150`, then the head of
 both main and `release/v0.2.0` (#132). It runs alongside `release/v0.2.0`,
 which keeps the prototype closeout and repository maintenance; bring
@@ -50,7 +51,7 @@ setup baseline. Do not recreate or target the branch.
 | `release/v0.3.0` | Integration branch for milestone 3 work, approved October 28, 2026 (#132) |
 | `release/v0.1.0` | Superseded on October 27, 2026; receives no PRs; deleted under the lifecycle once milestone 2 is closed |
 | `main` | Stable default branch; receives an integration branch only through a separate explicitly requested PR |
-| Short-lived task branches | Branch from the integration branch of the issue's milestone; use focused names such as `feat/<issue>-<slug>`, `fix/<issue>-<slug>`, `docs/<issue>-<slug>` or `chore/<issue>-<slug>` |
+| Short-lived task branches | Branch from the integration branch of the issue's milestone; use focused names with one of the prefixes `feat/`, `fix/`, `docs/`, `chore/` or `test/`, such as `fix/<issue>-<slug>` |
 
 Current prototype and maintenance task PRs target **`release/v0.2.0`**,
 including Dependabot version updates. Milestone 3 task PRs target
@@ -118,12 +119,21 @@ if either branch moves, reassess the new work before proceeding. Never reset
 or force an update.
 
 Record the PR, merge commit, branch readback, and applicable post-merge checks.
-PR [#13](https://github.com/danielep71/K-FRTB-SA/pull/13) demonstrates this
-lifecycle: merge commit `c01f2ad6c71ea2d6f23eac2b5a07fcdd430456a4`
-preserved both parents and the retained release branch was fast-forwarded to
-it. [CodeQL passed](https://github.com/danielep71/K-FRTB-SA/actions/runs/39071612077).
-Later task PRs advance the release branch again; branches need match only at
-the integration checkpoint.
+PR [#242](https://github.com/danielep71/K-FRTB-SA/pull/242) shows the current
+procedure: it integrated `release/v0.2.0` into main with a merge commit, and
+PRs [#243](https://github.com/danielep71/K-FRTB-SA/pull/243) and
+[#244](https://github.com/danielep71/K-FRTB-SA/pull/244), from the task
+branches `chore/sync-release-v0.2.0-242` and `chore/sync-release-v0.3.0-242`,
+brought main back into `release/v0.2.0` and `release/v0.3.0` with merge
+commits that keep both parents. Later task PRs advance the release branches
+again; branches need match only at the integration checkpoint.
+
+Historical example, before the synchronization rule of #151: after PR
+[#13](https://github.com/danielep71/K-FRTB-SA/pull/13), merge commit
+`c01f2ad6c71ea2d6f23eac2b5a07fcdd430456a4` preserved both parents and the
+retained release branch was fast-forwarded to it.
+[CodeQL passed](https://github.com/danielep71/K-FRTB-SA/actions/runs/39071612077).
+Do not repeat that fast-forward.
 
 ## Issue metadata and completion
 
@@ -153,9 +163,11 @@ main head an ancestor; never use that merge to claim ancestry advancement.
 
 The bug form defaults to `bug` and `P2`; feature and documentation forms
 default to their type label and `P3`. All forms assign `danielep71`.
-Every form asks for the affected area, the validation evidence the change
-needs, and the dependency status in the form Issue triage checks: issue links,
-an `External condition:` line, or None. The bug form also asks for the full
+The bug and feature forms ask for the affected area, and the documentation
+form for the document and section. Every form asks for the validation
+evidence the change needs, and the dependency status in the form Issue triage
+checks: issue links, an `External condition:` line, or None. The bug form
+also asks for the full
 commit SHA, a sourced expected value and the host environment; the feature
 form asks for the compatibility impact. Forms cannot assign a milestone, so I
 select it and confirm exactly one priority before completing triage. P1 remains limited to confirmed
@@ -204,10 +216,13 @@ checklist; this document owns its detailed procedures.
 closed on October 18, 2026; its [detailed guide](Milestones/v0.0.1.md) and
 [closeout record](evidence/2026-10-18-setup-closeout.md) remain the setup
 baseline. [v0.2.0 — SA prototype](https://github.com/danielep71/K-FRTB-SA/milestone/2)
-is active: its [guide](Milestones/v0.2.0.md) and
-[interim evaluation](evidence/2026-10-27-prototype-evaluation.md) exist,
-prototype closeout is tracked in #32, and #28 owns Excel evidence. The methodology decisions (#29) belong to v0.3.0 in
-the [milestone plan](ROADMAP.md). The live issue tracker
+is active: its [guide](Milestones/v0.2.0.md),
+[interim evaluation](evidence/2026-10-27-prototype-evaluation.md) and
+[Excel run](evidence/2026-10-31-excel-run-323260b.md) exist, prototype
+closeout is tracked in #32, and #28 owns the remaining Excel checks, with
+#72, #85 and #206. The methodology readings of #29 are decided and
+implemented; v0.3.0 reviews them for the certified scope in the
+[milestone plan](ROADMAP.md). The live issue tracker
 owns progress; a guide is not a substitute for completed acceptance criteria.
 
 **Milestones contain issues only**, including closed milestones. PRs link to
@@ -248,7 +263,7 @@ re-reviewed only on request (`@codex review`).
 | PRs, merge methods, conversation resolution, shared-history and deletion protection | Active rulesets without bypass actors, recorded in the [settings](REPOSITORY_SETTINGS.md) and their [evidence](REPOSITORY_SETTINGS_EVIDENCE.md) |
 | Release-branch deletion protection | Separate active ruleset with no bypass actors; an obsolete branch is deleted only through the lifecycle procedure above (#66) |
 | Independent approval | No required approvals configured; my procedure must not claim that an independent review occurred |
-| Successful universal integrity check | Required `Repository integrity` check on main (strict) and release branches (#7, #2) |
+| Successful universal integrity check | Required `Repository integrity` check, strict on main and release branches (#7, #2) |
 | Review coverage for every PR | Automatic Codex review when a PR is opened, on main and release targets (#2); my review of later pushes |
 | Issue/PR assignee, priority, acceptance evidence; issue milestone | Manual triage and completion procedure; the read-only **Issue triage** workflow audits open issues ([labels](LABELS.md)) |
 | Label catalogue | Versioned `labels.json` (schema 2), validated on PRs; live reconciliation only from the default branch, never pruning a label still in use ([labels](LABELS.md)) |

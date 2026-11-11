@@ -46,7 +46,7 @@ PLANNING_DATE = re.compile(r"\*\*Target completion date:\*\*[ \t]*(\S*)", re.I)
 FORM_DATE_HEADING = "target end date"
 FORM_DATE_ID = "target_end_date"
 ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
-API = "https://api.github.com"
+DEFAULT_API = "https://api.github.com"
 
 
 @dataclass(frozen=True)
@@ -373,6 +373,13 @@ def flow_list(text: str, key: str) -> list[str]:
     return [item.strip().strip("\"'") for item in match.group(1).split(",") if item.strip()]
 
 
+def api_root(environment: Mapping[str, str] | None = None) -> str:
+    """Return the REST API root: GITHUB_API_URL in Actions (it differs on a
+    GitHub Enterprise host), else github.com. Trailing slashes are removed."""
+    configured = (os.environ if environment is None else environment).get("GITHUB_API_URL", "")
+    return configured.rstrip("/") or DEFAULT_API
+
+
 def fetch(url: str, token: str) -> Any:
     request = urllib.request.Request(url, headers={
         "Accept": "application/vnd.github+json",
@@ -401,8 +408,9 @@ def split(items: Iterable[Mapping[str, Any]]) -> Loaded:
 def load_live(repository: str, token: str) -> Loaded:
     """Fetch every issue and pull request (open and closed) of the repository."""
     items: list[Mapping[str, Any]] = []
+    root = api_root()
     for page in range(1, 101):
-        batch = fetch(f"{API}/repos/{repository}/issues?state=all&per_page=100&page={page}",
+        batch = fetch(f"{root}/repos/{repository}/issues?state=all&per_page=100&page={page}",
                       token)
         items += batch
         if len(batch) < 100:

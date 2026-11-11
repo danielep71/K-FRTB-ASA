@@ -16,10 +16,13 @@ version.
 No version has been tagged or published. v0.1.0, first named v0.0.1, is the
 **repository setup baseline**: labels, governance, settings, forms, CI and
 traffic analytics. It is not a working or regulatory-validated calculator.
-v0.2.0 is the Excel/VBA **SA prototype**; its LibreOffice evidence exists, but
-Excel host evidence (#28) and the Excel round trip (#30) remain open. Its open
-methodology interpretations are documented as limits; deciding them (#29)
-belongs to v0.3.0 under the [roadmap](docs/ROADMAP.md).
+v0.2.0 is the Excel/VBA **SA prototype**; its LibreOffice evidence exists,
+and one desktop Excel run, with both round trips, is recorded on `323260b`, on
+one host ([Excel run](docs/evidence/2026-10-31-excel-run-323260b.md)). The
+remaining manual Excel checks are in #28, #72, #85 and #206. I decided its six
+methodology interpretations (#29) on October 27, 2026, and they are
+implemented; they are not independently reviewed, and v0.3.0 reviews them for
+the certified scope under the [roadmap](docs/ROADMAP.md).
 
 The milestones were renumbered one step up on October 27, 2026, and the
 workbook reports the matching version `0.2.0-prototype` (#113). Dated records
@@ -120,7 +123,7 @@ tag was deferred on October 18, 2026.
 | Stage | Release contents | Evidence required before tagging |
 | --- | --- | --- |
 | Setup (v0.1.0) | Source tree only; no binaries or workbooks | Closeout issue with merged PRs, green `Repository integrity` and label-drift runs, live settings readback, fresh-checkout verification and metadata audit |
-| Prototype (v0.2.x) | Source tree and the committed macro-free template; no built `.xlsm` | Setup evidence, plus the LibreOffice reconciliation suite, Excel host build, compile and regression evidence (#28), the Excel round trip (#30) and the open methodology interpretations documented as limits (decided in v0.3.0, #29) |
+| Prototype (v0.2.x) | Source tree and the committed macro-free template; no built `.xlsm` | Setup evidence, plus the LibreOffice reconciliation suite, Excel host build, compile and regression evidence (#28), the Excel round trip (#30) and the methodology interpretations decided and documented (#29; reviewed for the certified scope in v0.3.0) |
 | Functional releases | Defined by the milestone that introduces them | Prototype evidence, plus independent benchmarks, the supported-host matrix and any packaging approved in [Scope](docs/SCOPE.md) |
 
 Evidence is bound to a commit: it names the PR or commit, commands, results,

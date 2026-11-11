@@ -5,7 +5,7 @@
 [![Status: prototype](https://img.shields.io/badge/status-prototype-D93F0B)](#interpretations-and-simplifications-to-review)
 
 This document is authoritative for **what K-FRTB-SA calculates**: the
-formulas, the default parameters and the interpretations still open. It
+formulas, the default parameters and the interpretations I decided (#29). It
 follows the Basel Framework chapters MAR21 (sensitivities-based method),
 MAR22 (default risk capital) and MAR23 (residual risk add-on), in force since
 1 January 2023. Paragraph references below point to those chapters.
@@ -60,6 +60,13 @@ deliverable and non-deliverable variants of a currency are one risk factor
 (MAR21.14(4) and its FAQ): enter KRW, not KRO, for every Korean won
 sensitivity.
 
+Vega and curvature take the delta sub-types that name the same risk factor:
+CSR `BOND` or `CDS` and equity `SPOT`, merged into one risk factor per name.
+Equity `REPO` has no vega or curvature (MAR21.12), GIRR `INFLATION` and
+`XCCY` have no curvature (MAR21.8), and FX takes no sub-type in any input;
+such rows are rejected and logged (#245). A commodity sub-type is the
+delivery location, free text.
+
 Vega risk factors are the underlying and the option maturity (0.5, 1, 3, 5,
 10y). GIRR vega has three sub-types (MAR21.8(4) and its FAQ4):
 
@@ -90,11 +97,12 @@ shocks (#29, item 6):
   `CVR_k- = -sum_i [V_i(x_k^(RW-)) - V_i(x_k) + RW_k * s_ik]`.
 - **Granularity.** One row per curvature risk factor, as defined above, net
   across instruments. For FX, use up to two rows per risk factor: one for the
-  options that reference the reporting currency, with `RefReportingCcy` TRUE,
+  options that reference the reporting currency, with `References reporting ccy` TRUE,
   and one for the others; the rows are netted after the divisor.
 - **FX divisor.** Enter FX CVRs before any division by 1.5: the workbook
   applies `FX_CURVATURE_DIVISOR` or `FX_CURVATURE_DIVISOR_ALL` itself.
-  `RefReportingCcy` accepts TRUE, FALSE or blank (FALSE), as a Boolean cell
+  `References reporting ccy` (engine key `RefReportingCcy`) accepts TRUE,
+  FALSE or blank (FALSE), as a Boolean cell
   or as text in any case; any other value rejects the row, including YES,
   NO, Y, N, 1 and 0.
 - **CSR floor.** When the downward shock would make a credit spread
@@ -123,7 +131,7 @@ Charge = sqrt( sum_b K_b^2 + sum_b sum_{c!=b} gamma_bc S_b S_c )
 If the cross-bucket radicand is negative, the alternative specification
 `S_b = max(min(sum WS_k, K_b), -K_b)` is used for every bucket
 (MAR21.4(5)(b)); `Out_Buckets` marks those rows `ALT_SB` and
-`Out_RiskClass` sets `AltSbUsed = Y`.
+`Out_RiskClass` shows `Y` under `Alternative Sb used`.
 
 The "other sector" buckets (CSR 16, equity 11) use `K_b = sum |WS_k|` and are
 added to the risk-class charge outside the square root, without
@@ -188,14 +196,14 @@ Table 13): 100% everywhere except 77.78% for equity large cap and indices.
 | --- | --- |
 | `GIRR_SPECIFIED_CCY_DISCRETION` | GIRR delta risk weights, including the inflation and cross-currency basis weights, divided by sqrt(2) for EUR, USD, GBP, AUD, JPY, SEK, CAD and the reporting currency (MAR21.44; #136) |
 | `FX_SPECIFIED_PAIR_DISCRETION` | FX risk weight divided by sqrt(2) for the specified pairs and their first-order crosses (MAR21.88, fn 23) |
-| `FX_CURVATURE_DIVISOR` | FX CVRs of options that do not reference the reporting currency (`RefReportingCcy` not TRUE on `In_Curvature`) divided by 1.5 (MAR21.98) |
+| `FX_CURVATURE_DIVISOR` | FX CVRs of options that do not reference the reporting currency (`References reporting ccy` not TRUE on `In_Curvature`) divided by 1.5 (MAR21.98) |
 | `FX_CURVATURE_DIVISOR_ALL` | All FX CVRs divided by 1.5: the MAR21.98 alternative that needs supervisory approval and curvature sensitivities for all currencies, including shocks to the reporting currency; it overrides `FX_CURVATURE_DIVISOR` |
 
 ## 💳 Default risk capital, non-securitizations (MAR22)
 
 1. Gross jump-to-default per position: `JTD = LGD x notional + (market value - notional)`,
    floored at zero for longs and capped at zero for shorts (signed amounts;
-   MAR22.11-13). LGD defaults by seniority: equity and non-senior 100%,
+   MAR22.11-MAR22.13). LGD defaults by seniority: equity and non-senior 100%,
    senior 75%, covered bonds 25% (MAR22.12); a per-row LGD overrides it.
 2. Maturity scaling: `min(max(M, 0.25), 1)` (MAR22.15-18). Cash equity
    (`EQUITY` seniority) takes a maturity of three months or at least one

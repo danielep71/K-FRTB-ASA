@@ -9,8 +9,11 @@ Main and release/v0.2.0 contain the setup controls, Excel/VBA prototype,
 committed macro-free template and independent Python reference.
 The setup branch release/v0.0.1 was deleted after the closeout; its history
 is on main. No functional release or regulatory certification has been
-published. The prototype has run in LibreOffice Calc VBA-compatibility mode;
-desktop Excel build, compilation, execution and export evidence remain #28.
+published. The prototype has run in LibreOffice Calc VBA-compatibility mode,
+and one desktop Excel run is recorded on `323260b`, on one host
+([Excel run](evidence/2026-10-31-excel-run-323260b.md)): both builds, both
+compilations, the regression test and both round trips. The remaining manual
+Excel checks are in #28, #72, #85 and #206.
 
 The intended outcome is transparent, testable market risk calculation for
 practitioners, developers, validators, researchers and educators.
@@ -20,9 +23,9 @@ practitioners, developers, validators, researchers and educators.
 | Workstream | Implemented prototype scope | Remaining boundary |
 | --- | --- | --- |
 | SBM | GIRR, CSR non-securitization, equity, commodity and FX; delta, vega, curvature; three correlation scenarios | CSR securitization and CTP excluded; sensitivities/CVRs are inputs, not priced here |
-| DRC | Non-securitization JTD, maturity scaling, seniority netting and bucket aggregation | Securitization DRC excluded; open input/interpretation decisions in #29 |
+| DRC | Non-securitization JTD, maturity scaling, seniority netting and bucket aggregation | Securitization DRC out of scope: `In_DRC` cannot identify one, so it must not be entered; the DRC readings of #29 are decided and implemented (#134, #142) |
 | RRAO | Gross notional with exotic/other residual-risk weights | Eligibility remains an input contract, not an instrument classifier |
-| Validation | Independently derived Python reference, hand-calculated cases and LibreOffice reconciliation | Excel evidence, remaining methodology decisions and production-scale performance are not established |
+| Validation | Independently derived Python reference, hand-calculated cases, LibreOffice reconciliation and one desktop Excel run on `323260b` | Excel checks beyond that run (#28, #72, #85, #206), an independent review of the #29 readings (v0.3.0) and production-scale performance are not established |
 
 Coverage and data contracts are detailed in [methodology](methodology.md),
 [workbook guide](workbook-guide.md) and [validation](validation.md). Each
@@ -37,17 +40,17 @@ remains open.** The approved layout places a committed macro-free template under
 src/workbook and production/workbook modules under src/modules (#30/#34).
 This is no approval of production support, an Excel-certified host matrix or
 public workbook distribution. Windows desktop Excel/PowerShell is the target
-build path; its evidence is still pending. LibreOffice execution is a
-distinct compatibility runtime.
+build path; one run of it is recorded on `323260b`, on one host. LibreOffice
+execution is a distinct compatibility runtime.
 
 | Decision or evidence | Current record and remaining work |
 | --- | --- |
 | Long-term engine language/runtime and supported platforms | Explicit architecture decision informed by prototype evaluation (#32) |
 | Basel baseline and initial jurisdiction profile | Basel MAR21-MAR23 prototype baseline in methodology; no jurisdiction profile selected |
-| Initial products/risk classes | Prototype coverage above; excluded classes rejected |
-| Inputs, units, signs, identifiers and outputs | Workbook guide and methodology; remaining interpretations in #29 |
+| Initial products/risk classes | Prototype coverage above; CSR securitization rows rejected, securitization DRC out of scope and not identifiable on `In_DRC` |
+| Inputs, units, signs, identifiers and outputs | Workbook guide and methodology; the #29 interpretations are decided and implemented, and v0.3.0 reviews them for the certified scope |
 | Expected-value provenance/tolerances | Independent Python reference, hand-calculated cases and validation record |
-| Host execution/export and release packaging | Excel #28, round trip #30, setup release procedure #8 and prototype closeout #32 |
+| Host execution/export and release packaging | Excel run recorded on `323260b` (#28; round trip #30 closed), remaining checks in #28, #72, #85 and #206, setup release procedure #8 and prototype closeout #32 |
 
 Maintenance tooling uses Node built-ins and Python with a pinned CI parser;
 the prototype test environment has its own packages. These are documented in
@@ -103,6 +106,7 @@ respected.
 
 The prototype is an evaluation tool and supports no regulatory
 reporting or production capital determination. Internal-model calculations,
-pricing engines, live market-data ingestion, regulatory reporting templates,
-and website publication are outside the approved prototype scope. Additional
+pricing engines, live market-data ingestion and regulatory reporting templates
+are outside the approved prototype scope. The [project website](WEBSITE.md)
+describes the project; it does not run the engine. Additional
 capabilities require their own explicit scope and validation work.
