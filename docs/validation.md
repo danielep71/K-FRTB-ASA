@@ -85,9 +85,10 @@ macros and saves the result as `.xlsx`.
   * the build's Trust Center error path;
   * `Dev_ExportModules`;
   * the changes after `323260b`: the frozen panes and `Control` column
-    widths (#203), the GIRR inflation and cross-currency basis vega, an
-    engine change (#209), and the input contract texts on the `README` sheet
-    (#210).
+    widths (#203), two engine changes, the GIRR inflation and cross-currency
+    basis vega (#209) and the rejection of undefined vega and curvature
+    sub-types (#245), and the input contract and sub-type texts on the
+    `README` sheet (#210, #245).
 * **Regulatory correctness.** The reference and the VBA share the same
   reading of MAR21-MAR23, so their agreement does not prove that reading is
   right. The [BIS check](methodology.md#bis-check), the hand-calculated
