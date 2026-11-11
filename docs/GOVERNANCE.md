@@ -153,11 +153,11 @@ forms of evidence; do not claim one establishes the others.
 ### Synchronizing integration branches
 
 Bring shared main changes into another active release through a task branch
-and reviewed task PR. Resolve shared documents against both source heads,
-preserving current requirements and replacing superseded statements. Record
-both heads, the resulting commit and a content comparison. A squash merge
-preserves the release's existing history but does not make the synchronized
-main head an ancestor; never use that merge to claim ancestry advancement.
+and a reviewed PR merged with a merge commit, never squashed. Resolve shared
+documents against both source heads, preserving current requirements and
+replacing superseded statements. Record both heads, the resulting commit and
+a content comparison. A squash merge would not make the synchronized main
+head an ancestor of the release branch.
 
 ### Issue forms and template activation
 
@@ -254,9 +254,9 @@ version convention (#8).
 security-feature history and limitations. PRs and resolved
 conversations are required; main allows merge commits; release branches allow
 squash task merges and merge-commit synchronization PRs. No bypass actors exist. Required approvals are zero. The universal integrity workflow
-(#7) is a required check on main and release branches (#2). The ChatGPT Codex
-Connector reviews every PR automatically when it is opened; later pushes are
-re-reviewed only on request (`@codex review`).
+(#7) is a required check on main and release branches (#2). An automated
+review app reviews every PR when it is opened; later pushes are re-reviewed
+only on request.
 
 | Requirement | Enforcement or working procedure |
 | --- | --- |
@@ -264,7 +264,7 @@ re-reviewed only on request (`@codex review`).
 | Release-branch deletion protection | Separate active ruleset with no bypass actors; an obsolete branch is deleted only through the lifecycle procedure above (#66) |
 | Independent approval | No required approvals configured; my procedure must not claim that an independent review occurred |
 | Successful universal integrity check | Required `Repository integrity` check, strict on main and release branches (#7, #2) |
-| Review coverage for every PR | Automatic Codex review when a PR is opened, on main and release targets (#2); my review of later pushes |
+| Review coverage for every PR | Automatic review when a PR is opened, on main and release targets (#2); my review of later pushes |
 | Issue/PR assignee, priority, acceptance evidence; issue milestone | Manual triage and completion procedure; the read-only **Issue triage** workflow audits open issues ([labels](LABELS.md)) |
 | Label catalogue | Versioned `labels.json` (schema 2), validated on PRs; live reconciliation only from the default branch, never pruning a label still in use ([labels](LABELS.md)) |
 | No milestone on any PR | Trusted metadata workflow on PR events, daily reconciliation and manual dispatch; Dependabot configuration is checked offline (#104) |
@@ -273,7 +273,7 @@ re-reviewed only on request (`@codex review`).
 Issue #6 recorded initial default-branch activation of forms and the PR
 template; later changes follow the same activation procedure. [Conduct](../CODE_OF_CONDUCT.md) and [security](../SECURITY.md)
 policies define the reporting routes.
-Dependabot targets Actions, the CI parser and prototype test packages at
+Dependabot targets Actions, the CI parser and quality tools, and the prototype test packages at
 `release/v0.2.0` without PR milestones, as detailed in [Repository checks](CI.md).
 Issue #8 completed the setup closeout; its record is
 [Setup closeout](evidence/2026-10-18-setup-closeout.md).

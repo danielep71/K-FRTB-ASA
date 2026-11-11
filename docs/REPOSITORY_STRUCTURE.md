@@ -15,11 +15,13 @@ The layout separates source, tests, documentation, and tools while distinguishin
 | `tests/` | Verification source: independent Python reference, reconciliation and tooling tests |
 | `tests/modules/` | VBA test modules imported into development builds (`TEST_*`) |
 | `docs/` | Authoritative versioned scope, governance, structure, methodology, validation, and milestone documentation |
-| `docs/assets/` | Documentation images and their sources; `market-risk/` holds the market risk and CVA method maps |
+| `docs/assets/` | Documentation images and their sources: the social preview, `market-risk/` with the market risk and CVA method maps, and `screenshots/` from the recorded Excel run |
 | `docs/evidence/` | Dated, sanitized evidence records bound to reviewed commits |
 | `docs/Milestones/` | Detailed milestone guides |
-| `tools/` | Tooling index; prototype build and template generation, VBA synchronization into an existing workbook and their `.cmd` launchers, read-only VBA export and source comparison, LibreOffice runner, VBA lint, expected-value generator, Excel run recorder and evidence validator, repository, issue and external-link checks, traffic history merge and publication, and diagram generator; label tooling remains in `.github/scripts/` |
+| `docs/licenses/` | Third-party license notices |
+| `tools/` | Tooling index; prototype build and template generation, VBA synchronization into an existing workbook and their `.cmd` launchers, read-only VBA export and source comparison, LibreOffice runner, VBA lint, expected-value generator, Excel run recorder and evidence validator, unattended Excel check with its acceptance-data generator and template comparison, repository, issue and external-link checks, traffic history merge and publication, and diagram generator; label tooling remains in `.github/scripts/` |
 | `.github/` | Labels, forms, universal maintenance/analytics workflows, prototype checks, dependency updates and the Excel evidence policy |
+| `index.html`, `assets/`, `.nojekyll` | Project website, published by GitHub Pages ([website](WEBSITE.md)) |
 | Root | Entry documentation, licenses, contribution/setup guidance, and repository-control files |
 
 Each new root has a purposeful README. Add further subdirectories with their
