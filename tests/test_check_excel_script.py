@@ -95,6 +95,20 @@ def test_the_script_never_pushes_and_keeps_its_excel_to_itself():
     assert stages and body.count("Assert-TimeLeft") == len(stages)
 
 
+def test_a_timed_out_launcher_is_stopped_with_its_processes():
+    text = script_text()
+    stop = text.split("function Stop-TimedOutLauncher {", 1)[1].split("\n}", 1)[0]
+    # the whole tree first, then only automation Excel started since the launcher began
+    assert stop.index("taskkill.exe /PID $Process.Id /T /F") < stop.index("Get-AutomationExcelIds")
+    assert "$ExcelBefore -notcontains $_" in stop and "Wait-Process" in stop
+    automation = text.split("function Get-AutomationExcelIds {", 1)[1].split("\n}", 1)[0]
+    assert "[/-]automation" in automation
+    loop = text.split("Write-Host '== Synchronization launchers'", 1)[1].split("} catch {", 1)[0]
+    assert loop.index("$excelBeforeLauncher = Get-AutomationExcelIds") < loop.index("Start-Process")
+    assert "Stop-TimedOutLauncher $process $excelBeforeLauncher" in loop
+    assert "$process.Kill()" not in loop
+
+
 def test_each_launcher_is_judged_by_its_own_success_line():
     text = script_text()
     for launcher in ("Sync-FRTB-VBA.cmd", "Sync-FRTB-VBA-Downloads.cmd"):

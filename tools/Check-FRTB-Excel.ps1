@@ -228,6 +228,29 @@ function Test-ProjectCompiles {
     return -not [bool](Get-ComProperty $control 'Enabled')
 }
 
+function Get-AutomationExcelIds {
+    # The process IDs of the Excel instances started through COM, which have
+    # /automation on their command line; an Excel opened by hand has not
+    @(Get-CimInstance -ClassName Win32_Process -Filter "Name = 'EXCEL.EXE'" -ErrorAction SilentlyContinue |
+        Where-Object { [string]$_.CommandLine -match '(?i)[/-]automation\b' } |
+        ForEach-Object { [int]$_.ProcessId })
+}
+
+function Stop-TimedOutLauncher {
+    # A launcher past its limit: end its whole process tree (cmd.exe, the
+    # powershell.exe it runs) and the Excel instances started by automation
+    # since the launcher began, then wait for them to go (#279). An Excel
+    # opened by hand, or running before the launcher, is never touched
+    param($Process, [int[]]$ExcelBefore)
+    # taskkill reports a tree that already ended on standard error: not an error here
+    $ErrorActionPreference = 'Continue'
+    & taskkill.exe /PID $Process.Id /T /F 2>&1 | Out-Null
+    $stray = @(Get-AutomationExcelIds | Where-Object { $ExcelBefore -notcontains $_ })
+    foreach ($id in $stray) { Stop-Process -Id $id -Force -ErrorAction SilentlyContinue }
+    try { [void]$Process.WaitForExit(30000) } catch { }
+    foreach ($id in $stray) { Wait-Process -Id $id -Timeout 30 -ErrorAction SilentlyContinue }
+}
+
 function Assert-TimeLeft {
     # No stage starts after the time limit: the watchdog closes the Excel
     # instances still running, and the stages left are reported as not run
@@ -550,11 +573,12 @@ try {
         # cmd /c drops the outer quotes of its command line, so the launcher
         # and the workbook keep theirs
         $command = "`"`"$(Join-Path $repoRoot "tools\$($launcher.Name)")`" `"$copy`"`""
+        $excelBeforeLauncher = Get-AutomationExcelIds
         $process = Start-Process -FilePath 'cmd.exe' -PassThru -NoNewWindow -ArgumentList @('/c', $command) `
                                  -RedirectStandardInput $answers -RedirectStandardOutput $logFile
         if (-not $process.WaitForExit(180000)) {
-            try { $process.Kill() } catch { }
-            Add-Result "LAUNCHER_$($launcher.Name)" 'FAIL' 'no answer after 3 minutes'
+            Stop-TimedOutLauncher $process $excelBeforeLauncher
+            Add-Result "LAUNCHER_$($launcher.Name)" 'FAIL' 'no answer after 3 minutes; its processes were stopped'
             continue
         }
         $succeeded = Select-String -Path $logFile -Pattern $launcher.Success -SimpleMatch -Quiet
