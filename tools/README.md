@@ -5,7 +5,7 @@ prototype, milestone v0.2.0 (issue #20). None of them holds calculation logic.
 
 | Tool | Purpose |
 | --- | --- |
-| `Build-Workbook.ps1` | Builds `dist\K-FRTB-SA.xlsm` from the template and the VBA modules through Excel COM on Windows (`-FromSource` without the template; `-Template` saves a source-built template) |
+| `Build-Workbook.ps1` | Builds `dist\K-FRTB-ASA.xlsm` from the template and the VBA modules through Excel COM on Windows (`-FromSource` without the template; `-Template` saves a source-built template) |
 | `Build-Workbook.cmd` | Double-click launcher for `Build-Workbook.ps1`: asks for a production or development build and whether to overwrite |
 | `Sync-FRTB-VBA.ps1` | Replaces the standard modules of an existing `.xlsm` through Excel COM, from the checkout (`-Mode Production` or `Development`) or from a folder (`-SourceDir`), with a safety copy; never writes cells or sheets |
 | `Sync-FRTB-VBA.cmd`, `Sync-FRTB-VBA-Downloads.cmd` | Drag-and-drop launchers for `Sync-FRTB-VBA.ps1`: from the checkout, or from a folder that defaults to `%USERPROFILE%\Downloads` |

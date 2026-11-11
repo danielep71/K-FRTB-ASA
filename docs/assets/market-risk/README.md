@@ -13,7 +13,7 @@ prototype implements, certify calculations or decide regulatory eligibility.
 | [Where CVA risk fits](CVA_uses.png) | Covered transactions, the BA-CVA and SA-CVA routes, the MAR50.8 carve-out and the MAR50.9 alternative |
 | [How CVA capital aggregates](CVA_aggregation.png) | BA-CVA, reduced and full, and SA-CVA (delta and vega only), each applied to its own netting sets |
 
-The K-FRTB-SA prototype covers a subset of the FRTB-SA framework that the
+The K-FRTB-ASA prototype covers a subset of the FRTB-SA framework that the
 diagrams show. See the [scope](../../SCOPE.md) and the
 [methodology](../../methodology.md).
 

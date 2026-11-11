@@ -58,7 +58,7 @@ class ExternalLinkTests(unittest.TestCase):
             subprocess.run(["git", "init", "-q", str(root)], check=True)
             (root / "a.md").write_text(
                 "[One](https://example.com/page#part) [Again](https://example.com/page)\n"
-                "[Own](https://github.com/danielep71/K-FRTB-SA/issues/1) [Local](docs/b.md)\n"
+                "[Own](https://github.com/danielep71/K-FRTB-ASA/issues/1) [Local](docs/b.md)\n"
                 "```\n[Fenced](https://example.org/hidden)\n```\n[Other](http://example.net/x)\n")
             subprocess.run(["git", "-C", str(root), "add", "a.md"], check=True)
             self.assertEqual(links.external_links(root), ["http://example.net/x", "https://example.com/page"])

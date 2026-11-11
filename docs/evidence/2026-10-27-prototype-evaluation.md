@@ -1,7 +1,7 @@
 # 🧪 v0.2.0 prototype evaluation — interim
 
 Interim evaluation for issue #32 and the
-[v0.2.0 — SA prototype](https://github.com/danielep71/K-FRTB-SA/milestone/2)
+[v0.2.0 — SA prototype](https://github.com/danielep71/K-FRTB-ASA/milestone/2)
 milestone. Readback on October 27, 2026 (Europe/Rome), at main and
 `release/v0.2.0` = `46ae2286af2657fb4d5f373894f8dce64c41fb59`, after
 integration #128.
@@ -31,7 +31,7 @@ values the regression test embeds, derived from the independent reference.
 | Kind | Result at this readback |
 | --- | --- |
 | Static checks | `tools/vba_lint.py`: 11 modules, 0 problems. `tools/check_repository.py` passes with 20 maintenance tests |
-| Runtime, LibreOffice | `REQUIRE_LIBREOFFICE=1 pytest` with PowerShell 7.4.6: 188 passed, 29 subtests, on `46ae228` plus this record's documentation changes. Hosted [prototype checks](https://github.com/danielep71/K-FRTB-SA/actions/runs/40480769720/job/122113987719) passed on the tree of this readback, in the re-run of #128 |
+| Runtime, LibreOffice | `REQUIRE_LIBREOFFICE=1 pytest` with PowerShell 7.4.6: 188 passed, 29 subtests, on `46ae228` plus this record's documentation changes. Hosted [prototype checks](https://github.com/danielep71/K-FRTB-ASA/actions/runs/40480769720/job/122113987719) passed on the tree of this readback, in the re-run of #128 |
 | Independent numerical comparison | The Python reference (`tests/frtb_reference.py`) reproduces every output of the VBA run in LibreOffice, on the sample and on a variant with every discretion on and invalid rows; hand-calculated tests cover the formulas |
 | Methodology review | Parameters checked against the BIS text; six interpretations remain open (#29) |
 | Runtime, Excel | **None.** No build, compile, run, export or sync has been executed in desktop Excel (#28) |

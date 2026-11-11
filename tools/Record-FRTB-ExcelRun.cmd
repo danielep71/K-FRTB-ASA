@@ -12,7 +12,7 @@ if not exist "%SCRIPT%" (
     pause
     exit /b 1
 )
-echo K-FRTB-SA Excel run
+echo K-FRTB-ASA Excel run
 echo Repository: %CD%
 echo.
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT%"
