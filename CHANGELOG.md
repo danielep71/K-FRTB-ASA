@@ -341,6 +341,10 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- The prototype checks no longer fail when the runner's Azure package mirror
+  stops answering: the LibreOffice install tries it with short apt timeouts
+  and its own limits, then installs again from `archive.ubuntu.com` with a
+  warning. The step limit is 12 minutes and the job limit 25 (#263).
 - The Excel run recorder exits 2 when Git or Python is missing, the checkout
   has local changes or the VBA project access is off, so the launcher
   reports NOT RECORDED instead of RECORDED WITH FINDINGS. It checks the VBA

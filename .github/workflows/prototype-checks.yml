@@ -38,7 +38,7 @@ jobs:
   checks:
     name: VBA lint, reference tests and LibreOffice reconciliation
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 25
     permissions:
       contents: read
 
@@ -49,11 +49,26 @@ jobs:
           persist-credentials: false
 
       # A hung package mirror fails here instead of using the whole job limit.
+      # The runner's Azure package mirror sometimes stops answering, and apt
+      # then waits on every package (#263): the first attempt has short apt
+      # timeouts and its own limit; if it fails, the step installs again from
+      # archive.ubuntu.com. The step limit still bounds both (#124).
       - name: Install LibreOffice Calc and the Python UNO bridge
-        timeout-minutes: 8
+        timeout-minutes: 12
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libreoffice-calc python3-uno
+          apt_options=(-o Acquire::Retries=2 -o Acquire::http::Timeout=15)
+          packages=(libreoffice-calc python3-uno)
+          if ! { sudo timeout 120 apt-get "${apt_options[@]}" update &&
+                 sudo timeout 300 apt-get "${apt_options[@]}" install -y --no-install-recommends "${packages[@]}"; }; then
+            echo "::warning::The runner's package mirror did not answer; installing from archive.ubuntu.com"
+            for list in /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d/*; do
+              if [ -f "$list" ]; then
+                sudo sed -i 's#azure\.archive\.ubuntu\.com#archive.ubuntu.com#g' "$list"
+              fi
+            done
+            sudo apt-get "${apt_options[@]}" update
+            sudo apt-get "${apt_options[@]}" install -y --no-install-recommends "${packages[@]}"
+          fi
 
       # The OS Python, because python3-uno is built for it. --ignore-installed
       # installs every package from its hashed wheel even when the OS has one.
