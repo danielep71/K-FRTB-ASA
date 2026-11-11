@@ -5,7 +5,7 @@
 [![Status: prototype](https://img.shields.io/badge/status-prototype-D93F0B)](#interpretations-and-simplifications-to-review)
 
 This document is authoritative for **what K-FRTB-SA calculates**: the
-formulas, the default parameters and the interpretations still open. It
+formulas, the default parameters and the interpretations I decided (#29). It
 follows the Basel Framework chapters MAR21 (sensitivities-based method),
 MAR22 (default risk capital) and MAR23 (residual risk add-on), in force since
 1 January 2023. Paragraph references below point to those chapters.

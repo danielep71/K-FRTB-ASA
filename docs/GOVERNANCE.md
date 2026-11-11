@@ -20,8 +20,9 @@ October 27, 2026, after the milestone renumbering, and it was created from
 `release/v0.1.0` (#117).
 
 **`release/v0.3.0`** is the integration branch for milestone 3, v0.3.0 —
-Regulatory baseline and certification scope, starting with the methodology
-decisions of #29. I approved it on October 28, 2026, and it was
+Regulatory baseline and certification scope. Its work includes the review,
+for the certified scope, of the methodology readings I decided under #29 on
+October 27, 2026. I approved the branch on October 28, 2026, and it was
 created from `69e3df35781fc2e8a13bb523059d596d9da08150`, then the head of
 both main and `release/v0.2.0` (#132). It runs alongside `release/v0.2.0`,
 which keeps the prototype closeout and repository maintenance; bring
@@ -204,10 +205,13 @@ checklist; this document owns its detailed procedures.
 closed on October 18, 2026; its [detailed guide](Milestones/v0.0.1.md) and
 [closeout record](evidence/2026-10-18-setup-closeout.md) remain the setup
 baseline. [v0.2.0 — SA prototype](https://github.com/danielep71/K-FRTB-SA/milestone/2)
-is active: its [guide](Milestones/v0.2.0.md) and
-[interim evaluation](evidence/2026-10-27-prototype-evaluation.md) exist,
-prototype closeout is tracked in #32, and #28 owns Excel evidence. The methodology decisions (#29) belong to v0.3.0 in
-the [milestone plan](ROADMAP.md). The live issue tracker
+is active: its [guide](Milestones/v0.2.0.md),
+[interim evaluation](evidence/2026-10-27-prototype-evaluation.md) and
+[Excel run](evidence/2026-10-31-excel-run-323260b.md) exist, prototype
+closeout is tracked in #32, and #28 owns the remaining Excel checks, with
+#72, #85 and #206. The methodology readings of #29 are decided and
+implemented; v0.3.0 reviews them for the certified scope in the
+[milestone plan](ROADMAP.md). The live issue tracker
 owns progress; a guide is not a substitute for completed acceptance criteria.
 
 **Milestones contain issues only**, including closed milestones. PRs link to
