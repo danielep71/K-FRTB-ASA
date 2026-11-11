@@ -117,8 +117,10 @@ requirements apply:
    Independently specified numeric expectations remain a separate requirement.
 
 The prototype has source export/build helpers and a LibreOffice runtime gate.
-Excel host compilation, execution and the source round trip remain unverified
-in #28/#30; those gaps must stay visible.
+One desktop Excel run on `323260b` recorded the builds, compilation,
+regression test and both source round trips on one host
+([Excel run](evidence/2026-10-31-excel-run-323260b.md)). The remaining manual
+Excel checks are in #28, #72, #85 and #206; those gaps must stay visible.
 
 **Prototype implementation (issues #20, #30).** Exported modules live in
 `src/modules` and `tests/modules`; the committed template at the approved
@@ -126,7 +128,8 @@ path is generated from them by `tools/build_template.py` (LibreOffice) or
 `tools/Build-Workbook.ps1 -Template` (Excel), and `tests/test_template.py`
 checks that it matches a fresh build and carries no VBA project, controls or
 personal properties. Excel builds start from the template and
-`M_Setup.FinishWorkbook` adds the buttons and window settings. Remaining gap:
-the only runtime executed so far is LibreOffice Calc in VBA-compatibility
-mode, which is not Excel host evidence (#28); the Excel round trip and its
-digests belong to #28 and #30. See [validation](validation.md).
+`M_Setup.FinishWorkbook` adds the buttons and window settings. The automated
+checks run LibreOffice Calc in VBA-compatibility mode, which is not Excel host
+evidence; one desktop Excel run, with both round trips and their digests, is
+recorded on `323260b` (#28, #30), and a change after that commit needs a new
+run. See [validation](validation.md).

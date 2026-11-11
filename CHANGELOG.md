@@ -7,6 +7,17 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The README, scope, structure, releasing, contributing, validation,
+  methodology, roadmap, governance, CI, milestone and documentation-index
+  pages and the website state the current status: one desktop Excel run is
+  recorded on `323260b`, on one host, with the remaining manual checks in
+  #28, #72, #85 and #206; the six #29 interpretations are decided and
+  implemented, not independently reviewed, and reviewed for the certified
+  scope in v0.3.0. The validation record lists #203, #209 and #210 as
+  changes no Excel run has seen and says that the reconciliation variant
+  enables three discretions, with `FX_CURVATURE_DIVISOR_ALL` in a separate
+  run; the README says that securitization DRC must not be entered, since
+  `In_DRC` cannot identify one. Dated records are unchanged (#248).
 - Prepared a reviewed wiki update for the first recorded desktop Excel run,
   with its exact candidate, one-host scope and remaining manual checks. The
   patch is under `docs/wiki-updates/`; wiki publication remains separate
@@ -532,6 +543,6 @@ Unreleased describe integrated work, not a published version.
 - Documentation uses the correct display name FRTB-SA while retaining the
   existing MKT-FTRB-SA repository identifier and URLs (#3).
 
-No functional release has been published. Prototype LibreOffice results and
-independent reconciliation are recorded; Excel execution and regulatory
-certification are not claimed.
+No functional release has been published. Prototype LibreOffice results,
+independent reconciliation and one desktop Excel run on one host are
+recorded; regulatory certification is not claimed.
