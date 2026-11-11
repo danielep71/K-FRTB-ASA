@@ -81,7 +81,20 @@ def test_the_script_never_pushes_and_keeps_its_excel_to_itself():
     assert not re.search(r"git\s+push", text)
     assert "New-Object -ComObject Excel.Application" in text
     assert "GetActiveObject" not in text  # never attaches to the operator's Excel
-    assert "Stop-Process -Force" in text and "$before -notcontains $_.Id" in text
+    # The watchdog closes only Excel started by automation during the run,
+    # never an Excel the operator opened meanwhile
+    watchdog = text.split("$watchdog = Start-Job", 1)[1].split("\n}", 1)[0]
+    assert "$before -notcontains $_.ProcessId" in watchdog
+    assert "[/-]automation" in watchdog and "Stop-Process -Id $_.ProcessId" in watchdog
+    assert "Get-Process -Name EXCEL" not in watchdog
+
+
+def test_each_launcher_is_judged_by_its_own_success_line():
+    text = script_text()
+    for launcher in ("Sync-FRTB-VBA.cmd", "Sync-FRTB-VBA-Downloads.cmd"):
+        source = (ROOT / "tools" / launcher).read_text(encoding="ascii")
+        success = next(line.strip()[len("echo "):] for line in source.splitlines() if "echo SUCCESS:" in line)
+        assert f"Name = '{launcher}'" in text and f"Success = '{success}'" in text, (launcher, success)
 
 
 def test_the_acceptance_entry_point_is_the_excel_one():

@@ -173,8 +173,9 @@ It exits:
 * 1 when a check failed;
 * 2 when it could not start.
 
-Each Excel it starts is its own instance, and a watchdog closes them after
-60 minutes. The zip and the evidence bundle hold local paths and the
+Each Excel it starts is its own instance. After 60 minutes, a watchdog
+closes the Excel instances started by automation during the run; an Excel
+the operator opens is never closed. The zip and the evidence bundle hold local paths and the
 computer's name: send them privately, not to a public issue. The validator
 covers the recorded bundle only. The acceptance results are the operator's
 evidence for #28, #72 and #85, and a dated record cites them.

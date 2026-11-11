@@ -36,8 +36,9 @@
        TIME, copies the summary to the clipboard and shows the zip in Explorer.
 
     Each Excel this script starts is its own instance: your open workbooks
-    and add-ins are not touched. A watchdog closes those instances after
-    -TimeoutMinutes, so a dialog nobody answers cannot hang the run. The
+    and add-ins are not touched. A watchdog closes the Excel instances started
+    by automation during the run after -TimeoutMinutes, so a dialog nobody
+    answers cannot hang the run; an Excel you open yourself is never closed. The
     script never pushes and changes no other Excel or Windows setting.
     Exit codes: 0 every check passed, 1 a check failed, 2 the run could not
     start (local changes, no Git or Python, the VBA project access refused).
@@ -316,13 +317,17 @@ Write-Host ''
 Write-Host 'The rest runs unattended. Do not use the Excel windows that open.'
 Write-Host ''
 
-# Watchdog: closes the Excel instances this run starts once the limit passes
+# Watchdog: once the limit passes, it closes the Excel instances started by
+# automation during this run. Excel started through COM, by this script or by
+# the tools it runs, has /automation on its command line; an Excel the
+# operator opens has not, so it is never closed (#274)
 $excelBefore = @(Get-Process -Name EXCEL -ErrorAction SilentlyContinue | ForEach-Object { $_.Id })
 $watchdog = Start-Job -ArgumentList @($excelBefore, $TimeoutMinutes) -ScriptBlock {
     param($before, $minutes)
     Start-Sleep -Seconds ([int]$minutes * 60)
-    Get-Process -Name EXCEL -ErrorAction SilentlyContinue | Where-Object { $before -notcontains $_.Id } |
-        Stop-Process -Force
+    Get-CimInstance -ClassName Win32_Process -Filter "Name = 'EXCEL.EXE'" -ErrorAction SilentlyContinue |
+        Where-Object { ($before -notcontains $_.ProcessId) -and ([string]$_.CommandLine -match '(?i)[/-]automation\b') } |
+        ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 }
 
 $development = Join-Path $repoRoot "dist\K-FRTB-ASA-development.xlsm"
@@ -511,8 +516,10 @@ try {
     $safety | Remove-Item -Force -ErrorAction SilentlyContinue
 
     Write-Host '== Synchronization launchers'
-    foreach ($launcher in @(@{ Name = 'Sync-FRTB-VBA.cmd'; Answers = "D`r`n`r`n" },
-                            @{ Name = 'Sync-FRTB-VBA-Downloads.cmd'; Answers = "$folder`r`nY`r`n`r`n" })) {
+    # Each launcher prints its own success line
+    foreach ($launcher in @(@{ Name = 'Sync-FRTB-VBA.cmd'; Answers = "D`r`n`r`n"; Success = 'SUCCESS: VBA synchronized.' },
+                            @{ Name = 'Sync-FRTB-VBA-Downloads.cmd'; Answers = "$folder`r`nY`r`n`r`n";
+                               Success = 'SUCCESS: modules imported from the folder.' })) {
         $answers = Join-Path $syncDir ($launcher.Name + '.answers.txt')
         [System.IO.File]::WriteAllText($answers, $launcher.Answers)
         $logFile = Join-Path $script:bundle ($launcher.Name + '.log')
@@ -526,7 +533,7 @@ try {
             Add-Result "LAUNCHER_$($launcher.Name)" 'FAIL' 'no answer after 3 minutes'
             continue
         }
-        $succeeded = Select-String -Path $logFile -Pattern 'SUCCESS: VBA synchronized' -SimpleMatch -Quiet
+        $succeeded = Select-String -Path $logFile -Pattern $launcher.Success -SimpleMatch -Quiet
         Add-Result "LAUNCHER_$($launcher.Name)" $(if ($process.ExitCode -eq 0 -and $succeeded) { 'PASS' } else { 'FAIL' }) `
                    "exit code $($process.ExitCode)"
     }
