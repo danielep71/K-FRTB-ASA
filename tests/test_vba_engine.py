@@ -251,7 +251,7 @@ def test_variant_run_logs_every_invalid_row(lo_variant_run):
     assert sum(s.startswith("In_Delta") for s in sources) == 7
     assert sum(s.startswith("In_DRC") for s in sources) == 7
     assert any("Cash equity maturity" in r[2] for r in errors)
-    flag_errors = sorted(r[1] for r in errors if "RefReportingCcy must be TRUE, FALSE or blank" in r[2])
+    flag_errors = sorted(r[1] for r in errors if "(RefReportingCcy) must be TRUE, FALSE or blank" in r[2])
     assert len(flag_errors) == 4 and all(s.startswith("In_Curvature") for s in flag_errors), flag_errors
     # BANK_B, split across CORP and SOV, is skipped; BANK_A takes its worst quality (#142)
     assert any("BANK_B has positions in several buckets" in r[2] for r in errors)
