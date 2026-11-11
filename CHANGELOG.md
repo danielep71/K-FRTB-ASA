@@ -7,6 +7,15 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The workbook texts, Log messages and docs name the column captions the
+  workbook shows (`References reporting ccy`, `Alternative Sb used`,
+  `Risk class`) instead of the engine keys, which stay in brackets where
+  they help. One MAR reference per rule: MAR21.8-MAR21.14 for one curvature
+  risk factor per issuer or commodity (was MAR21.100, a correlation
+  paragraph) and MAR22.11-MAR22.13 for the gross JTD. The guide and the
+  README say that Run regression test works in development builds only, the
+  `Results` description adds the binding scenario and the tie note (#138),
+  and the README sheet subtitle reads "Version 0.2.0-prototype" (#250).
 - Prepared a reviewed wiki update for the first recorded desktop Excel run,
   with its exact candidate, one-host scope and remaining manual checks. The
   patch is under `docs/wiki-updates/`; wiki publication remains separate

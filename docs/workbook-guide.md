@@ -200,21 +200,21 @@ empty template's extent.
 | Tab | Sheet | Content |
 | --- | --- | --- |
 | Navy | `README` | How to use, input conventions, sheet map |
-| Gold | `Control` | Run settings (`[SETTINGS]`) and the buttons Run FRTB-SA, Clear outputs, Run regression test |
+| Gold | `Control` | Run settings (`[SETTINGS]`) and the buttons Run FRTB-SA, Clear outputs and Run regression test (development builds only: `-Production` leaves out `TEST_Regression`) |
 | Gold | `In_Delta`, `In_Vega`, `In_Curvature` | Sensitivity inputs (see [methodology](methodology.md#-inputs)) |
 | Gold | `In_DRC` | Positions: obligor, bucket (`CORP`, `SOV`, `LGM`), credit quality, seniority, notional, market value, maturity, optional LGD |
 | Gold | `In_RRAO` | Category (`EXOTIC`, `OTHER`) and gross notional |
 | Gold | `P_General`, `P_GIRR`, `P_CSR`, `P_EQ`, `P_COM`, `P_FX`, `P_DRC`, `P_RRAO` | Regulatory parameters in tagged tables (`[TAG]` heading, header row, data rows), with MAR references |
-| Blue | `Results` | Capital by risk class, component and scenario; SBM, DRC, RRAO, total; run note |
+| Blue | `Results` | Capital by risk class, component and scenario; the binding correlation scenario, SBM, DRC, RRAO and total; the run note, and a note when scenarios tie (#138) |
 | Blue | `Out_Summary` | Key/value results used by tests |
-| Blue | `Out_RiskClass` | Capital per risk class, component and scenario; `AltSbUsed` flag |
+| Blue | `Out_RiskClass` | Capital per risk class, component and scenario; `Alternative Sb used` flag |
 | Blue | `Out_Buckets` | `Kb`, `Sb`, risk factor count and notes (`ALT_SB`, `UP`/`DOWN`, `OTHER`) per bucket |
 | Blue | `Out_DRC` | Net long/short per obligor; HBR and charge per bucket |
 | Blue | `Log` | Every rejected input row with the reason, warnings and run status |
 | Green | `Test_Expected` | Expected sample results, actual values and PASS/FAIL per item |
 
 Input sheets are read from row 6 down to the first row whose `ID` and
-`RiskClass` (or second) column are both blank. Invalid rows are skipped and
+`Risk class` (second) columns are both blank. Invalid rows are skipped and
 logged on `Log`; check the error count on `Results` after every run.
 
 ## ▶️ Running
