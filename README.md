@@ -195,7 +195,8 @@ To update the VBA of a workbook you already built, drag it onto
 The workbook ships with a synthetic sample portfolio. On **Control**, click
 **Run FRTB-SA**: Results, the `Out_*` sheets and Log are rewritten. Then click
 **Run regression test**: `Test_Expected` compares 52 results with the values
-of the independent reference and shows PASS or FAIL per item.
+of the independent reference and shows PASS or FAIL per item. The regression
+test is in development builds only; a `-Production` build leaves it out.
 
 <a id="how-a-run-works"></a>
 

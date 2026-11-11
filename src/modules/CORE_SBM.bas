@@ -411,7 +411,7 @@ Private Sub LoadCurvature()
             ok = False
         End If
         If ok And Not IsBlankOrBoolCell(TableCell(ws, r, 8)) Then
-            LogMessage "ERROR", src, "RefReportingCcy must be TRUE, FALSE or blank; row skipped"
+            LogMessage "ERROR", src, "References reporting ccy (RefReportingCcy) must be TRUE, FALSE or blank; row skipped"
             ok = False
         End If
         If ok Then
@@ -430,7 +430,7 @@ Private Sub LoadCurvature()
                     subType = ""
                 Case RC_CSR, RC_EQ, RC_COM
                     ' One curvature risk factor per issuer or commodity: bond and
-                    ' CDS curves, and delivery locations, are not separate (MAR21.100)
+                    ' CDS curves, and delivery locations, are not separate (MAR21.8-MAR21.14)
                     If Not IsNameSubType(rc, subType, src, "curvature") Then ok = False
                     subType = ""
                 Case RC_FX

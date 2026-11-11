@@ -7,6 +7,15 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The workbook texts, Log messages and docs name the column captions the
+  workbook shows (`References reporting ccy`, `Alternative Sb used`,
+  `Risk class`) instead of the engine keys, which stay in brackets where
+  they help. One MAR reference per rule: MAR21.8-MAR21.14 for one curvature
+  risk factor per issuer or commodity (was MAR21.100, a correlation
+  paragraph) and MAR22.11-MAR22.13 for the gross JTD. The guide and the
+  README say that Run regression test works in development builds only, the
+  `Results` description adds the binding scenario and the tie note (#138),
+  and the README sheet subtitle reads "Version 0.2.0-prototype" (#250).
 - `tests/requirements.txt` pins colorama 0.4.6, the Windows-only dependency
   of pytest, with its marker and hashes, so the hashed install also works on
   Windows; `tests/tooling/test_requirements_platforms.py` fails when a
