@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 """The LibreOffice install step of the prototype checks falls back to
-archive.ubuntu.com when the runner's Azure mirror does not answer (#263).
+archive.ubuntu.com over HTTPS when the runner's mirror does not answer (#263).
 
 The step's script runs with stand-ins for sudo and apt-get, and with the apt
 configuration paths moved into a temporary folder, so nothing is installed.
@@ -20,7 +20,8 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "prototype-checks.yml"
 STEP = "Install LibreOffice Calc and the Python UNO bridge"
-AZURE = "http://azure.archive.ubuntu.com/ubuntu/\tpriority:1\nhttps://archive.ubuntu.com/ubuntu/\tpriority:2\n"
+AZURE = ("http://azure.archive.ubuntu.com/ubuntu/\tpriority:1\nhttps://archive.ubuntu.com/ubuntu/\tpriority:2\n"
+         "http://security.ubuntu.com/ubuntu/\tpriority:3\n")
 
 
 def step_script() -> str:
@@ -72,11 +73,15 @@ class MirrorFallbackTests(unittest.TestCase):
         self.assertNotIn("::warning::", result.stdout)
 
     @unittest.skipUnless(LINUX_TOOLS, "needs Linux with GNU timeout and sed")
-    def test_a_silent_azure_mirror_falls_back_to_archive_ubuntu_com(self) -> None:
+    def test_a_silent_mirror_falls_back_to_archive_ubuntu_com_over_https(self) -> None:
         result = self.run_step(AZURE)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("::warning::The runner's package mirror did not answer", result.stdout)
-        self.assertNotIn("azure", (self.apt / "apt-mirrors.txt").read_text(encoding="utf-8"))
+        mirrors = (self.apt / "apt-mirrors.txt").read_text(encoding="utf-8")
+        self.assertNotIn("azure", mirrors)
+        self.assertNotIn("http://", mirrors)  # HTTPS only: plain HTTP is what stalled
+        self.assertIn("https://archive.ubuntu.com/ubuntu/", mirrors)
+        self.assertIn("https://security.ubuntu.com/ubuntu/", mirrors)
         calls = self.calls.read_text(encoding="utf-8").splitlines()
         self.assertEqual(sum(" install " in call for call in calls), 1)  # only the fallback got that far
         self.assertTrue(all("Acquire::http::Timeout=" in call for call in calls))

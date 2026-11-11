@@ -49,10 +49,11 @@ jobs:
           persist-credentials: false
 
       # A hung package mirror fails here instead of using the whole job limit.
-      # The runner's Azure package mirror sometimes stops answering, and apt
-      # then waits on every package (#263): the first attempt has short apt
-      # timeouts and its own limit; if it fails, the step installs again from
-      # archive.ubuntu.com. The step limit still bounds both (#124).
+      # Plain HTTP from the runner to the Ubuntu mirrors sometimes stops
+      # answering, and apt then waits on every package (#263): the first
+      # attempt has short apt timeouts and its own limit; if it fails, the step
+      # installs again from archive.ubuntu.com over HTTPS. The step limit still
+      # bounds both (#124).
       - name: Install LibreOffice Calc and the Python UNO bridge
         timeout-minutes: 12
         run: |
@@ -60,10 +61,11 @@ jobs:
           packages=(libreoffice-calc python3-uno)
           if ! { sudo timeout 120 apt-get "${apt_options[@]}" update &&
                  sudo timeout 300 apt-get "${apt_options[@]}" install -y --no-install-recommends "${packages[@]}"; }; then
-            echo "::warning::The runner's package mirror did not answer; installing from archive.ubuntu.com"
+            echo "::warning::The runner's package mirror did not answer; installing from archive.ubuntu.com over HTTPS"
             for list in /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d/*; do
               if [ -f "$list" ]; then
-                sudo sed -i 's#azure\.archive\.ubuntu\.com#archive.ubuntu.com#g' "$list"
+                sudo sed -i -e 's#azure\.archive\.ubuntu\.com#archive.ubuntu.com#g' \
+                  -e 's#http://\([a-z.]*ubuntu\.com\)#https://\1#g' "$list"
               fi
             done
             sudo apt-get "${apt_options[@]}" update
