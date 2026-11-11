@@ -12,11 +12,11 @@ Excel, LibreOffice and regulatory validation. It does not change the dated
 October 27 evaluation. The layout fix #203 is closed, but no Excel run has
 seen it yet, so the pages leave that check to the all-sheet review #206.
 
-The wiki is a separate Git repository. After this task PR is reviewed, apply
-the patch to a clean wiki checkout at the named commit with `git apply
---check` followed by `git apply`, inspect the diff and publish the wiki
-update. If the wiki has advanced, reconcile the patch against its new head
-first. Publication has not been performed by this PR.
+The project wiki is stored in its own Git repository, `K-FRTB-SA.wiki`. To
+publish the update, apply the patch to a clean wiki checkout at the named
+commit with `git apply --check` followed by `git apply`, inspect the diff and
+push it. If the wiki has advanced, reconcile the patch against its new head
+first. #32 records whether the update is published.
 
 Validation: the patch applies to the named wiki commit, the resulting diff
 has no whitespace errors, and the eight pages retain their local page and
