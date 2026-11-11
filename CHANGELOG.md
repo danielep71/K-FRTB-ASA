@@ -356,6 +356,11 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- The Trust Center check of the unattended Excel check no longer reports a
+  false failure when a group policy turns the VBA project access on: it
+  reports the check as not run, with the reason, and changes nothing. In the
+  other cases it restores the user's own setting exactly as found, absent
+  included, instead of writing the effective value into it (#283).
 - When a synchronization launcher of the unattended Excel check passes its
   3-minute limit, the check ends the launcher's whole process tree and the
   Excel it started through COM, and waits for them, instead of ending only
