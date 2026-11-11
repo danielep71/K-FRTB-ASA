@@ -14,7 +14,7 @@ authoritative for:
 
 The [workbook guide](workbook-guide.md) owns building, updating and the round
 trip. [Validation](validation.md) owns what the other checks show. Issues #28
-and #30 say which Excel results the SA prototype (v0.2.0) needs.
+and #30 say which Excel results the ASA prototype (v0.2.0) needs.
 
 > [!IMPORTANT]
 > The validator never runs Excel. It checks three things:

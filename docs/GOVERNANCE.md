@@ -13,7 +13,7 @@ This document owns branch, issue, review, and milestone procedures.
 
 ## Branches
 
-The active integration branch is **`release/v0.2.0`** for the SA prototype
+The active integration branch is **`release/v0.2.0`** for the ASA prototype
 and repository maintenance, milestone 2. I approved it on
 October 27, 2026, after the milestone renumbering, and it was created from
 `0eb819b92e6f627099ceb1400c15ebb4404e385b`, then the head of both main and
@@ -47,7 +47,7 @@ setup baseline. Do not recreate or target the branch.
 
 | Branch | Purpose and allowed changes |
 | --- | --- |
-| `release/v0.2.0` | Active integration branch for the SA prototype and repository maintenance, milestone 2 |
+| `release/v0.2.0` | Active integration branch for the ASA prototype and repository maintenance, milestone 2 |
 | `release/v0.3.0` | Integration branch for milestone 3 work, approved October 28, 2026 (#132) |
 | `release/v0.1.0` | Superseded on October 27, 2026; receives no PRs; deleted under the lifecycle once milestone 2 is closed |
 | `main` | Stable default branch; receives an integration branch only through a separate explicitly requested PR |
@@ -215,7 +215,7 @@ checklist; this document owns its detailed procedures.
 [v0.1.0 — Repo setup](https://github.com/danielep71/K-FRTB-ASA/milestone/1)
 closed on October 18, 2026; its [detailed guide](Milestones/v0.0.1.md) and
 [closeout record](evidence/2026-10-18-setup-closeout.md) remain the setup
-baseline. [v0.2.0 — SA prototype](https://github.com/danielep71/K-FRTB-ASA/milestone/2)
+baseline. [v0.2.0 — ASA prototype](https://github.com/danielep71/K-FRTB-ASA/milestone/2)
 is active: its [guide](Milestones/v0.2.0.md),
 [interim evaluation](evidence/2026-10-27-prototype-evaluation.md) and
 [Excel run](evidence/2026-10-31-excel-run-323260b.md) exist, prototype

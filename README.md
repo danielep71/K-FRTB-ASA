@@ -65,7 +65,7 @@
 
 > [!IMPORTANT]
 > **Version 0.2.0 is a prototype** of the
-> [v0.2.0 — SA prototype](https://github.com/danielep71/K-FRTB-ASA/milestone/2)
+> [v0.2.0 — ASA prototype](https://github.com/danielep71/K-FRTB-ASA/milestone/2)
 > milestone (issue #20). It implements the Basel standardized approach
 > (MAR21-MAR23) in Excel VBA with parameters checked against the BIS text,
 > and every output is reconciled with an independent Python reference.
@@ -150,7 +150,7 @@ need to **check** an FRTB-SA number:
 ## 1. Clone and check
 
 Prototype and repository maintenance integrate on **`release/v0.2.0`**,
-milestone 2, **v0.2.0 — SA prototype**. The milestones were renumbered on
+milestone 2, **v0.2.0 — ASA prototype**. The milestones were renumbered on
 October 27, 2026, and `release/v0.2.0` superseded `release/v0.1.0` the same
 day. The setup branch `release/v0.0.1` was deleted after the setup closeout
 (milestone 1, now **v0.1.0 — Repo setup**); its history is on main. See
@@ -287,7 +287,7 @@ what is **not** validated yet.
 | Development branches and integration | [Governance](docs/GOVERNANCE.md) |
 | Effective repository controls | [Settings baseline](docs/REPOSITORY_SETTINGS.md) |
 | Recorded changes | [Changelog](CHANGELOG.md) |
-| Prototype backlog | [v0.2.0 — SA prototype milestone](https://github.com/danielep71/K-FRTB-ASA/milestone/2) |
+| Prototype backlog | [v0.2.0 — ASA prototype milestone](https://github.com/danielep71/K-FRTB-ASA/milestone/2) |
 | Regulatory baseline and certification scope | [v0.3.0 milestone](https://github.com/danielep71/K-FRTB-ASA/milestone/3) |
 | Closed setup baseline | [v0.1.0 — Repo setup milestone](https://github.com/danielep71/K-FRTB-ASA/milestone/1) and [closeout record](docs/evidence/2026-10-18-setup-closeout.md) |
 | Privately report a potential vulnerability | [Private vulnerability reporting](https://github.com/danielep71/K-FRTB-ASA/security/advisories/new) |

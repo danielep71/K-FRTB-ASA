@@ -10,7 +10,7 @@ rules and the rules for automated assistants are in [AGENTS.md](AGENTS.md).
 Repository setup (milestone 1, v0.1.0 — Repo setup) is closed, and its branch
 `release/v0.0.1` was deleted (#62); its history is on main. The Excel/VBA SA
 prototype and repository maintenance use `release/v0.2.0`, milestone 2,
-v0.2.0 — SA prototype (#117); `release/v0.1.0` is superseded.
+v0.2.0 — ASA prototype (#117); `release/v0.1.0` is superseded.
 Read [scope and decisions](docs/SCOPE.md)
 before functional changes. The prototype is on main and release/v0.2.0 with a
 committed macro-free template; one desktop Excel run is recorded on `323260b`,
