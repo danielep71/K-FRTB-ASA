@@ -1,11 +1,12 @@
 """Write the data of the unattended Excel checks into TEST_AcceptanceData.bas.
 
-The module holds the invalid-row variant of tests/acceptance_cases.py, the
-results that the independent reference, tests/frtb_reference.py, computes for
-the sample portfolio and for that variant, and the frozen panes and
-autofilters of the committed template src/workbook/FRTB_Template.xlsx. The
-reference reads that template, so the expected values never come from the VBA
-under test (#274).
+The module holds the invalid-row variant and the undefined sub-types of
+tests/acceptance_cases.py, with the messages those rows must log; the results
+that the independent reference, tests/frtb_reference.py, computes for the
+sample portfolio and for the variant; and the frozen panes and autofilters of
+the committed template src/workbook/FRTB_Template.xlsx. The reference reads
+that template, so the expected values never come from the VBA under test
+(#274, #276).
 
 Usage:
     python3 tools/build_acceptance_data.py          # rewrite the module
@@ -52,6 +53,9 @@ Attribute VB_Name = "TEST_AcceptanceData"
 '   AcceptanceRows: one Array per row: sheet, column to give the Boolean
 '     format (0 for none), then the cell values from column C.
 '   AcceptanceBooleanFormat: that number format.
+'   AcceptanceSubTypeRows: the rows with sub-types MAR21 does not define, in
+'     the same form; AcceptanceSubTypeErrors: their expected Log messages,
+'     sorted.
 '   AcceptanceSampleExpected, AcceptanceVariantExpected: Out_Summary items
 '     and their reference values, as Array(item, value) pairs.
 '   ACCEPTANCE_VARIANT_ERRORS, ACCEPTANCE_VARIANT_WARNINGS: the Log counts
@@ -173,6 +177,14 @@ def render() -> str:
                 + ")"
             )
     lines += ["    Set AcceptanceRows = c", "End Function", "", ""]
+    lines += ["Public Function AcceptanceSubTypeRows() As Collection", "    Dim c As New Collection"]
+    for sheet, rows in cases.UNDEFINED_SUB_TYPE_ROWS.items():
+        for values in rows:
+            lines.append(f"    c.Add Array({vba_literal(sheet)}, 0, " + ", ".join(vba_literal(v) for v in values) + ")")
+    lines += ["    Set AcceptanceSubTypeRows = c", "End Function", "", ""]
+    lines += ["Public Function AcceptanceSubTypeErrors() As Collection", "    Dim c As New Collection"]
+    lines += [f"    c.Add {vba_literal(message)}" for message in cases.UNDEFINED_SUB_TYPE_ERRORS]
+    lines += ["    Set AcceptanceSubTypeErrors = c", "End Function", "", ""]
     lines += expected_function("AcceptanceSampleExpected", reference_summary(variant=False))
     lines += ["", ""]
     lines += expected_function("AcceptanceVariantExpected", reference_summary(variant=True))

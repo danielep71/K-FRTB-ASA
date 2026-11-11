@@ -5,9 +5,10 @@ Attribute VB_Name = "TEST_Acceptance"
 ' PURPOSE
 '   Run the checks of the Excel acceptance without a person at the keyboard
 '   (#274): the sample run, the state after a failed run and after Clear
-'   outputs (#85), numeric text with a comma and with a point, the frozen
-'   panes, the autofilters, the width of the Control descriptions (#203) and
-'   the invalid-row variant (#28).
+'   outputs (#85), numeric text with a comma and with a point, the rejection
+'   of sub-types MAR21 does not define (#245, #276), the frozen panes, the
+'   autofilters, the width of the Control descriptions (#203) and the
+'   invalid-row variant (#28).
 '
 ' PUBLIC SURFACE
 '   Test_RunAcceptanceInExcel_Silent: run every check and write one line per
@@ -81,6 +82,7 @@ Private Sub RunAll(ByVal inExcel As Boolean)
     RunCheck "FAILED_RUN"
     RunCheck "CLEAR_OUTPUTS"
     RunCheck "NUMERIC_TEXT"
+    RunCheck "UNDEFINED_SUB_TYPES"
     RunCheck "FROZEN_PANES"
     RunCheck "AUTOFILTERS"
     RunCheck "CONTROL_DESCRIPTIONS"
@@ -97,6 +99,7 @@ Private Sub RunCheck(ByVal checkName As String)
         Case "FAILED_RUN": result = CheckFailedRun(detail)
         Case "CLEAR_OUTPUTS": result = CheckClearOutputs(detail)
         Case "NUMERIC_TEXT": result = CheckNumericText(detail)
+        Case "UNDEFINED_SUB_TYPES": result = CheckSubTypes(detail)
         Case "FROZEN_PANES": result = CheckFrozenPanes(detail)
         Case "AUTOFILTERS": result = CheckAutofilters(detail)
         Case "CONTROL_DESCRIPTIONS": result = CheckControlDescriptions(detail)
@@ -235,6 +238,38 @@ Restore:
     errDescription = Err.Description
     target.NumberFormat = savedFormat
     target.Value = savedValue
+    Err.Raise errNumber, "TEST_Acceptance", errDescription
+End Function
+
+
+' Rows whose sub-type MAR21 does not define are each rejected with their
+' message, and the results stay those of the sample; the rows are removed
+' afterwards, so the variant below is unaffected (#245).
+Private Function CheckSubTypes(ByRef detail As String) As String
+    Dim rowData As Variant, ws As Object, r As Long, k As Long, written As New Collection
+    Dim problems As String, errNumber As Long, errDescription As String
+    On Error GoTo Restore
+    For Each rowData In AcceptanceSubTypeRows()
+        Set ws = GetSheet(CStr(rowData(0)))
+        r = LastDataRow(ws) + 1
+        For k = 2 To UBound(rowData)
+            If Not IsEmpty(rowData(k)) Then TableCell(ws, r, k - 1).Value = rowData(k)
+        Next k
+        written.Add Array(ws.Name, r, UBound(rowData) - 1)
+    Next rowData
+    RunFRTB_Silent
+    problems = CompareSummary(AcceptanceSampleExpected(), AcceptanceSubTypeErrors().Count, 0)
+    problems = problems & MessageProblems(AcceptanceSubTypeErrors())
+    RemoveRows written
+    On Error GoTo 0
+    detail = IIf(problems = "", written.Count & " rows rejected with their messages; the results are the sample's", problems)
+    CheckSubTypes = IIf(problems = "", "PASS", "FAIL")
+    Exit Function
+
+Restore:
+    errNumber = Err.Number
+    errDescription = Err.Description
+    RemoveRows written
     Err.Raise errNumber, "TEST_Acceptance", errDescription
 End Function
 
@@ -407,6 +442,48 @@ Private Function PlaceholderProblems(ByVal sheetName As String, ByVal note As St
     End If
     PlaceholderProblems = problems
 End Function
+
+
+' The expected ERROR messages, each logged as many times as it is expected.
+Private Function MessageProblems(ByVal expected As Collection) As String
+    Dim message As Variant, other As Variant, wanted As Long, problems As String
+    For Each message In expected
+        wanted = 0
+        For Each other In expected
+            If other = message Then wanted = wanted + 1
+        Next other
+        If LogMessageCount("ERROR", CStr(message)) <> wanted Then
+            problems = problems & "'" & message & "' logged " & LogMessageCount("ERROR", CStr(message)) & _
+                       " times, not " & wanted & "; "
+        End If
+    Next message
+    MessageProblems = problems
+End Function
+
+
+Private Function LogMessageCount(ByVal level As String, ByVal text As String) As Long
+    Dim ws As Object, r As Long
+    Set ws = GetSheet(SH_LOG)
+    r = LAYOUT_FIRST_DATA_ROW
+    Do While Not IsBlank(TableCell(ws, r, 1).Value)
+        If CStr(TableCell(ws, r, 1).Value) = level And CStr(TableCell(ws, r, 3).Value) = text Then
+            LogMessageCount = LogMessageCount + 1
+        End If
+        r = r + 1
+    Loop
+End Function
+
+
+' Clears the rows a check wrote: Array(sheet, row, number of columns) each.
+Private Sub RemoveRows(ByVal written As Collection)
+    Dim item As Variant, ws As Object
+    On Error Resume Next
+    For Each item In written
+        Set ws = GetSheet(CStr(item(0)))
+        ws.Range(TableCell(ws, CLng(item(1)), 1), TableCell(ws, CLng(item(1)), CLng(item(2)))).ClearContents
+    Next item
+    On Error GoTo 0
+End Sub
 
 
 ' True when the Log holds a row of that level whose source starts with

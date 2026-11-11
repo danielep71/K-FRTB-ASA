@@ -16,6 +16,9 @@ Attribute VB_Name = "TEST_AcceptanceData"
 '   AcceptanceRows: one Array per row: sheet, column to give the Boolean
 '     format (0 for none), then the cell values from column C.
 '   AcceptanceBooleanFormat: that number format.
+'   AcceptanceSubTypeRows: the rows with sub-types MAR21 does not define, in
+'     the same form; AcceptanceSubTypeErrors: their expected Log messages,
+'     sorted.
 '   AcceptanceSampleExpected, AcceptanceVariantExpected: Out_Summary items
 '     and their reference values, as Array(item, value) pairs.
 '   ACCEPTANCE_VARIANT_ERRORS, ACCEPTANCE_VARIANT_WARNINGS: the Log counts
@@ -91,6 +94,36 @@ Public Function AcceptanceRows() As Collection
     c.Add Array("In_RRAO", 0, "Q1", "FOO", 1000)
     c.Add Array("In_RRAO", 0, "Q2", "OTHER", -5)
     Set AcceptanceRows = c
+End Function
+
+
+Public Function AcceptanceSubTypeRows() As Collection
+    Dim c As New Collection
+    c.Add Array("In_Delta", 0, "D_FX", "FX", "USD", "", "SPOT", Empty, 1000)
+    c.Add Array("In_Vega", 0, "V_CSR", "CSR_NS", 1, "ISSUER_X", "LOAN", 1, Empty, 1000)
+    c.Add Array("In_Vega", 0, "V_EQ", "EQ", 8, "BANK_A", "REPO", 1, Empty, 1000)
+    c.Add Array("In_Vega", 0, "V_FX", "FX", "USD", "", "SPOT", 1, Empty, 1000)
+    c.Add Array("In_Curvature", 0, "C_GI", "GIRR", "EUR", "", "INFLATION", 1000, 1000, Empty)
+    c.Add Array("In_Curvature", 0, "C_GX", "GIRR", "EUR", "", "XCCY", 1000, 1000, Empty)
+    c.Add Array("In_Curvature", 0, "C_CSR", "CSR_NS", 1, "ISSUER_X", "LOAN", 1000, 1000, Empty)
+    c.Add Array("In_Curvature", 0, "C_EQ", "EQ", 8, "BANK_A", "REPO", 1000, 1000, Empty)
+    c.Add Array("In_Curvature", 0, "C_FX", "FX", "USD", "", "SPOT", 1000, 1000, Empty)
+    Set AcceptanceSubTypeRows = c
+End Function
+
+
+Public Function AcceptanceSubTypeErrors() As Collection
+    Dim c As New Collection
+    c.Add "CSR curvature sub-type must be BOND, CDS or none; row skipped"
+    c.Add "CSR vega sub-type must be BOND, CDS or none; row skipped"
+    c.Add "Equity curvature takes sub-type SPOT or none: repo rates have no curvature; row skipped"
+    c.Add "Equity vega takes sub-type SPOT or none: repo rates have no vega; row skipped"
+    c.Add "FX takes no sub-type; row skipped"
+    c.Add "FX takes no sub-type; row skipped"
+    c.Add "FX takes no sub-type; row skipped"
+    c.Add "GIRR curvature takes sub-type YIELD or none: inflation and cross-currency basis have no curvature; row skipped"
+    c.Add "GIRR curvature takes sub-type YIELD or none: inflation and cross-currency basis have no curvature; row skipped"
+    Set AcceptanceSubTypeErrors = c
 End Function
 
 
