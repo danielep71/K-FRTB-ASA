@@ -148,6 +148,8 @@ Then it runs unattended:
    * the sample run;
    * the state after a failed run and after **Clear outputs** (#85);
    * numeric text with a comma and with a point;
+   * the rejection of sub-types MAR21 does not define, each with its message
+     (#245);
    * the frozen panes and autofilters of the committed template;
    * the width of the Control descriptions (#203);
    * the invalid-row variant, whose results must equal the independent

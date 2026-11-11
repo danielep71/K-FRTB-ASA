@@ -1,10 +1,12 @@
 """The invalid-row variant shared by the LibreOffice tests and the Excel checks.
 
 The variant switches the three discretions on and adds invalid rows to every
-input sheet (#28). ``tests/test_vba_engine.py`` runs it in LibreOffice, and
-``tools/build_acceptance_data.py`` writes the same rows and their reference
-results into ``tests/modules/TEST_AcceptanceData.bas`` for the unattended
-Excel checks (#274).
+input sheet (#28). The undefined sub-types are rows that MAR21 gives no
+meaning to (#245). ``tests/test_vba_engine.py`` runs both in LibreOffice, and
+``tools/build_acceptance_data.py`` writes the same rows, their reference
+results and the expected messages into
+``tests/modules/TEST_AcceptanceData.bas`` for the unattended Excel checks
+(#274, #276).
 """
 
 from __future__ import annotations
@@ -57,6 +59,31 @@ INVALID_ROWS: dict[str, list[list[Any]]] = {
 BOOLEAN_ROW = ["Z6", "FX", "JPY", "JPY", None, 9000, 6000, 2]
 BOOLEAN_COLUMN = 8  # References reporting ccy, the eighth column of In_Curvature
 BOOLEAN_FORMAT = '"TRUE";"TRUE";"FALSE"'
+
+# Sub-types MAR21 does not define for these risk factors: each row is rejected
+# with its message, and the results stay those of the sample (#245)
+UNDEFINED_SUB_TYPE_ROWS: dict[str, list[list[Any]]] = {
+    "In_Delta": [["D_FX", "FX", "USD", "", "SPOT", None, 1_000]],
+    "In_Vega": [["V_CSR", "CSR_NS", 1, "ISSUER_X", "LOAN", 1, None, 1_000],
+                ["V_EQ", "EQ", 8, "BANK_A", "REPO", 1, None, 1_000],
+                ["V_FX", "FX", "USD", "", "SPOT", 1, None, 1_000]],
+    "In_Curvature": [["C_GI", "GIRR", "EUR", "", "INFLATION", 1_000, 1_000, None],
+                     ["C_GX", "GIRR", "EUR", "", "XCCY", 1_000, 1_000, None],
+                     ["C_CSR", "CSR_NS", 1, "ISSUER_X", "LOAN", 1_000, 1_000, None],
+                     ["C_EQ", "EQ", 8, "BANK_A", "REPO", 1_000, 1_000, None],
+                     ["C_FX", "FX", "USD", "", "SPOT", 1_000, 1_000, None]],
+}
+UNDEFINED_SUB_TYPE_ERRORS = sorted(
+    ["FX takes no sub-type; row skipped"] * 3
+    + ["GIRR curvature takes sub-type YIELD or none: inflation and cross-currency basis have no curvature; "
+       "row skipped"] * 2
+    + [
+        "CSR vega sub-type must be BOND, CDS or none; row skipped",
+        "CSR curvature sub-type must be BOND, CDS or none; row skipped",
+        "Equity vega takes sub-type SPOT or none: repo rates have no vega; row skipped",
+        "Equity curvature takes sub-type SPOT or none: repo rates have no curvature; row skipped",
+    ]
+)
 
 # Every invalid row is logged, BANK_B adds one error for its split buckets,
 # and BANK_A's two credit qualities give the one warning.
