@@ -356,6 +356,9 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- The unattended Excel check exits 2 with "NOT STARTED: Excel could not be
+  started" when Excel is missing or COM cannot start it, as documented,
+  instead of ending with exit code 1 and a raw COM error (#290).
 - The Trust Center check of the unattended Excel check no longer reports a
   false failure when a group policy turns the VBA project access on: it
   reports the check as not run, with the reason, and changes nothing. In the
