@@ -160,7 +160,9 @@ Then it runs unattended:
    template from source, then records the template digests and their
    differences from the committed template;
 5. checks the Trust Center error path, if asked: it turns the access off for
-   one build and restores it;
+   one build and restores your setting as it was. When a group policy sets
+   the access, it does not ask and reports the check as not run, because
+   only the policy could turn the access off;
 6. checks the synchronization (#72) on copies:
    * Production and Development, each followed by a compile, a run and, for
      Development, the regression, with the calculation mode kept;

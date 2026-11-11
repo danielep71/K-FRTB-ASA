@@ -67,13 +67,33 @@ def test_the_trust_center_is_changed_only_on_request_and_restored():
     # restores the value it found, even when the build fails
     turn_on = text.index("Set-VbaAccess $excelVersion 1")
     assert text.rindex("Read-YesNo", 0, turn_on) > text.rindex("if ($access.Value -ne 1)", 0, turn_on)
-    check = text.split("if ($runTrustCheck) {", 1)[1].split("} else {", 1)[0]
+    check = text.split("} elseif ($runTrustCheck) {", 1)[1].split("} else {", 1)[0]
+    assert "$before = Get-UserVbaAccess $excelVersion" in check
     assert re.search(r"try \{\s+Set-VbaAccess \$excelVersion 0", check)
-    assert re.search(r"\} finally \{\s+Set-VbaAccess \$excelVersion \$before\s+\}", check)
-    assert text.count("Set-VbaAccess $excelVersion") == 3
+    assert re.search(r"\} finally \{\s+Restore-UserVbaAccess \$excelVersion \$before\s+\}", check)
+    assert text.count("Set-VbaAccess $excelVersion") == 2
     # Macros run only in the instances this script starts, never by policy
     assert "AutomationSecurity = $Security" in text
     assert "VBAWarnings" not in text
+
+
+def test_a_policy_on_the_vba_access_skips_the_trust_center_check():
+    text = script_text()
+    # The user's setting is read and restored as found, absent included;
+    # the effective value, which a policy can set, is never written back
+    get = text.split("function Get-UserVbaAccess {", 1)[1].split("\n}", 1)[0]
+    assert "Get-SecurityKey $Version" in get and "Policies" not in get
+    assert "return $null" in get
+    restore = text.split("function Restore-UserVbaAccess {", 1)[1].split("\n}", 1)[0]
+    assert "Remove-ItemProperty" in restore and "Set-VbaAccess $Version" in restore
+    assert "(Get-VbaAccess $excelVersion).Value" not in text
+    # With a policy, nothing is asked or changed and the check reports why
+    ask = text.split("$runTrustCheck = [bool]$TrustCenterCheck", 1)[1].split("Write-Host ''", 1)[0]
+    assert ask.index("if ($access.Policy) {") < ask.index("Read-YesNo")
+    stage = text.split("# ------------------------------------------------- 4. Trust Center path", 1)[1]
+    policy = stage.split("if ($access.Policy) {", 1)[1].split("} elseif ($runTrustCheck) {", 1)[0]
+    assert "'TRUST_CENTER_ERROR' 'NOT_RUN'" in policy and "group policy" in policy
+    assert "VbaAccess" not in policy
 
 
 def test_the_script_never_pushes_and_keeps_its_excel_to_itself():
