@@ -332,6 +332,12 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- The Excel run recorder exits 2 when Git or Python is missing, the checkout
+  has local changes or the VBA project access is off, so the launcher
+  reports NOT RECORDED instead of RECORDED WITH FINDINGS. It checks the VBA
+  project access before it creates the bundle. `tools/check_issues.py` takes
+  the API root from `GITHUB_API_URL`, with trailing slashes removed, and
+  falls back to `https://api.github.com`, as the label scripts do (#247).
 - Vega and curvature rows now reject the sub-types MAR21 does not define for
   them, as the delta already did: GIRR curvature for `INFLATION` or `XCCY`
   (MAR21.8), equity vega and curvature for `REPO` (MAR21.12), a CSR sub-type
