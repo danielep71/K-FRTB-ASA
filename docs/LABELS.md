@@ -12,7 +12,7 @@ issues, must have:
 - Assignee `danielep71`.
 - Exactly one priority: `P1`, `P2` or `P3`.
 - The milestone that owns its work; current prototype and repository maintenance
-  belong to **v0.2.0 — SA prototype** (milestone 2, approved in #117).
+  belong to **v0.2.0 — ASA prototype** (milestone 2, approved in #117).
   Historical setup issues retain the closed **v0.1.0 — Repo setup** milestone.
   An open issue's milestone must be open.
 - A target date, `YYYY-MM-DD`, no later than the milestone's due date: the

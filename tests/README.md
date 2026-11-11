@@ -1,6 +1,6 @@
 # 🧪 Verification source and data
 
-This directory holds the verification source of the SA prototype, milestone
+This directory holds the verification source of the ASA prototype, milestone
 v0.2.0 (issue #20). Expected results are derived by an independent Python reference,
 never copied from the VBA under test.
 

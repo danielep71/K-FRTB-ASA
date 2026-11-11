@@ -17,6 +17,10 @@ Unreleased describe integrated work, not a published version.
   for records made before the rename, such as the `323260b` run. The export
   format identifier `k-frtb-sa-vba-export-1` is unchanged. A wiki patch
   renames the wiki pages.
+- Milestone 2 is titled v0.2.0 — ASA prototype, after the rename to
+  K-FRTB-ASA. The current documents, the PR template and the documentation
+  index use the new title and stage name; dated records and the CHANGELOG
+  history keep the old one (#268).
 - The documentation no longer contradicts itself or the configuration.
   Milestone due dates are planning targets, not release promises; the website
   is no longer listed outside the prototype scope; Issue triage also runs on
