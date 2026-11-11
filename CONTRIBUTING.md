@@ -13,7 +13,8 @@ prototype and repository maintenance use `release/v0.2.0`, milestone 2,
 v0.2.0 — SA prototype (#117); `release/v0.1.0` is superseded.
 Read [scope and decisions](docs/SCOPE.md)
 before functional changes. The prototype is on main and release/v0.2.0 with a
-committed macro-free template; Excel host evidence remains pending in #28.
+committed macro-free template; one desktop Excel run is recorded on `323260b`,
+and the remaining manual Excel checks are in #28, #72, #85 and #206.
 Versions and tags follow [Releasing](RELEASING.md).
 
 ## Start with an issue
