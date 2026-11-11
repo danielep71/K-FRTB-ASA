@@ -1,5 +1,11 @@
 # Test and tooling dependencies (LibreOffice and python3-uno come from the OS).
-# Compile with: pip-compile --generate-hashes --allow-unsafe tests/requirements.in
+# Compile with: pip-compile --allow-unsafe --generate-hashes --no-emit-index-url --output-file=tests/requirements.txt --strip-extras tests/requirements.in
+# colorama is the Windows-only dependency of pytest, pinned with its marker so
+# that a hashed install also works on Windows (#246). pip-compile evaluates
+# markers where it runs: a compile on Linux or macOS drops it, so I compile on
+# Windows or restore its entry; tests/tooling/test_requirements_platforms.py
+# fails without it.
+colorama==0.4.6 ; sys_platform == "win32"
 numpy==2.5.4
 openpyxl==3.1.5
 pytest==9.2.0
