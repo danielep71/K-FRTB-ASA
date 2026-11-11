@@ -21,7 +21,7 @@ prototype, milestone v0.2.0 (issue #20). None of them holds calculation logic.
 | `build_market_diagrams.py` | Renders the five market risk and CVA method maps of `docs/assets/market-risk/` as SVG and PNG; needs CairoSVG 2.9.1, which is not a pinned test dependency |
 | `update_expected.py` | Regenerates (or `--check`s) the expected values embedded in `M_Setup` from the independent reference, and rebuilds the template when they change |
 
-[Validation](../docs/validation.md) lists their prerequisites (Python 3,
+[Validation](../docs/validation.md) lists their prerequisites (Python 3.12 or newer,
 LibreOffice Calc with the Python UNO bridge, the pinned packages in
 `tests/requirements.txt` and `.github/requirements.txt`) and how they are used
 together. The [workbook guide](../docs/workbook-guide.md#updating-an-existing-workbook)
@@ -46,9 +46,12 @@ paths under `.github/scripts/`; do not duplicate them here.
 
 ## 🧪 Universal maintenance check
 
-Install `.github/requirements.txt`, then run `python tools/check_repository.py`.
-It checks tracked configuration, whitespace, local Markdown targets and their anchors, and
-calls the existing label scripts and offline maintenance tests. Coverage and
+Install `.github/requirements.txt`, `.github/requirements-quality.txt` and
+`tests/requirements.txt`, then run `python tools/check_repository.py`. It runs
+the quality gates (Ruff, mypy and actionlint), checks tracked configuration,
+whitespace, local Markdown targets and their anchors, and calls the existing
+label scripts and offline maintenance tests. A gate whose tool is missing is
+skipped unless `REQUIRE_QUALITY_TOOLS=1`, as in CI. Coverage and
 dependency-update policy are in [Repository checks](../docs/CI.md).
 
 ## 📈 Traffic tooling

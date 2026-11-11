@@ -109,6 +109,8 @@
 # (docs/EXCEL_EVIDENCE.md) and the label workflow outputs.
 /test-output/
 /test-results/
+# Report of tools/check_repository.py --report in the integrity workflow.
+/integrity-report/
 /coverage/
 /htmlcov/
 
