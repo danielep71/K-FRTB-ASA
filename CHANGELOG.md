@@ -7,6 +7,10 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- Prepared a reviewed wiki update for the first recorded desktop Excel run,
+  with its exact candidate, one-host scope and remaining manual checks. The
+  patch is under `docs/wiki-updates/`; wiki publication remains separate
+  (#32).
 - The label sync and drift scripts build their API requests from
   `GITHUB_API_URL`, with trailing slashes removed, and fall back to
   `https://api.github.com` when it is unset, so they also run on a GitHub
