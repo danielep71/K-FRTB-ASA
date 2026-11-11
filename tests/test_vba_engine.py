@@ -14,6 +14,7 @@ from typing import Any
 import openpyxl
 import pytest
 
+import acceptance_cases as cases
 import frtb_reference as ref
 import lo_runner
 import regulatory_defaults as reg
@@ -174,63 +175,10 @@ def test_parameter_sheets_match_regulatory_defaults(lo_default_run):
 # --------------------------------------------------------------------------
 # Discretions switched on and invalid input rows
 # --------------------------------------------------------------------------
-INVALID_ROWS: dict[str, list[list[Any]]] = {
-    "In_Delta": [
-        ["X1", "CSR_SEC_CTP", 1, "A", "BOND", 5, 1000],
-        ["X2", "GIRR", "EUR", "ESTR", "YIELD", 7, 1000],
-        ["X3", "FX", "EUR", "EUR", None, None, 1000],
-        ["X4", "EQ", 99, "A", "SPOT", None, 1000],
-        ["X5", "EQ", 8, "A", "SPOT", None, "abc"],
-        ["X6", "COM", 2, "BRENT", "ROTTERDAM", "abc", 1000],
-        ["X7", "EQ", 8.6, "A", "SPOT", None, 1000],
-    ],
-    "In_Vega": [["Y1", "EQ", 8, "A", None, 2, None, 1000]],
-    "In_Curvature": [
-        ["Z1", "EQ", 8, "A", None, 1000, None],
-        # RefReportingCcy accepts only TRUE, FALSE or blank; aliases are rejected (#144)
-        ["Z2", "FX", "USD", "USD", None, 1000, 1000, "maybe"],
-        ["Z3", "FX", "USD", "USD", None, 1000, 1000, "no"],
-        ["Z4", "FX", "GBP", "GBP", None, 1000, 1000, "YES"],
-        ["Z5", "FX", "GBP", "GBP", None, 1000, 1000, 1],
-    ],
-    "In_DRC": [
-        ["K1", "A", "CORP", "ZZZ", "SENIOR", 1, 1, 1, None],
-        ["K2", "A", "XXX", "A", "SENIOR", 1, 1, 1, None],
-        ["K3", "A", "CORP", "A", "JUNK", 1, 1, 1, None],
-        ["K4", "BANK_A", "CORP", "BBB", "SENIOR", 100, 100, 1, None],
-        ["K5", "BANK_C", "CORP", "A", "SENIOR", 1000, 1000, "abc", None],
-        ["K6", "BANK_C", "CORP", "A", "SENIOR", 1000, 1000, 1, "x"],
-        ["K7", "BANK_D", "CORP", "A", "EQUITY", 1000, 1000, 0.5, None],
-        ["K8", "BANK_B", "SOV", "BBB", "SENIOR", 100, 100, 1, None],
-    ],
-    "In_RRAO": [["Q1", "FOO", 1000], ["Q2", "OTHER", -5]],
-}
-
-
 @pytest.fixture(scope="module")
 def lo_variant_run(lo_default_path, tmp_path_factory):
     wb = openpyxl.load_workbook(lo_default_path)
-    ws = wb["Control"]
-    for row in ws.iter_rows(min_row=1, min_col=FIRST_COL):
-        if row[0].value in ("GIRR_SPECIFIED_CCY_DISCRETION", "FX_SPECIFIED_PAIR_DISCRETION", "FX_CURVATURE_DIVISOR"):
-            row[1].value = True
-    for sheet, rows in INVALID_ROWS.items():
-        ws = wb[sheet]
-        r = FIRST_DATA_ROW
-        while ws.cell(r, FIRST_COL).value not in (None, "") or ws.cell(r, FIRST_COL + 1).value not in (None, ""):
-            r += 1
-        for values in rows:
-            for c, v in enumerate(values, start=FIRST_COL):
-                ws.cell(r, c).value = v
-            r += 1
-        if sheet == "In_Curvature":
-            # A Boolean-formatted 2 shows TRUE: the VBA and the reference read it
-            # as TRUE, so FX_CURVATURE_DIVISOR leaves the row undivided (#144).
-            # LibreOffice's VBA already returns a Boolean for this cell; the
-            # numeric path of CellBool is the one Excel takes (#28).
-            for c, v in enumerate(["Z6", "FX", "JPY", "JPY", None, 9000, 6000, 2], start=FIRST_COL):
-                ws.cell(r, c).value = v
-            ws.cell(r, FIRST_COL + 7).number_format = '"TRUE";"TRUE";"FALSE"'
+    cases.apply_variant(wb)
     folder = tmp_path_factory.mktemp("lo-variant")
     source = folder / "variant-in.xlsx"
     wb.save(source)
@@ -247,7 +195,7 @@ def test_variant_run_reconciles_with_reference(lo_variant_run):
 def test_variant_run_logs_every_invalid_row(lo_variant_run):
     errors = log_rows(lo_variant_run, "ERROR")
     sources = sorted(r[1] for r in errors)
-    assert len(errors) == 22, errors
+    assert len(errors) == cases.EXPECTED_ERRORS, errors
     assert sum(s.startswith("In_Delta") for s in sources) == 7
     assert sum(s.startswith("In_DRC") for s in sources) == 7
     assert any("Cash equity maturity" in r[2] for r in errors)
@@ -256,7 +204,7 @@ def test_variant_run_logs_every_invalid_row(lo_variant_run):
     # BANK_B, split across CORP and SOV, is skipped; BANK_A takes its worst quality (#142)
     assert any("BANK_B has positions in several buckets" in r[2] for r in errors)
     warnings = log_rows(lo_variant_run, "WARN")
-    assert len(warnings) == 1 and "the worst, BBB, is used" in warnings[0][2]
+    assert len(warnings) == cases.EXPECTED_WARNINGS and "the worst, BBB, is used" in warnings[0][2]
     drc = {r[0]: r for r in sheet_rows(lo_variant_run, "Out_DRC")}
     assert "BANK_B" not in drc and drc["BANK_A"][2] == "BBB"
 

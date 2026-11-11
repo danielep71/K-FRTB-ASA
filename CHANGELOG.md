@@ -475,6 +475,18 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- `tools\Check-FRTB-Excel.cmd` runs every Excel check of a branch
+  unattended. It checks the branch out, records the run with
+  `Record-FRTB-ExcelRun.ps1`, and runs `TEST_Acceptance` in Excel: the
+  sample run, the failed-run and
+  Clear outputs state (#85), numeric text, the frozen panes, the autofilters,
+  the Control descriptions (#203) and the invalid-row variant (#28). It also
+  runs the `-FromSource` and `-Template` builds, the Trust Center error path
+  when asked, and the synchronization checks (#72). It then writes a summary,
+  pictures and a zip. `TEST_AcceptanceData` holds the variant and its
+  expected results, generated from the independent reference by
+  `tools/build_acceptance_data.py`; `tests/test_acceptance.py` runs the
+  checks in LibreOffice (#274).
 - [AGENTS.md](AGENTS.md) holds the editorial and assistant rules. Governance
   and contributing link to it (#168).
 - `tools/check_repository.py` fails when a workflow lacks top-level
