@@ -2,7 +2,9 @@
 
 This guide covers repository maintenance and the separate SA prototype path.
 The universal maintenance check requires Git, Node.js with built-in fetch, Python
-3.12 or newer and the pinned parser in `.github/requirements.txt`. No npm
+3.12 or newer, the pinned packages of the three requirements files
+(`.github/requirements.txt`, `.github/requirements-quality.txt` and
+`tests/requirements.txt`) and [actionlint](docs/CI.md#quality-gates-219). No npm
 packages, Excel or PowerShell are required for maintenance. Local verification used Linux,
 Git 2.51.1, Node.js 24.19.0 and Python 3.12.14; hosted CI uses Ubuntu 24.04,
 with Python 3.13.18 and Node.js 24.22.2 for the integrity gate.
@@ -34,7 +36,7 @@ From the repository root:
 
 ```sh
 python3 -m venv .venv-ci
-.venv-ci/bin/python -m pip install -r .github/requirements.txt
+.venv-ci/bin/python -m pip install -r .github/requirements.txt -r .github/requirements-quality.txt -r tests/requirements.txt
 .venv-ci/bin/python tools/check_repository.py
 git diff --check
 git diff --cached --check
@@ -42,8 +44,10 @@ git status --short
 ```
 
 Use `.venv-ci\Scripts\python` on Windows. The universal command must exit 0;
-it includes the existing label commands, maintenance fixtures, JSON/YAML,
-tracked whitespace and local Markdown target checks. Stage new files first
+it includes the quality gates (Ruff, mypy and actionlint), the existing label
+commands, maintenance fixtures, JSON/YAML, tracked whitespace and local
+Markdown target and anchor checks. A gate whose tool is missing prints `SKIP`;
+set `REQUIRE_QUALITY_TOOLS=1` to fail instead, as CI does. Stage new files first
 so they appear in its tracked-file inventory. No GitHub credentials are used.
 The additional diff checks inspect local changes; the universal command also
 inspects unchanged tracked files. A fresh checkout should be clean.
@@ -65,7 +69,7 @@ work integrates on `release/v0.2.0` (issue #20). Its approved Excel/VBA
 evaluation scope does not resolve the long-term platform decision or the
 remaining methodology questions in [Scope](docs/SCOPE.md).
 
-- Checks on Linux: Python 3, LibreOffice Calc with the Python UNO bridge
+- Checks on Linux: Python 3.12 or newer, LibreOffice Calc with the Python UNO bridge
   (`python3-uno`) and the pinned packages in `tests/requirements.txt` plus
   `.github/requirements.txt`; run
   `python3 tools/vba_lint.py` and `REQUIRE_LIBREOFFICE=1 python3 -m pytest tests`

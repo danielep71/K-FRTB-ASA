@@ -1,3 +1,3 @@
 # Repository configuration validation only; independent of prototype packages.
-# Compile with: pip-compile --generate-hashes --allow-unsafe .github/requirements.in
+# Compile with: pip-compile --allow-unsafe --generate-hashes --no-emit-index-url --output-file=.github/requirements.txt --strip-extras .github/requirements.in
 PyYAML==6.0.3
