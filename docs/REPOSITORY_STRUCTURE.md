@@ -18,7 +18,7 @@ The layout separates source, tests, documentation, and tools while distinguishin
 | `docs/assets/` | Documentation images and their sources; `market-risk/` holds the market risk and CVA method maps |
 | `docs/evidence/` | Dated, sanitized evidence records bound to reviewed commits |
 | `docs/Milestones/` | Detailed milestone guides |
-| `tools/` | Tooling index; prototype build, VBA synchronization into an existing workbook and their `.cmd` launchers, read-only VBA export and source comparison, LibreOffice runner, VBA lint, expected-value generator, Excel evidence validator and diagram generator; label tooling remains in `.github/scripts/` |
+| `tools/` | Tooling index; prototype build and template generation, VBA synchronization into an existing workbook and their `.cmd` launchers, read-only VBA export and source comparison, LibreOffice runner, VBA lint, expected-value generator, Excel run recorder and evidence validator, repository, issue and external-link checks, traffic history merge and publication, and diagram generator; label tooling remains in `.github/scripts/` |
 | `.github/` | Labels, forms, universal maintenance/analytics workflows, prototype checks, dependency updates and the Excel evidence policy |
 | Root | Entry documentation, licenses, contribution/setup guidance, and repository-control files |
 
@@ -26,8 +26,6 @@ Each new root has a purposeful README. Add further subdirectories with their
 first real file and documented purpose, rather than creating empty engine
 modules, fixtures, or placeholder test runners. Source extensions, runtime
 dependencies, and build commands must follow an approved platform decision.
-The label catalogue's `application` profile is not an engine architecture
-decision.
 
 ## Source of truth
 

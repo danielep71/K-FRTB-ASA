@@ -81,7 +81,7 @@ does not judge them.
 ## ▶️ Recorded run
 
 `tools\Record-FRTB-ExcelRun.cmd` records the run in one step. Use desktop
-Excel for Windows, with Git and Python 3 on PATH, and turn on *Trust access to
+Excel for Windows, with Git and Python 3.12 or newer on PATH, and turn on *Trust access to
 the VBA project object model* (**File → Options → Trust Center → Trust Center
 Settings → Macro Settings**).
 
@@ -126,7 +126,7 @@ below gives the same bundle by hand.
 
 ## 🧑‍💻 Manual procedure
 
-Use desktop Excel for Windows, with Git, Python 3 and PowerShell on the same
+Use desktop Excel for Windows, with Git, Python 3.12 or newer and PowerShell on the same
 machine. Run the commands in PowerShell from the checkout.
 
 1. **Pick the candidate** and confirm the tree is clean:

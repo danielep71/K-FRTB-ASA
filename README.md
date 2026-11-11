@@ -284,7 +284,7 @@ what is **not** validated yet.
 | Label usage, issue priorities, and metadata checks | [Labels and triage](docs/LABELS.md) |
 | How to contribute | [Contributing](CONTRIBUTING.md) |
 | Development branches and integration | [Governance](docs/GOVERNANCE.md) |
-| Effective repository controls and outstanding settings work | [Settings baseline](docs/REPOSITORY_SETTINGS.md) |
+| Effective repository controls | [Settings baseline](docs/REPOSITORY_SETTINGS.md) |
 | Recorded changes | [Changelog](CHANGELOG.md) |
 | Prototype backlog | [v0.2.0 — SA prototype milestone](https://github.com/danielep71/K-FRTB-SA/milestone/2) |
 | Regulatory baseline and certification scope | [v0.3.0 milestone](https://github.com/danielep71/K-FRTB-SA/milestone/3) |
@@ -319,6 +319,8 @@ old URLs, but links and clones should use the new name.
 
 ## 📄 License
 
-This project is distributed under the [MIT License](LICENSE).
+This project is distributed under the [MIT License](LICENSE), except the files
+listed in [THIRD_PARTY_NOTICES.txt](docs/licenses/THIRD_PARTY_NOTICES.txt),
+which remain under the Mozilla Public License 2.0 (MPL-2.0).
 
 Maintained by [Daniele Penza](https://github.com/danielep71).

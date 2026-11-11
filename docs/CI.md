@@ -172,8 +172,11 @@ tests, with the configuration of [`pyproject.toml`](../pyproject.toml):
   checksum.
 
 The check name and app identity are required by the main and release
-rulesets, and main must be up to date before merging; issue #2 records the
-readback and a representative blocked PR (October 18, 2026). A task PR proves
+rulesets, and both are strict: a PR branch must be up to date with its base
+before merging. Issue #2 records the readback and a representative blocked
+PR (October 18, 2026); the release ruleset has been strict since the
+readback of October 31, 2026
+([settings evidence](REPOSITORY_SETTINGS_EVIDENCE.md)). A task PR proves
 the hosted command; release-to-main integration and synchronization into the
 prototype branch (#31) install the workflow on the respective branch lines.
 The prototype workflow installs both requirements manifests in its own test
@@ -252,12 +255,13 @@ trusted workflow; do not claim synchronous assignment prevention. The query
 ## Issue triage
 
 [Issue triage](../.github/workflows/issue-triage.yml) runs
-[`tools/check_issues.py`](../tools/check_issues.py) on issue events and on
-manual dispatch. Issue events run the workflow from the default branch only,
-so it is active after the change reaches main. Its token has `contents`,
-`issues` and `pull-requests` read access only: it never changes an issue, and a
-failed run reports the findings in the job summary and a 30-day artifact. The
-rules are in [labels and triage](LABELS.md).
+[`tools/check_issues.py`](../tools/check_issues.py) on issue events, on
+milestone events and on manual dispatch. Issue and milestone events run the
+workflow from the default branch only, so it is active after the change
+reaches main. Its token has `contents`, `issues` and `pull-requests` read
+access only: it never changes an issue, and a failed run reports the findings
+in the job summary and a 30-day artifact. The rules are in
+[labels and triage](LABELS.md).
 
 ## Evidence boundaries
 

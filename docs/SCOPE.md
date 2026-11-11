@@ -106,6 +106,7 @@ respected.
 
 The prototype is an evaluation tool and supports no regulatory
 reporting or production capital determination. Internal-model calculations,
-pricing engines, live market-data ingestion, regulatory reporting templates,
-and website publication are outside the approved prototype scope. Additional
+pricing engines, live market-data ingestion and regulatory reporting templates
+are outside the approved prototype scope. The [project website](WEBSITE.md)
+describes the project; it does not run the engine. Additional
 capabilities require their own explicit scope and validation work.

@@ -7,6 +7,24 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The documentation no longer contradicts itself or the configuration.
+  Milestone due dates are planning targets, not release promises; the website
+  is no longer listed outside the prototype scope; Issue triage also runs on
+  milestone events; the curl step collects traffic and `traffic_history.py`
+  merges it and writes the alerts; the README, CONTRIBUTING, the website and
+  the traffic page state that the files listed in
+  `docs/licenses/THIRD_PARTY_NOTICES.txt` stay under the MPL-2.0; the
+  integrity check is strict on main and release branches; the governance
+  example of release synchronization is the merge-commit PRs #243 and #244,
+  and the fast-forward after #13 is marked as historical; SECURITY covers
+  `release/v0.3.0`; governance states which form asks for the area and
+  which for the document and section, and lists the `test/` branch prefix;
+  LABELS cites #117 for milestone 2 and copies four label descriptions from
+  the catalogue; the settings evidence no longer calls its annotated baseline
+  verbatim and marks the security-update row as superseded by #191; the
+  tools, tests and structure indexes list every tool and test file. The
+  changelog has one Changed section, and superseded entries name the change
+  that superseded them (#249).
 - The README, scope, structure, releasing, contributing, validation,
   methodology, roadmap, governance, CI, milestone and documentation-index
   pages and the website state the current status: one desktop Excel run is
@@ -128,7 +146,7 @@ Unreleased describe integrated work, not a published version.
   pushes while direct pushes stay allowed for the traffic workflow, and
   records the security features: Dependabot alerts, private vulnerability
   reporting, secret scanning and push protection on, Dependabot security
-  updates off (#167).
+  updates off (#167). (superseded by #191)
 - Six label descriptions are reworded in the first person, and P1 now reads
   "Confirmed calculation bug: wrong results for valid inputs", used only with
   `bug`, consistently in the catalogue, the PR template, the issue forms,
@@ -185,6 +203,124 @@ Unreleased describe integrated work, not a published version.
   trusted metadata automation reconciles future PRs and bot changes. The PR
   checklist, contribution rules and Dependabot entries follow the same policy,
   with offline regression coverage (#104).
+
+- The workbook reports version `0.2.0-prototype`, matching milestone v0.2.0 —
+  SA prototype: `APP_VERSION`, the README sheet, the Log start line, the
+  committed template and the README badge and status callout (#113).
+- Prototype and maintenance work integrates on `release/v0.2.0`, created on
+  October 27, 2026 from `0eb819b`; `release/v0.1.0` is superseded and is
+  deleted under the release-branch lifecycle once milestone 2 is closed.
+  Governance, contributing, installation, the README, security, scope,
+  roadmap, releasing, CI, settings, the PR template and the issue forms
+  follow; the Dependabot targets moved under #118 (#117).
+- The documentation names the milestones as renumbered on October 27, 2026:
+  v0.1.0 — Repo setup (first v0.0.1), v0.2.0 — SA prototype and v0.3.0 —
+  Regulatory baseline and certification scope (#112).
+  - The roadmap moves every later milestone one step: engine v0.4.0,
+    workbook v0.5.0, independent validation v0.6.0, hardening v0.7.0, one
+    reserved v0.8.0, release candidate v0.9.0, first certified release
+    v1.0.0.
+  - Releasing, scope, installation, contributing, governance, CI, settings,
+    Excel evidence, the directory READMEs, the PR template and the issue
+    forms follow; the methodology decisions (#29) belong to v0.3.0.
+  - `release/v0.1.0` keeps its name. Dated records and earlier changelog
+    entries keep the names in effect when they were written; the setup guide
+    notes the renaming.
+- The README names the milestones by their titles after the renumbering of
+  October 27, 2026 (v0.1.0 — Repo setup, v0.2.0 — SA prototype, v0.3.0 —
+  Regulatory baseline and certification scope), states that pull requests
+  carry no milestone (#104), and lists the export, comparison and evidence
+  tooling, the Excel evidence document, the market risk diagrams and the
+  wiki (#110).
+- The market risk framework diagram is a map of approaches, without project
+  names (#102).
+  - Market risk: the IMA for approved desks (expected shortfall,
+    non-modellable risk factors, default risk charge) and the SA for the
+    other desks (SBM, DRC, RRAO).
+  - CVA risk: BA-CVA, reduced or full; SA-CVA, delta and vega; the MAR50.9
+    alternative.
+  - Below each approach, the earlier Basel 2.5 (2009) or Basel III (2011)
+    rule; the total is RWA = 12.5 × K for each requirement.
+  - The other four diagrams are unchanged.
+- The repository is renamed from MKT-FTRB-SA, whose name transposed the
+  letters of FRTB, to K-FRTB-SA, the workbook's name (#95).
+  - Every link, clone command, label search and label command uses
+    `danielep71/K-FRTB-SA`, dated records included; their content is
+    unchanged.
+  - The Excel evidence policy requires `danielep71/K-FRTB-SA` as the record's
+    repository.
+  - The label scripts identify themselves as `k-frtb-sa-…`.
+  - GitHub redirects the old URLs.
+
+- Maintenance audit: refresh the roadmap's dated issue inventory and remove
+  unnecessary third-person wording from current guidance, forms and the PR
+  template. Approval requirements and historical evidence are preserved (#93).
+
+- Comments in the non-Markdown files now describe this repository (#87).
+  - The sync script no longer claims that the tests change the input
+    sheets: the regression test writes only to `Test_Expected`.
+  - Module headers drop the unmaintained `UPDATED` date. `TEST_Numeric`
+    follows the common header layout, and every COMPATIBILITY section names
+    Excel and LibreOffice, except `M_Dev`, which needs Excel.
+  - The prototype-checks workflow describes the whole suite it runs.
+  - `.editorconfig`, `.gitattributes` and `.gitignore` cover only this
+    repository's file types, with the same effect on every tracked file.
+  - The label scripts identify themselves by this repository's name.
+  - The social preview says "Excel / VBA workbook" instead of "toolkit".
+
+- Removed `AGENTS.md` at the owner's request. Its rules duplicated the
+  governance, contribution, scope and CI documents, which remain
+  authoritative; CONTRIBUTING now also states the US English convention
+  (#68). (superseded by #168)
+
+- Release branches are deleted once obsolete: milestone closed, head
+  integrated into main, no PR, updater or workflow targeting them and a
+  repository-wide search finding no current guidance that names them as
+  active. Governance defines the conditions and the
+  owner's exclusion-based deletion procedure; the rulesets are unchanged and
+  keep protecting active branches (#66).
+
+- The owner deleted the setup branch `release/v0.0.1` after the v0.0.1
+  closeout. Its head `b4d6c02` is on main, and the closed milestone and the
+  closeout record remain the setup baseline. The release deletion ruleset
+  excluded the branch only for the deletion and was then restored. Branch
+  guidance, the PR template and the issue forms no longer describe the branch
+  as retained (#62).
+
+- After setup closeout, repository maintenance and all Dependabot version
+  updates use `release/v0.1.0`, milestone 2, under the owner decision in #51.
+  Consolidate the duplicate Actions coverage and retain both CI-parser and
+  prototype pip manifests. Align current branch guidance, forms and templates;
+  reject duplicate, retired, missing or incorrectly assigned updater entries
+  in the integrity gate. `release/v0.0.1` stayed historical and protected,
+  closed to new work, until the owner deleted it (#62). (superseded by #117)
+
+- The roadmap records the owner-approved milestone plan from the closed
+  v0.0.1 setup to v1.0.0, the first certified release, with each milestone's
+  objective and exit condition; the old unversioned phases are replaced, and
+  the methodology decisions (#29) move to v0.2.0 (#55).
+- Settings, governance, CI, roadmap, traffic and contribution documents and
+  the issue forms now record the required `Repository integrity` check,
+  automatic Codex review on PR open and active traffic collection, and no
+  longer describe them as pending (#2, #23, #8).
+- Synchronized main setup controls into the prototype line, preserving its
+  template and module layout. Shared guidance and forms describe both active
+  milestones; prototype tests install the separate CI parser dependency (#31).
+
+
+- Repository files consistently use the MIT license; removed external-project
+  references and superseded license files at the owner's request (#5).
+  (superseded by #158)
+
+- GitHub About description and topics identify the FRTB-SA project and its
+  setup-stage maturity (#3); the owner later updated them to describe the
+  Excel/VBA prototype (#8).
+- Main, release branches, and version tags have active protection rules;
+  workflow action SHA pinning and the available public-repository security
+  controls are enabled. The required integrity gate was added later under #2.
+- Documentation uses the correct display name FRTB-SA while retaining the
+  existing MKT-FTRB-SA repository identifier and URLs (#3). (superseded by
+  #95)
 
 ### Fixed
 
@@ -343,6 +479,7 @@ Unreleased describe integrated work, not a published version.
     sources and the policy in Git at the candidate commit. It also checks
     the policy against `M_Setup`.
   - Offline tests use synthetic bundles. No Excel run is recorded yet (#28).
+    (superseded by #205)
 - Excel round-trip tools (#79), from the VBA-SACCR-Toolkit:
   - `tools/Export-FRTB-VBA.ps1` exports a workbook's VBA read-only, with
     macros disabled, to an empty folder with `export-manifest.json`.
@@ -352,7 +489,8 @@ Unreleased describe integrated work, not a published version.
     reports the export's binding to the workbook as VERIFIED, FAIL or
     UNVERIFIED.
   - The workbook guide describes the round trip that #30 needs. Offline
-    tests cover the comparison; no Excel export is recorded yet.
+    tests cover the comparison; no Excel export is recorded yet. (superseded
+    by #205)
 
 - VBA synchronization for an existing workbook (#72), modeled on the
   VBA-SACCR-Toolkit tools:
@@ -378,7 +516,7 @@ Unreleased describe integrated work, not a published version.
 - Excel/VBA SA prototype (#20/#22): SBM for five risk classes, DRC
   non-securitization and RRAO; independent Python reference, LibreOffice
   reconciliation and methodology/workbook/validation documentation. Excel
-  host evidence remains pending (#28).
+  host evidence remains pending (#28). (superseded by #205)
 - Committed macro-free template and template-based builds; production and
   workbook modules under `src/modules`, with test modules under
   `tests/modules` (#30/#34). Generated `.xlsm` workbooks remain local.
@@ -424,124 +562,6 @@ Unreleased describe integrated work, not a published version.
   (#2, PR #10).
 - Project purpose, implementation-status table, scope and decision register,
   source/validation policy, roadmap, and current getting-started commands (#3).
-
-### Changed
-
-- The workbook reports version `0.2.0-prototype`, matching milestone v0.2.0 —
-  SA prototype: `APP_VERSION`, the README sheet, the Log start line, the
-  committed template and the README badge and status callout (#113).
-- Prototype and maintenance work integrates on `release/v0.2.0`, created on
-  October 27, 2026 from `0eb819b`; `release/v0.1.0` is superseded and is
-  deleted under the release-branch lifecycle once milestone 2 is closed.
-  Governance, contributing, installation, the README, security, scope,
-  roadmap, releasing, CI, settings, the PR template and the issue forms
-  follow; the Dependabot targets moved under #118 (#117).
-- The documentation names the milestones as renumbered on October 27, 2026:
-  v0.1.0 — Repo setup (first v0.0.1), v0.2.0 — SA prototype and v0.3.0 —
-  Regulatory baseline and certification scope (#112).
-  - The roadmap moves every later milestone one step: engine v0.4.0,
-    workbook v0.5.0, independent validation v0.6.0, hardening v0.7.0, one
-    reserved v0.8.0, release candidate v0.9.0, first certified release
-    v1.0.0.
-  - Releasing, scope, installation, contributing, governance, CI, settings,
-    Excel evidence, the directory READMEs, the PR template and the issue
-    forms follow; the methodology decisions (#29) belong to v0.3.0.
-  - `release/v0.1.0` keeps its name. Dated records and earlier changelog
-    entries keep the names in effect when they were written; the setup guide
-    notes the renaming.
-- The README names the milestones by their titles after the renumbering of
-  October 27, 2026 (v0.1.0 — Repo setup, v0.2.0 — SA prototype, v0.3.0 —
-  Regulatory baseline and certification scope), states that pull requests
-  carry no milestone (#104), and lists the export, comparison and evidence
-  tooling, the Excel evidence document, the market risk diagrams and the
-  wiki (#110).
-- The market risk framework diagram is a map of approaches, without project
-  names (#102).
-  - Market risk: the IMA for approved desks (expected shortfall,
-    non-modellable risk factors, default risk charge) and the SA for the
-    other desks (SBM, DRC, RRAO).
-  - CVA risk: BA-CVA, reduced or full; SA-CVA, delta and vega; the MAR50.9
-    alternative.
-  - Below each approach, the earlier Basel 2.5 (2009) or Basel III (2011)
-    rule; the total is RWA = 12.5 × K for each requirement.
-  - The other four diagrams are unchanged.
-- The repository is renamed from MKT-FTRB-SA, whose name transposed the
-  letters of FRTB, to K-FRTB-SA, the workbook's name (#95).
-  - Every link, clone command, label search and label command uses
-    `danielep71/K-FRTB-SA`, dated records included; their content is
-    unchanged.
-  - The Excel evidence policy requires `danielep71/K-FRTB-SA` as the record's
-    repository.
-  - The label scripts identify themselves as `k-frtb-sa-…`.
-  - GitHub redirects the old URLs.
-
-- Maintenance audit: refresh the roadmap's dated issue inventory and remove
-  unnecessary third-person wording from current guidance, forms and the PR
-  template. Approval requirements and historical evidence are preserved (#93).
-
-- Comments in the non-Markdown files now describe this repository (#87).
-  - The sync script no longer claims that the tests change the input
-    sheets: the regression test writes only to `Test_Expected`.
-  - Module headers drop the unmaintained `UPDATED` date. `TEST_Numeric`
-    follows the common header layout, and every COMPATIBILITY section names
-    Excel and LibreOffice, except `M_Dev`, which needs Excel.
-  - The prototype-checks workflow describes the whole suite it runs.
-  - `.editorconfig`, `.gitattributes` and `.gitignore` cover only this
-    repository's file types, with the same effect on every tracked file.
-  - The label scripts identify themselves by this repository's name.
-  - The social preview says "Excel / VBA workbook" instead of "toolkit".
-
-- Removed `AGENTS.md` at the owner's request. Its rules duplicated the
-  governance, contribution, scope and CI documents, which remain
-  authoritative; CONTRIBUTING now also states the US English convention
-  (#68).
-
-- Release branches are deleted once obsolete: milestone closed, head
-  integrated into main, no PR, updater or workflow targeting them and a
-  repository-wide search finding no current guidance that names them as
-  active. Governance defines the conditions and the
-  owner's exclusion-based deletion procedure; the rulesets are unchanged and
-  keep protecting active branches (#66).
-
-- The owner deleted the setup branch `release/v0.0.1` after the v0.0.1
-  closeout. Its head `b4d6c02` is on main, and the closed milestone and the
-  closeout record remain the setup baseline. The release deletion ruleset
-  excluded the branch only for the deletion and was then restored. Branch
-  guidance, the PR template and the issue forms no longer describe the branch
-  as retained (#62).
-
-- After setup closeout, repository maintenance and all Dependabot version
-  updates use `release/v0.1.0`, milestone 2, under the owner decision in #51.
-  Consolidate the duplicate Actions coverage and retain both CI-parser and
-  prototype pip manifests. Align current branch guidance, forms and templates;
-  reject duplicate, retired, missing or incorrectly assigned updater entries
-  in the integrity gate. `release/v0.0.1` stayed historical and protected,
-  closed to new work, until the owner deleted it (#62).
-
-- The roadmap records the owner-approved milestone plan from the closed
-  v0.0.1 setup to v1.0.0, the first certified release, with each milestone's
-  objective and exit condition; the old unversioned phases are replaced, and
-  the methodology decisions (#29) move to v0.2.0 (#55).
-- Settings, governance, CI, roadmap, traffic and contribution documents and
-  the issue forms now record the required `Repository integrity` check,
-  automatic Codex review on PR open and active traffic collection, and no
-  longer describe them as pending (#2, #23, #8).
-- Synchronized main setup controls into the prototype line, preserving its
-  template and module layout. Shared guidance and forms describe both active
-  milestones; prototype tests install the separate CI parser dependency (#31).
-
-
-- Repository files consistently use the MIT license; removed external-project
-  references and superseded license files at the owner's request (#5).
-
-- GitHub About description and topics identify the FRTB-SA project and its
-  setup-stage maturity (#3); the owner later updated them to describe the
-  Excel/VBA prototype (#8).
-- Main, release branches, and version tags have active protection rules;
-  workflow action SHA pinning and the available public-repository security
-  controls are enabled. The required integrity gate was added later under #2.
-- Documentation uses the correct display name FRTB-SA while retaining the
-  existing MKT-FTRB-SA repository identifier and URLs (#3).
 
 No functional release has been published. Prototype LibreOffice results,
 independent reconciliation and one desktop Excel run on one host are
