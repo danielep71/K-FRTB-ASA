@@ -119,13 +119,14 @@ if either branch moves, reassess the new work before proceeding. Never reset
 or force an update.
 
 Record the PR, merge commit, branch readback, and applicable post-merge checks.
-PR [#242](https://github.com/danielep71/K-FRTB-ASA/pull/242) shows the current
+PR [#285](https://github.com/danielep71/K-FRTB-ASA/pull/285) shows the current
 procedure: it integrated `release/v0.2.0` into main with a merge commit, and
-PRs [#243](https://github.com/danielep71/K-FRTB-ASA/pull/243) and
-[#244](https://github.com/danielep71/K-FRTB-ASA/pull/244), from the task
-branches `chore/sync-release-v0.2.0-242` and `chore/sync-release-v0.3.0-242`,
+PRs [#286](https://github.com/danielep71/K-FRTB-ASA/pull/286) and
+[#287](https://github.com/danielep71/K-FRTB-ASA/pull/287), from the task
+branches `chore/sync-release-v0.2.0-285` and `chore/sync-release-v0.3.0-285`,
 brought main back into `release/v0.2.0` and `release/v0.3.0` with merge
-commits that keep both parents. Later task PRs advance the release branches
+commits that keep both parents. The first integration of this kind was
+[#242](https://github.com/danielep71/K-FRTB-ASA/pull/242), with #243 and #244. Later task PRs advance the release branches
 again; branches need match only at the integration checkpoint.
 
 Historical example, before the synchronization rule of #151: after PR
