@@ -7,6 +7,12 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The unattended Excel check makes Microsoft Print to PDF the default
+  printer for the run and restores the operator's default printer at the
+  end, also when the run fails, so Excel does not wait on a slow printer
+  whenever a workbook sets its page setup. Without Microsoft Print to PDF
+  the default printer is not changed, and the log names no printer of the
+  operator (#304).
 - The documentation is checked against the code and the current state on
   November 11, 2026 (#288). The README, CONTRIBUTING, RELEASING, SCOPE,
   ROADMAP, SECURITY and the v0.2.0 guide name the unattended Excel check and

@@ -187,6 +187,39 @@ def test_the_build_turns_alerts_off_again_before_it_saves():
     assert again < build.index("$workbook.SaveAs($OutputPath, 52)")
 
 
+def test_the_default_printer_is_switched_for_the_run_and_restored():
+    # A slow default printer made Excel wait in every build; the run uses
+    # Microsoft Print to PDF and puts the operator's printer back (#304)
+    text = script_text()
+    body = text.split("$watchdog = Start-Job", 1)[1]
+    run = body.split("\ntry {", 1)[1]
+    switch = run.index("Set-DefaultPrinter $pdfPrinter")
+    assert switch < run.index("Write-Host '== Recorded run")
+    final = run.split("\n} finally {", 1)[1].split("\n}", 1)[0]
+    assert "if ($printerChanged)" in final and "Set-DefaultPrinter $printerBefore" in final
+    assert "$pdfPrinter = 'Microsoft Print to PDF'" in text
+    # without the PDF printer nothing changes; the log names no printer of the operator
+    assert "default printer unchanged: $pdfPrinter is not installed" in run
+    assert not [line for line in text.splitlines() if "Write-Log" in line and "$printerBefore" in line]
+    assert "$wql = ConvertTo-WqlLiteral $Name" in text
+
+
+@pytest.mark.skipif(not PWSH, reason="PowerShell 7 (pwsh) is not installed")
+def test_printer_names_are_escaped_for_wql():
+    # The script's own function, run on a shared printer and a quote (#304)
+    command = (
+        "$t = $null; $e = $null; $ast = [System.Management.Automation.Language.Parser]::ParseFile("
+        f"'{SCRIPT}', [ref]$t, [ref]$e); "
+        "$f = $ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] "
+        "-and $n.Name -eq 'ConvertTo-WqlLiteral' }, $true) | Select-Object -First 1; "
+        "Invoke-Expression $f.Extent.Text; ConvertTo-WqlLiteral \"\\\\server\\queue O'Brien\""
+    )
+    completed = subprocess.run([str(PWSH), "-NoProfile", "-NonInteractive", "-Command", command],
+                               capture_output=True, text=True, timeout=120, check=False)
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    assert completed.stdout.strip() == r"\\\\server\\queue O\'Brien"
+
+
 def test_identical_templates_have_no_differences():
     wb = openpyxl.load_workbook(TEMPLATE)
     assert compare_templates.compare(wb, openpyxl.load_workbook(TEMPLATE)) == []
