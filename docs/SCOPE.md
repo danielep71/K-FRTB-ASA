@@ -12,8 +12,9 @@ is on main. No functional release or regulatory certification has been
 published. The prototype has run in LibreOffice Calc VBA-compatibility mode,
 and one desktop Excel run is recorded on `323260b`, on one host
 ([Excel run](evidence/2026-10-31-excel-run-323260b.md)): both builds, both
-compilations, the regression test and both round trips. The remaining manual
-Excel checks are in #28, #72, #85 and #206.
+compilations, the regression test and both round trips. The remaining Excel
+checks are in #28, #72, #85 and #206; `tools\Check-FRTB-Excel.cmd` (#274) runs
+those of #28, #72 and #85 unattended, but it has not yet run in desktop Excel.
 
 The intended outcome is transparent, testable market risk calculation for
 practitioners, developers, validators, researchers and educators.
@@ -50,7 +51,7 @@ execution is a distinct compatibility runtime.
 | Initial products/risk classes | Prototype coverage above; CSR securitization rows rejected, securitization DRC out of scope and not identifiable on `In_DRC` |
 | Inputs, units, signs, identifiers and outputs | Workbook guide and methodology; the #29 interpretations are decided and implemented, and v0.3.0 reviews them for the certified scope |
 | Expected-value provenance/tolerances | Independent Python reference, hand-calculated cases and validation record |
-| Host execution/export and release packaging | Excel run recorded on `323260b` (#28; round trip #30 closed), remaining checks in #28, #72, #85 and #206, setup release procedure #8 and prototype closeout #32 |
+| Host execution/export and release packaging | Excel run recorded on `323260b` (#28; round trip #30 closed), remaining checks in #28, #72, #85 and #206 (unattended check #274, not yet run in Excel), setup release procedure #8 and prototype closeout #32 |
 
 Maintenance tooling uses Node built-ins and Python with a pinned CI parser;
 the prototype test environment has its own packages. These are documented in

@@ -8,7 +8,7 @@ This document is authoritative for **what K-FRTB-ASA calculates**: the
 formulas, the default parameters and the interpretations I decided (#29). It
 follows the Basel Framework chapters MAR21 (sensitivities-based method),
 MAR22 (default risk capital) and MAR23 (residual risk add-on), in force since
-1 January 2023. Paragraph references below point to those chapters.
+January 1, 2023. Paragraph references below point to those chapters.
 
 > [!IMPORTANT]
 > Parameters are editable defaults on the `P_*` sheets. They were checked
@@ -60,8 +60,9 @@ deliverable and non-deliverable variants of a currency are one risk factor
 (MAR21.14(4) and its FAQ): enter KRW, not KRO, for every Korean won
 sensitivity.
 
-Vega and curvature take the delta sub-types that name the same risk factor:
-CSR `BOND` or `CDS` and equity `SPOT`, merged into one risk factor per name.
+Vega and curvature take the delta sub-types that name the same risk factor,
+or none: CSR `BOND` or `CDS` and equity `SPOT`, merged into one risk factor
+per name; GIRR curvature takes `YIELD` or none.
 Equity `REPO` has no vega or curvature (MAR21.12), GIRR `INFLATION` and
 `XCCY` have no curvature (MAR21.8), and FX takes no sub-type in any input;
 such rows are rejected and logged (#245). A commodity sub-type is the
@@ -75,6 +76,7 @@ Vega risk factors are the underlying and the option maturity (0.5, 1, 3, 5,
 * `INFLATION`, one risk factor per inflation curve (the qualifier), and
   `XCCY`, the cross-currency basis: the option maturity only. A row of either
   with an underlying maturity is rejected (#209).
+
 Curvature risk factors are one per currency for GIRR (all curves shifted
 together; no inflation or cross-currency basis curvature) and FX, one per
 issuer for CSR (bond and CDS curves together), one per issuer for equity and
@@ -102,9 +104,9 @@ shocks (#29, item 6):
 - **FX divisor.** Enter FX CVRs before any division by 1.5: the workbook
   applies `FX_CURVATURE_DIVISOR` or `FX_CURVATURE_DIVISOR_ALL` itself.
   `References reporting ccy` (engine key `RefReportingCcy`) accepts TRUE,
-  FALSE or blank (FALSE), as a Boolean cell
-  or as text in any case; any other value rejects the row, including YES,
-  NO, Y, N, 1 and 0.
+  FALSE or blank (FALSE), as a Boolean cell, as text in any case, or as a
+  number whose format shows TRUE or FALSE; any other value rejects the row,
+  including YES, NO, Y, N, and 1 or 0 in a number format.
 - **CSR floor.** When the downward shock would make a credit spread
   negative, the bank may floor the CSR curvature risk factor at zero after
   the shock. It then caps the risk weight used in `CVR-` at the level of the

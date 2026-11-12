@@ -8,8 +8,8 @@ third-party fonts, package installation or calculation service.
 
 ## Publication
 
-After reviewed integration into main, configure GitHub Pages to deploy from
-the `main` branch, `/ (root)` folder. The root `.nojekyll` file disables
+GitHub Pages deploys the site from the `main` branch, `/ (root)` folder, so a
+change goes live only after it is integrated into main. The root `.nojekyll` file disables
 Jekyll processing. Verify the Pages deployment and the live URL separately.
 
 ## Maintenance

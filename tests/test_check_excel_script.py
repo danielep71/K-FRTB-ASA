@@ -77,6 +77,17 @@ def test_the_trust_center_is_changed_only_on_request_and_restored():
     assert "VBAWarnings" not in text
 
 
+def test_excel_that_cannot_start_stops_with_exit_2():
+    text = script_text()
+    probe = text.split("$probe = New-Object -ComObject Excel.Application", 1)
+    assert len(probe) == 2
+    # the first Excel is created inside a try block whose catch stops with exit 2
+    assert probe[0].rstrip().endswith("try {")
+    catch = probe[1].split("} catch {", 1)[1].split("\n}", 1)[0]
+    assert "Stop-NotStarted" in catch and "Excel could not be started" in catch
+    assert "exit 2" in text.split("function Stop-NotStarted {", 1)[1].split("\n}", 1)[0]
+
+
 def test_a_policy_on_the_vba_access_skips_the_trust_center_check():
     text = script_text()
     # The user's setting is read and restored as found, absent included;
