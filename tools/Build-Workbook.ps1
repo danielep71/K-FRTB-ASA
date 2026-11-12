@@ -148,6 +148,11 @@ try {
         }
     }
 
+    # The workbook's macros turn Excel alerts back on when they finish. A
+    # hidden Excel would then wait on a dialog nobody sees: saving the
+    # template as .xlsx asks whether to drop the VB project (#302)
+    $excel.DisplayAlerts = $false
+
     if ($Template) {
         # A template holds no buttons: FinishWorkbook adds them at build time
         foreach ($sheet in $workbook.Worksheets) {
