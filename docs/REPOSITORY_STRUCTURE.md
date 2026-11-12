@@ -117,10 +117,12 @@ requirements apply:
    Independently specified numeric expectations remain a separate requirement.
 
 The prototype has source export/build helpers and a LibreOffice runtime gate.
-One desktop Excel run on `323260b` recorded the builds, compilation,
-regression test and both source round trips on one host
-([Excel run](evidence/2026-10-31-excel-run-323260b.md)). The remaining manual
-Excel checks are in #28, #72, #85 and #206; those gaps must stay visible.
+Desktop Excel runs on `323260b` and `1badef1` recorded the builds,
+compilation, regression test and both source round trips on one host
+([Excel run](evidence/2026-10-31-excel-run-323260b.md),
+[Excel check](evidence/2026-11-12-excel-check-1badef1.md)); the second also recorded the
+acceptance checks and the synchronization. The remaining Excel review is
+#206; that gap must stay visible.
 
 **Prototype implementation (issues #20, #30).** Exported modules live in
 `src/modules` and `tests/modules`; the committed template at the approved
@@ -130,6 +132,6 @@ checks that it matches a fresh build and carries no VBA project, controls or
 personal properties. Excel builds start from the template and
 `M_Setup.FinishWorkbook` adds the buttons and window settings. The automated
 checks run LibreOffice Calc in VBA-compatibility mode, which is not Excel host
-evidence; one desktop Excel run, with both round trips and their digests, is
-recorded on `323260b` (#28, #30), and a change after that commit needs a new
-run. See [validation](validation.md).
+evidence; desktop Excel runs, with both round trips and their digests, are
+recorded on `323260b` and `1badef1` (#28, #30), and a change after `1badef1`
+needs a new run. See [validation](validation.md).

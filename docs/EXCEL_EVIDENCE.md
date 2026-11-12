@@ -14,9 +14,10 @@ authoritative for:
 
 The [workbook guide](workbook-guide.md) owns building, updating and the round
 trip. [Validation](validation.md) owns what the other checks show. The remaining
-Excel checks of the ASA prototype (v0.2.0) are in #28, #72, #85 and #206.
-One run is recorded, on `323260b`
-([record](evidence/2026-10-31-excel-run-323260b.md)).
+Excel review of the ASA prototype (v0.2.0) is #206. Two sessions are
+recorded: a run on `323260b`
+([record](evidence/2026-10-31-excel-run-323260b.md)) and the unattended check
+on `1badef1` ([record](evidence/2026-11-12-excel-check-1badef1.md)).
 
 > [!IMPORTANT]
 > The validator never runs Excel. It checks three things:
@@ -136,7 +137,8 @@ below gives the same bundle by hand.
 
 `tools\Check-FRTB-Excel.cmd` runs every Excel check of a branch with one
 double-click: `release/v0.2.0` by default, or the branch given as its first
-argument (#274). It has not yet run in desktop Excel. It needs what the
+argument (#274). It passed 21 of 21 on `1badef1`
+([record](evidence/2026-11-12-excel-check-1badef1.md)). It needs what the
 recorded run needs. It asks at most two questions, at the start:
 * whether to turn on the VBA project access, when it is off; if you agree,
   it stays on after the run, and the evidence records the change;
@@ -186,6 +188,11 @@ It exits:
 * 0 when every check passed;
 * 1 when a check failed;
 * 2 when it could not start.
+
+For the run, Microsoft Print to PDF is the default printer, so Excel does
+not wait on a slow printer whenever a workbook sets its page setup; your
+default printer is restored at the end, also when the run fails. Without
+Microsoft Print to PDF the default printer is not changed (#304).
 
 Each Excel it starts is its own instance. After 60 minutes, a watchdog
 closes the Excel instances started by automation during the run; an Excel

@@ -219,9 +219,9 @@ closed on October 18, 2026; its [detailed guide](Milestones/v0.0.1.md) and
 baseline. [v0.2.0 — ASA prototype](https://github.com/danielep71/K-FRTB-ASA/milestone/2)
 is active: its [guide](Milestones/v0.2.0.md),
 [interim evaluation](evidence/2026-10-27-prototype-evaluation.md) and
-[Excel run](evidence/2026-10-31-excel-run-323260b.md) exist, prototype
-closeout is tracked in #32, and #28 owns the remaining Excel checks, with
-#72, #85 and #206. The methodology readings of #29 are decided and
+[Excel run](evidence/2026-10-31-excel-run-323260b.md) and
+[Excel check](evidence/2026-11-12-excel-check-1badef1.md) exist, prototype closeout is
+tracked in #32, and #206 owns the remaining Excel review. The methodology readings of #29 are decided and
 implemented; v0.3.0 reviews them for the certified scope in the
 [milestone plan](ROADMAP.md). The live issue tracker
 owns progress; a guide is not a substitute for completed acceptance criteria.
