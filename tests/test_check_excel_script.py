@@ -140,6 +140,17 @@ def test_a_timed_out_launcher_is_stopped_with_its_processes():
     assert "$process.Kill()" not in loop
 
 
+def test_the_launcher_exit_code_is_read():
+    # Without reading the handle while the launcher runs, a Process from
+    # Start-Process loses its exit code and the check reports FAIL (#297)
+    loop = script_text().split("Write-Host '== Synchronization launchers'", 1)[1].split("} catch {", 1)[0]
+    start = loop.index("Start-Process")
+    assert start < loop.index("$null = $process.Handle") < loop.index("$process.WaitForExit(180000)")
+    assert loop.index("$process.WaitForExit(180000)") < loop.index("$process.WaitForExit()") \
+        < loop.index("Select-String -Path $logFile")
+    assert "$process.ExitCode -eq 0 -and $succeeded" in loop
+
+
 def test_each_launcher_is_judged_by_its_own_success_line():
     text = script_text()
     for launcher in ("Sync-FRTB-VBA.cmd", "Sync-FRTB-VBA-Downloads.cmd"):
