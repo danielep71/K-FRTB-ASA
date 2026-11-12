@@ -13,7 +13,7 @@
 [![Framework](https://img.shields.io/badge/Framework-Basel_MAR21--MAR23-1f3a5f?style=for-the-badge)](docs/methodology.md)
 [![Status](https://img.shields.io/badge/Status-Prototype_0.2.0-D93F0B?style=for-the-badge)](#status)
 [![Reconciliation](https://img.shields.io/badge/Reconciliation-LibreOffice_checked-2ea44f?style=for-the-badge)](docs/validation.md)
-[![Excel evidence](https://img.shields.io/badge/Excel_evidence-recorded_323260b-2ea44f?style=for-the-badge)](docs/evidence/2026-10-31-excel-run-323260b.md)
+[![Excel evidence](https://img.shields.io/badge/Excel_evidence-recorded_1badef1-2ea44f?style=for-the-badge)](docs/evidence/2026-11-12-excel-check-1badef1.md)
 [![License](https://img.shields.io/badge/License-MIT-2ea44f?style=for-the-badge)](LICENSE)
 
 <br>
@@ -69,11 +69,11 @@
 > milestone (issue #20). It implements the Basel standardized approach
 > (MAR21-MAR23) in Excel VBA with parameters checked against the BIS text,
 > and every output is reconciled with an independent Python reference.
-> **One desktop Excel run is recorded**, on `323260b` and one host
-> ([evidence](docs/evidence/2026-10-31-excel-run-323260b.md)); the remaining
-> Excel checks are in #28, #72, #85 and #206; `tools\Check-FRTB-Excel.cmd`
-> (#274) runs those of #28, #72 and #85 unattended, but it has not yet run in
-> desktop Excel. The long-term platform decision is open
+> **Two desktop Excel sessions are recorded**, on one host: a run on
+> `323260b` ([evidence](docs/evidence/2026-10-31-excel-run-323260b.md)) and
+> the unattended check `tools\Check-FRTB-Excel.cmd` (#274) on `1badef1`, which
+> passed 21 of 21 ([evidence](docs/evidence/2026-11-12-excel-check-1badef1.md)). The remaining
+> Excel review is #206, the formatting of every sheet. The long-term platform decision is open
 > ([scope](docs/SCOPE.md#platform-and-environment)), and no result is
 > validated for regulatory use ([validation](docs/validation.md)).
 
@@ -121,8 +121,8 @@ need to **check** an FRTB-SA number:
 | Sensitivities-based method (SBM) | Prototype: GIRR, CSR non-securitization, equity, commodity, FX; delta, vega, curvature |
 | Default risk charge (DRC) | Prototype: non-securitizations |
 | Residual risk add-on (RRAO) | Prototype |
-| Independent benchmarks and runtime evidence | Python reference reconciled with the VBA run in LibreOffice; desktop Excel run recorded on `323260b` ([evidence](docs/evidence/2026-10-31-excel-run-323260b.md)) |
-| Excel round trip and evidence tooling | One-step recorder, read-only VBA export, source comparison and evidence validator; both round trips passed in Excel on `323260b` (#28, #30). An unattended check runs the remaining Excel checks (#274); it has not yet run in desktop Excel |
+| Independent benchmarks and runtime evidence | Python reference reconciled with the VBA run in LibreOffice; desktop Excel runs recorded on `323260b` ([evidence](docs/evidence/2026-10-31-excel-run-323260b.md)) and `1badef1` ([evidence](docs/evidence/2026-11-12-excel-check-1badef1.md)) |
+| Excel round trip and evidence tooling | One-step recorder, read-only VBA export, source comparison and evidence validator; both round trips passed in Excel on `323260b` and `1badef1` (#28, #30). The unattended check (#274) passed in Excel on `1badef1` |
 | Market risk and CVA method maps | Five diagrams in [`docs/assets/market-risk/`](docs/assets/market-risk/README.md) (#98, #102) |
 | Issue-only milestones | PR milestones removed automatically (#104) |
 
@@ -240,7 +240,7 @@ role.
 | Parameter spot check | The `P_*` sheets equal an independently typed list of the regulatory values |
 | VBA reconciliation | The VBA, run headless in LibreOffice, reproduces every output of the Python reference, with and without the discretions, and logs every invalid row |
 | In-workbook regression | 52 items PASS |
-| Acceptance checks | `TEST_Acceptance` passes in LibreOffice; its Excel-only checks run in desktop Excel through `tools\Check-FRTB-Excel.cmd`, which has not yet run there |
+| Acceptance checks | `TEST_Acceptance` passes in LibreOffice; with its Excel-only checks, it passed in desktop Excel on `1badef1` through `tools\Check-FRTB-Excel.cmd` |
 
 Static checks, runtime execution, independent numerical comparison and
 methodology review establish different things. The
@@ -251,9 +251,9 @@ what is **not** validated yet.
 
 ## ⚠️ Limitations
 
-- One desktop Excel run is recorded, on `323260b` and one host. Changes
-  after that commit, other Excel versions and other regional settings are
-  untested in Excel, and LibreOffice's VBA support is not Excel's.
+- Desktop Excel runs are recorded on `323260b` and `1badef1`, on one host.
+  Changes after `1badef1`, other Excel versions and other regional settings
+  are untested in Excel, and LibreOffice's VBA support is not Excel's.
 - CSR securitization (non-CTP and CTP) is not implemented, and its rows are
   rejected. Securitization DRC is out of scope: `In_DRC` has no field that
   identifies a securitization, so do not enter securitization positions.

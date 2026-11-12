@@ -1,7 +1,7 @@
 # 🧪 Validation
 
 [![Reconciliation: LibreOffice vs reference](https://img.shields.io/badge/reconciliation-LibreOffice%20vs%20reference-2ea44f)](#automated-checks)
-[![Excel evidence: recorded](https://img.shields.io/badge/Excel%20evidence-recorded%20323260b-2ea44f)](evidence/2026-10-31-excel-run-323260b.md)
+[![Excel evidence: recorded](https://img.shields.io/badge/Excel%20evidence-recorded%201badef1-2ea44f)](evidence/2026-11-12-excel-check-1badef1.md)
 [![Parameters: BIS checked](https://img.shields.io/badge/parameters-BIS%20checked-1f3a5f)](methodology.md#bis-check)
 
 This document states what is checked automatically, how, and what is not
@@ -18,7 +18,7 @@ checked. Treat any result as unvalidated for regulatory use.
 | Parameter spot check | `tests/test_vba_engine.py::test_parameter_sheets_match_regulatory_defaults` | The `P_*` sheets written by `M_Setup` equal an independently typed list in `tests/regulatory_defaults.py` |
 | VBA engine reconciliation | `python3 -m pytest tests/test_vba_engine.py` | The VBA modules, executed headless in LibreOffice, reproduce every `Out_RiskClass`, `Out_Buckets`, `Out_Summary` and `Out_DRC` value of the independent Python reference, on the sample portfolio, on a variant with three discretions enabled (`GIRR_SPECIFIED_CCY_DISCRETION`, `FX_SPECIFIED_PAIR_DISCRETION`, `FX_CURVATURE_DIVISOR`) and invalid rows, each of which must be logged, and on a separate run with `FX_CURVATURE_DIVISOR_ALL`; empty inputs give zero capital |
 | Numeric input contract | `python3 -m pytest tests/test_numeric_contract.py` | Valid numeric text converts as expected and invalid text is rejected in the VBA and the reference; a required key, parameter-table value or vertex-list entry that is blank or not a number stops the run with its location named and leaves every output sheet empty; **Clear outputs** and a failed run restore the template's output headers and note (#41, #45, #85) |
-| Excel acceptance checks | `python3 -m pytest tests/test_acceptance.py`, `python3 tools/build_acceptance_data.py --check` | `TEST_Acceptance`, run in LibreOffice, passes these checks: the sample run, the failed-run and Clear outputs state, numeric text, the rejection of undefined sub-types with their messages, and the invalid-row variant against the reference; the Excel-only window and column checks report SKIPPED. Its data module is current. `tools/Check-FRTB-Excel.ps1` runs the same checks in desktop Excel (#274); it has not yet run there |
+| Excel acceptance checks | `python3 -m pytest tests/test_acceptance.py`, `python3 tools/build_acceptance_data.py --check` | `TEST_Acceptance`, run in LibreOffice, passes these checks: the sample run, the failed-run and Clear outputs state, numeric text, the rejection of undefined sub-types with their messages, and the invalid-row variant against the reference; the Excel-only window and column checks report SKIPPED. Its data module is current. `tools/Check-FRTB-Excel.ps1` runs the same checks in desktop Excel (#274); they passed there on `1badef1` |
 | Unattended check and recorder scripts | `python3 -m pytest tests/test_check_excel_script.py tests/test_record_excel_run.py` | `tools/Check-FRTB-Excel.ps1` parses in PowerShell 7, stops with exit code 2 before writing anything when a tool is missing, and keeps what its help promises: the Trust Center handling, the watchdog and the launcher timeouts; `tools/compare_templates.py` lists template differences; `tools/record_excel_run.py` writes `host.json` from the logs only. No test runs Excel |
 | In-workbook regression test | run inside the reconciliation tests | `Test_RunRegression` passes all 52 items embedded by `M_Setup` |
 | Expected values current | `python3 tools/update_expected.py --check` | The values embedded in `M_Setup` equal the reference results for the sample |
@@ -61,39 +61,29 @@ macros and saves the result as `.xlsx`.
 
 ## ⚠️ Not validated
 
-* **Excel, beyond one recorded run.** No CI check runs Excel, and the
-  unattended check (#274) has not yet run in desktop Excel.
-  [One run](evidence/2026-10-31-excel-run-323260b.md) on `323260b` is
-  recorded and validated (#28). On one host (Windows 11, Excel 16.0 64-bit,
-  comma decimal separator) it shows:
-  * the development and production builds of `tools\Build-Workbook.ps1`;
-  * **Debug → Compile VBAProject** with no error in both;
-  * the regression test, 52 of 52;
-  * both round trips through `tools/Export-FRTB-VBA.ps1` and
-    `tools/compare_vba_export.py`;
-  * the sample run, Clear outputs, a failed run and the `RefReportingCcy`
-    cases, checked by eye.
+* **Excel, beyond the recorded runs.** No CI check runs Excel. Two sessions
+  are recorded and validated on one host (Windows 11, Excel 16.0 64-bit,
+  comma decimal separator):
+  * the [run](evidence/2026-10-31-excel-run-323260b.md) on `323260b` (#28):
+    both builds of `tools\Build-Workbook.ps1`, **Debug → Compile VBAProject**
+    with no error in both, the regression test (52 of 52), both round trips
+    through `tools/Export-FRTB-VBA.ps1` and `tools/compare_vba_export.py`, and
+    the sample run, Clear outputs, a failed run and the `RefReportingCcy`
+    cases, checked by eye;
+  * the unattended [check](evidence/2026-11-12-excel-check-1badef1.md) on
+    `1badef1` (#274), 21 of 21 PASS: the same recorded run, the acceptance
+    checks of `TEST_Acceptance` (the sample run, the failed-run and Clear
+    outputs state, numeric text, undefined sub-types, frozen panes,
+    autofilters, the `Control` descriptions and the invalid-row variant), the
+    `-FromSource` and `-Template` builds, the build's Trust Center error path,
+    and the synchronization of #72 in both modes, from a folder, on failure
+    and through its two launchers.
 
-  A change after that commit needs a new run. Other Excel versions, 32-bit
-  Excel and other regional settings are untested.
-* **The sync script** `tools/Sync-FRTB-VBA.ps1` and its `.cmd` launchers
-  have not been executed in Excel (#72). `tests/test_sync_script.py` runs
-  the script's file selection, name checks, line-ending conversion and module
-  sets offline in PowerShell 7; the Excel import, backup and save are
-  untested.
-* **Not yet run in Excel:**
-  * the invalid-row variant with its three discretions on;
-  * numeric text typed with each decimal separator;
-  * the `-FromSource` and `-Template` builds;
-  * the build's Trust Center error path;
-  * `Dev_ExportModules`;
-  * the changes after `323260b`: the frozen panes and `Control` column
-    widths (#203), two engine changes, the GIRR inflation and cross-currency
-    basis vega (#209) and the rejection of undefined vega and curvature
-    sub-types (#245), the input contract and sub-type texts on the `README`
-    sheet (#210, #245), the workbook texts and MAR references (#250), the
-    rename to K-FRTB-ASA (#261), the recorder's exit code 2 (#247), and the
-    unattended check `tools\Check-FRTB-Excel.ps1` itself (#274).
+  A change after `1badef1` needs a new run; the check's switch to Microsoft
+  Print to PDF (#305) came after it. Not yet run in Excel: `Dev_ExportModules`,
+  and the formatting review of every sheet (#206). Other Excel versions,
+  32-bit Excel and other regional settings, such as the period decimal
+  separator, are untested.
 * **Regulatory correctness.** The reference and the VBA share the same
   reading of MAR21-MAR23, so their agreement does not prove that reading is
   right. The [BIS check](methodology.md#bis-check), the hand-calculated

@@ -284,9 +284,10 @@ This gate checks repository maintenance. It does not execute Excel, run the
 FRTB engine, validate formulas, certify regulation, or substitute for runtime
 and independent numerical evidence. The prototype's separate checks already
 cover VBA lint, Python reference tests and LibreOffice reconciliation on its
-branch. One desktop Excel run is recorded under #28
-([Excel run](evidence/2026-10-31-excel-run-323260b.md)), which keeps the
-remaining manual Excel checks; the methodology readings decided in #29 are
+branch. Two desktop Excel sessions are recorded under #28
+([Excel run](evidence/2026-10-31-excel-run-323260b.md),
+[Excel check](evidence/2026-11-12-excel-check-1badef1.md)); #206 keeps the remaining
+Excel review; the methodology readings decided in #29 are
 reviewed for the certified scope in v0.3.0; prototype synchronization was
 completed in #31. Future engine gates
 must retain independently derived expectations and name the actual host and

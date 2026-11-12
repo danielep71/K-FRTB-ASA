@@ -63,15 +63,17 @@ the setup baseline.
 [Live milestone](https://github.com/danielep71/K-FRTB-ASA/milestone/2) ·
 [milestone guide](Milestones/v0.2.0.md) ·
 [interim evaluation](evidence/2026-10-27-prototype-evaluation.md) ·
-[Excel run](evidence/2026-10-31-excel-run-323260b.md),
+[Excel run](evidence/2026-10-31-excel-run-323260b.md) ·
+[Excel check](evidence/2026-11-12-excel-check-1badef1.md),
 integration branch `release/v0.2.0` (`release/v0.1.0` until October 27, 2026).
 
 The table below is the readback of October 27, 2026, kept as it was. Since
 then, #20, #30, #79 and #82 have closed with the
 [Excel run of October 31, 2026](evidence/2026-10-31-excel-run-323260b.md) on
-`323260b`; the remaining Excel checks are in #28, #72, #85 and #206, and
-`tools\Check-FRTB-Excel.cmd` (#274) runs those of #28, #72 and #85
-unattended. It has not yet run in desktop Excel.
+`323260b`. The unattended check `tools\Check-FRTB-Excel.cmd` (#274) passed
+21 of 21 on `1badef1` on November 12, 2026
+([Excel check](evidence/2026-11-12-excel-check-1badef1.md)); the remaining Excel review is
+#206.
 
 | Issue | State on October 27, 2026 | Deliverable |
 | --- | --- | --- |

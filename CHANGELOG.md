@@ -7,6 +7,12 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The unattended Excel check makes Microsoft Print to PDF the default
+  printer for the run and restores the operator's default printer at the
+  end, also when the run fails, so Excel does not wait on a slow printer
+  whenever a workbook sets its page setup. Without Microsoft Print to PDF
+  the default printer is not changed, and the log names no printer of the
+  operator (#304).
 - The documentation is checked against the code and the current state on
   November 11, 2026 (#288). The README, CONTRIBUTING, RELEASING, SCOPE,
   ROADMAP, SECURITY and the v0.2.0 guide name the unattended Excel check and
@@ -366,15 +372,20 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- `tools\Build-Workbook.ps1` turns Excel alerts off again after the
+  workbook's macros have run and before it saves. The macros turn alerts
+  back on when they finish, so the `-Template` save as `.xlsx` waited on a
+  hidden question about dropping the VB project, and the build hung in
+  desktop Excel (#302).
 - The unattended Excel check reads the exit code of each synchronization
   launcher. It started them with `Start-Process` and never read the process
   handle, so the exit code was empty and both launchers were reported as
   failed, although their logs show they succeeded (#297).
 - The workbook build turns Excel's printer communication off while it sets
   the page setup of every sheet, and back on at the end, so Excel applies it
-  in one batch. Before, each of about fifteen properties on each of the 22
-  sheets queried the default printer, and an unreachable printer made the
-  build hang in desktop Excel (#295).
+  in one batch instead of querying the default printer for each property
+  (#295). It was meant to stop the `-Template` build from hanging in desktop
+  Excel; the cause of that hang was the save, fixed by #302.
 - The unattended Excel check exits 2 with "NOT STARTED: Excel could not be
   started" when Excel is missing or COM cannot start it, as documented,
   instead of ending with exit code 1 and a raw COM error (#290).
@@ -506,6 +517,16 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- The record of the unattended Excel check of November 12, 2026, on
+  `1badef1`: 21 of 21 checks passed on one host, and the validator reports
+  PASS (#306). It binds the run to the candidate, the logs and the workbooks
+  by SHA-256, compares the Excel-built template with the committed one, and
+  lists the earlier attempts of the day and their fixes (#296, #298, #303,
+  #305). Six screenshots taken by the check are in `docs/assets/screenshots/`.
+  The README, CONTRIBUTING, RELEASING, SCOPE, ROADMAP, the v0.2.0 guide,
+  `validation.md`, `EXCEL_EVIDENCE.md` and the indexes cite it, and no longer
+  say that the check has not yet run in Excel; the remaining Excel review is
+  #206.
 - `tools\Check-FRTB-Excel.cmd` runs every Excel check of a branch
   unattended. It checks the branch out, records the run with
   `Record-FRTB-ExcelRun.ps1`, and runs `TEST_Acceptance` in Excel: the
