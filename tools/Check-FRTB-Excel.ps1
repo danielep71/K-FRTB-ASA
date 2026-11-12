@@ -41,8 +41,12 @@
     Each Excel this script starts is its own instance: your open workbooks
     and add-ins are not touched. A watchdog closes the Excel instances started
     by automation during the run after -TimeoutMinutes, so a dialog nobody
-    answers cannot hang the run; an Excel you open yourself is never closed. The
-    script never pushes and changes no other Excel or Windows setting.
+    answers cannot hang the run; an Excel you open yourself is never closed.
+    For the run, Microsoft Print to PDF is the default printer, so Excel does
+    not wait on a slow printer when it sets page setup; your default printer
+    is restored at the end, also when the run fails. Without Microsoft Print
+    to PDF the default printer is not changed. The script never pushes and
+    changes no other Excel or Windows setting.
     Exit codes: 0 every check passed, 1 a check failed, 2 the run could not
     start (local changes, no Git or Python, the VBA project access refused).
 
@@ -180,6 +184,24 @@ function Restore-UserVbaAccess {
     } else {
         Set-VbaAccess $Version ([int]$Value)
     }
+}
+
+function Get-DefaultPrinterName {
+    $printer = Get-CimInstance -ClassName Win32_Printer -Filter 'Default = TRUE' -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if ($null -eq $printer) { return $null }
+    return [string]$printer.Name
+}
+
+function Set-DefaultPrinter {
+    # True when the printer exists and Windows made it the default
+    param([string]$Name)
+    $wql = $Name.Replace('\', '\\').Replace("'", "\'")
+    $printer = Get-CimInstance -ClassName Win32_Printer -Filter "Name = '$wql'" -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if ($null -eq $printer) { return $false }
+    $result = Invoke-CimMethod -InputObject $printer -MethodName SetDefaultPrinter -ErrorAction SilentlyContinue
+    return ($null -ne $result -and $result.ReturnValue -eq 0)
 }
 
 function Read-YesNo {
@@ -399,7 +421,25 @@ $watchdog = Start-Job -ArgumentList @($excelBefore, $script:deadline.ToString('o
 $development = Join-Path $repoRoot "dist\K-FRTB-ASA-development.xlsm"
 $production = Join-Path $repoRoot "dist\K-FRTB-ASA-production.xlsm"
 
+# Excel queries the default printer whenever a workbook sets its page setup;
+# a slow printer shows "Waiting for printer connection" in every build. The
+# run uses Microsoft Print to PDF, which answers at once, and puts the
+# operator's default printer back in the finally block below (#304). The log
+# names no printer of the operator.
+$pdfPrinter = 'Microsoft Print to PDF'
+$printerBefore = Get-DefaultPrinterName
+$printerChanged = $false
+
 try {
+    if ($printerBefore -eq $pdfPrinter) {
+        Write-Log "PRINTER=$pdfPrinter is already the default printer"
+    } elseif (Set-DefaultPrinter $pdfPrinter) {
+        $printerChanged = $true
+        Write-Log "PRINTER=$pdfPrinter is the default printer for this run"
+    } else {
+        Write-Log "PRINTER=default printer unchanged: $pdfPrinter is not installed"
+    }
+
     # -------------------------------------------------------- 1. recorded run
     Assert-TimeLeft
     Write-Host '== Recorded run (builds, compiles, regression, round trips)'
@@ -625,6 +665,13 @@ try {
 } catch {
     Add-Result 'RUN' 'FAIL' "stopped: $($_.Exception.Message)"
 } finally {
+    if ($printerChanged) {
+        if ($printerBefore -and (Set-DefaultPrinter $printerBefore)) {
+            Write-Log 'PRINTER=your default printer is restored'
+        } else {
+            Write-Log 'PRINTER=your default printer could not be restored; set it again in Windows Settings'
+        }
+    }
     Stop-Job $watchdog -ErrorAction SilentlyContinue
     Remove-Job $watchdog -Force -ErrorAction SilentlyContinue
 }

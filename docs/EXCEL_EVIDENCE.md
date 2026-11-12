@@ -187,6 +187,11 @@ It exits:
 * 1 when a check failed;
 * 2 when it could not start.
 
+For the run, Microsoft Print to PDF is the default printer, so Excel does
+not wait on a slow printer whenever a workbook sets its page setup; your
+default printer is restored at the end, also when the run fails. Without
+Microsoft Print to PDF the default printer is not changed (#304).
+
 Each Excel it starts is its own instance. After 60 minutes, a watchdog
 closes the Excel instances started by automation during the run; an Excel
 the operator opens is never closed. The zip and the evidence bundle hold local paths and the

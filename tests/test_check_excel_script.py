@@ -187,6 +187,24 @@ def test_the_build_turns_alerts_off_again_before_it_saves():
     assert again < build.index("$workbook.SaveAs($OutputPath, 52)")
 
 
+def test_the_default_printer_is_switched_for_the_run_and_restored():
+    # A slow default printer made Excel wait in every build; the run uses
+    # Microsoft Print to PDF and puts the operator's printer back (#304)
+    text = script_text()
+    body = text.split("$watchdog = Start-Job", 1)[1]
+    run = body.split("\ntry {", 1)[1]
+    switch = run.index("Set-DefaultPrinter $pdfPrinter")
+    assert switch < run.index("Write-Host '== Recorded run")
+    final = run.split("\n} finally {", 1)[1].split("\n}", 1)[0]
+    assert "if ($printerChanged)" in final and "Set-DefaultPrinter $printerBefore" in final
+    assert "$pdfPrinter = 'Microsoft Print to PDF'" in text
+    # without the PDF printer nothing changes; the log names no printer of the operator
+    assert "default printer unchanged: $pdfPrinter is not installed" in run
+    assert not [line for line in text.splitlines() if "Write-Log" in line and "$printerBefore" in line]
+    escape = text.split("function Set-DefaultPrinter {", 1)[1].split("\n}", 1)[0]
+    assert r".Replace('\', '\\')" in escape and r""".Replace("'", "\'")""" in escape
+
+
 def test_identical_templates_have_no_differences():
     wb = openpyxl.load_workbook(TEMPLATE)
     assert compare_templates.compare(wb, openpyxl.load_workbook(TEMPLATE)) == []
