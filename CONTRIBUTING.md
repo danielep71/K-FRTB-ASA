@@ -8,13 +8,15 @@ Potential vulnerabilities follow [SECURITY.md](SECURITY.md). The editorial
 rules and the rules for automated assistants are in [AGENTS.md](AGENTS.md).
 
 Repository setup (milestone 1, v0.1.0 — Repo setup) is closed, and its branch
-`release/v0.0.1` was deleted (#62); its history is on main. The Excel/VBA SA
+`release/v0.0.1` was deleted (#62); its history is on main. The Excel/VBA ASA
 prototype and repository maintenance use `release/v0.2.0`, milestone 2,
 v0.2.0 — ASA prototype (#117); `release/v0.1.0` is superseded.
 Read [scope and decisions](docs/SCOPE.md)
 before functional changes. The prototype is on main and release/v0.2.0 with a
 committed macro-free template; one desktop Excel run is recorded on `323260b`,
-and the remaining manual Excel checks are in #28, #72, #85 and #206.
+and the remaining Excel checks are in #28, #72, #85 and #206;
+`tools\Check-FRTB-Excel.cmd` (#274) runs those of #28, #72 and #85
+unattended, but it has not yet run in desktop Excel.
 Versions and tags follow [Releasing](RELEASING.md).
 
 ## Start with an issue

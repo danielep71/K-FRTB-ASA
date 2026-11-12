@@ -7,6 +7,16 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The documentation is checked against the code and the current state on
+  November 11, 2026 (#288). The README, CONTRIBUTING, RELEASING, SCOPE,
+  ROADMAP, SECURITY and the v0.2.0 guide name the unattended Excel check and
+  say that it has not yet run in desktop Excel; the test, workbook and
+  structure indexes list its modules, tests and tools; `validation.md` lists
+  every change no Excel run has seen. Stale steps (Pages setup, the traffic
+  App migration and legacy replay) are described as done, wrong statements
+  are corrected (#95's rename, PR assignments, squash-merged synchronization,
+  Boolean-formatted numbers and blank sub-types), and GOVERNANCE and the
+  CHANGELOG no longer name a review app or other repositories.
 - The repository, the project and the workbook are renamed K-FRTB-ASA
   (#261). Every link to the repository and to the website, whose address
   GitHub does not redirect, uses the new name, links in dated records
@@ -110,7 +120,7 @@ Unreleased describe integrated work, not a published version.
 - CI is reproducible: the integrity gate runs on exact Python and Node.js
   versions, both requirements files pin every package by hash and install
   from wheels only, each integrity run uploads a report bound to its commit,
-  run and attempt, push runs are no longer cancelled by later pushes, and
+  run and attempt, push runs are no longer canceled by later pushes, and
   PR milestone events have one concurrency group per PR (#220).
 - GIRR vega takes inflation and cross-currency basis risk factors along the
   option maturity only (MAR21.8 FAQ4): `In_Vega` accepts the sub-types
@@ -423,7 +433,7 @@ Unreleased describe integrated work, not a published version.
   sample results are unchanged (#134, from the #29 decisions).
 - The LibreOffice installation step of the prototype checks stops after 8
   minutes, so a hung package mirror fails the job early instead of holding it
-  for the whole 20-minute limit (#124).
+  for the whole 20-minute limit (#124). (superseded by #263)
 - MAR paragraph references now cite the paragraph that holds each rule
   (#115): netting of sensitivities MAR21.4(2) (In_Delta subtitle, CORE_SBM,
   methodology); commodity tenors MAR21.13(1) and vega maturities MAR21.8(4)
@@ -521,10 +531,9 @@ Unreleased describe integrated work, not a published version.
   the milestone's issues as read back on October 27, 2026; the
   documentation index and governance link both documents (#32).
 - Project website with capabilities, workbook setup, methodology and validation
-  links, shared K-Risk-Engines styling, and a root README website link (#100).
+  links, shared site styling, and a root README website link (#100).
 - Market risk and CVA method maps (#98): five diagrams in
-  `docs/assets/market-risk/`, as SVG masters and PNGs, also published on the
-  K-Risk-Engines site.
+  `docs/assets/market-risk/`, as SVG masters and PNGs.
   - They cover the FRTB-SA and CVA frameworks, perimeter to RWA: SBM, DRC and
     RRAO; BA-CVA and SA-CVA, with the MAR50.8 carve-out and the MAR50.9
     alternative. The internal models approach and the simplified standardized
@@ -533,8 +542,7 @@ Unreleased describe integrated work, not a published version.
     CairoSVG 2.9.1.
   - They are method maps, not the prototype's implemented scope.
 
-- Excel evidence record and validator (#82), adapted from the
-  VBA-SACCR-Toolkit:
+- Excel evidence record and validator (#82):
   - `docs/EXCEL_EVIDENCE.md` defines the manual procedure, the `host.json`
     record, the rules, the outcomes and the limits.
   - `.github/excel-evidence-policy.json` lists the required references, the
@@ -545,7 +553,7 @@ Unreleased describe integrated work, not a published version.
     the policy against `M_Setup`.
   - Offline tests use synthetic bundles. No Excel run is recorded yet (#28).
     (superseded by #205)
-- Excel round-trip tools (#79), from the VBA-SACCR-Toolkit:
+- Excel round-trip tools (#79):
   - `tools/Export-FRTB-VBA.ps1` exports a workbook's VBA read-only, with
     macros disabled, to an empty folder with `export-manifest.json`.
   - `tools/compare_vba_export.py` compares the export with the source of a
@@ -557,8 +565,7 @@ Unreleased describe integrated work, not a published version.
     tests cover the comparison; no Excel export is recorded yet. (superseded
     by #205)
 
-- VBA synchronization for an existing workbook (#72), modeled on the
-  VBA-SACCR-Toolkit tools:
+- VBA synchronization for an existing workbook (#72):
   - `tools/Sync-FRTB-VBA.ps1` replaces the standard modules of an `.xlsm`
     through Excel. A production workbook takes `src/modules`; a development
     workbook adds `tests/modules`. With `-SourceDir`, only the modules found
