@@ -13,8 +13,10 @@ authoritative for:
 * the validator `tools/check_excel_evidence.py`.
 
 The [workbook guide](workbook-guide.md) owns building, updating and the round
-trip. [Validation](validation.md) owns what the other checks show. Issues #28
-and #30 say which Excel results the ASA prototype (v0.2.0) needs.
+trip. [Validation](validation.md) owns what the other checks show. The remaining
+Excel checks of the ASA prototype (v0.2.0) are in #28, #72, #85 and #206.
+One run is recorded, on `323260b`
+([record](evidence/2026-10-31-excel-run-323260b.md)).
 
 > [!IMPORTANT]
 > The validator never runs Excel. It checks three things:
@@ -72,10 +74,12 @@ pull request. `python tools/check_excel_evidence.py --check-policy`, run by
 | `compile_production` | manual | `build_production` | `session.log` | as for the development compile |
 | `round_trip_production` | compare | `build_production` | `round-trip-production.log` | as for the development round trip, in `production` mode |
 
-The other checks of #28 have no machine-readable log. These are the Excel-only
-presentation, the invalid-row variant and the regional-settings cases. Record
-them in `session.log`, and in the issue with their screenshots; the validator
-does not judge them.
+The other checks of #28 have no log the validator reads. These are the
+Excel-only presentation, the invalid-row variant and the regional-settings
+cases. The [unattended check](#unattended-check) writes their results to
+`acceptance.txt` with pictures of the sheets; by hand, record them in
+`session.log`, and in the issue with their screenshots. The validator does
+not judge them.
 
 <a id="recorded-run"></a>
 
@@ -132,10 +136,16 @@ below gives the same bundle by hand.
 
 `tools\Check-FRTB-Excel.cmd` runs every Excel check of a branch with one
 double-click: `release/v0.2.0` by default, or the branch given as its first
-argument (#274). It needs what the recorded run needs. It asks at most two
-questions, at the start:
-* whether to turn on the VBA project access, when it is off;
+argument (#274). It has not yet run in desktop Excel. It needs what the
+recorded run needs. It asks at most two questions, at the start:
+* whether to turn on the VBA project access, when it is off; if you agree,
+  it stays on after the run, and the evidence records the change;
 * whether to check the build's Trust Center error path.
+
+The script also takes `-Commit` (a commit of the branch instead of its
+head), `-TimeoutMinutes` (the watchdog limit, 60 by default),
+`-TrustCenterCheck` (check the error path without asking) and `-NoPrompt`
+(ask nothing: the access must already be on).
 
 Then it runs unattended:
 

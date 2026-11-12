@@ -1,6 +1,6 @@
 # 🛠️ Repository tooling
 
-This directory indexes maintenance tools and the helpers of the SA
+This directory indexes maintenance tools and the helpers of the ASA
 prototype, milestone v0.2.0 (issue #20). None of them holds calculation logic.
 
 | Tool | Purpose |
@@ -17,7 +17,7 @@ prototype, milestone v0.2.0 (issue #20). None of them holds calculation logic.
 | `check_excel_evidence.py` | Validates an Excel evidence record and its logs against the exact commit (`--evidence`), prints the source digests (`--inventory`) and checks the policy against `M_Setup` (`--check-policy`); never runs Excel. See [Excel evidence](../docs/EXCEL_EVIDENCE.md) |
 | `Record-FRTB-ExcelRun.ps1`, `Record-FRTB-ExcelRun.cmd` | Record an Excel run of the checked-out commit in one step: build, compile, export and compare both workbooks, write `session.log` and the logs under `test-results\`, then call `record_excel_run.py`. See [Excel evidence](../docs/EXCEL_EVIDENCE.md#recorded-run) |
 | `Check-FRTB-Excel.ps1`, `Check-FRTB-Excel.cmd` | Run every Excel check of a branch unattended: check it out, record the run, run `TEST_Acceptance` in Excel, the source and template builds, the Trust Center error path when asked, and the synchronization checks; write a summary and a zip. See [Excel evidence](../docs/EXCEL_EVIDENCE.md#unattended-check) |
-| `build_acceptance_data.py` | Regenerates (or `--check`s) `tests/modules/TEST_AcceptanceData.bas`: the invalid-row variant and its reference results, the undefined sub-types and their messages, and the template's panes and filters, for the unattended check |
+| `build_acceptance_data.py` | Regenerates (or `--check`s) `tests/modules/TEST_AcceptanceData.bas`: the invalid-row variant, the sample's and the variant's reference results, the undefined sub-types and their messages, and the template's panes and filters, for the unattended check |
 | `compare_templates.py` | Lists the differences between two templates (values, number formats, column widths, frozen panes); used by `Check-FRTB-Excel.ps1` for the Excel-built template |
 | `record_excel_run.py` | Writes `host.json` of a recorded bundle from its logs only, and validates it with `check_excel_evidence.py`; never runs Excel |
 | `check_external_links.py` | Requests the external links of the tracked Markdown files and reports them as verified, unverifiable or broken; run weekly by `link-check.yml`, not a required check. See [Repository checks](../docs/CI.md) |
@@ -29,10 +29,10 @@ prototype, milestone v0.2.0 (issue #20). None of them holds calculation logic.
 | `traffic_history.py` | Merges collected traffic API responses into the CSV history and writes traffic alerts; see *Traffic tooling* below |
 | `traffic_publish.py` | Publishes the merged traffic history atomically to the data-only `traffic-history` branch; see *Traffic tooling* below |
 
-[Validation](../docs/validation.md) lists their prerequisites (Python 3.12 or newer,
+[Installation](../INSTALLATION.md) lists their prerequisites (Python 3.12 or newer,
 LibreOffice Calc with the Python UNO bridge, the pinned packages in
-`tests/requirements.txt` and `.github/requirements.txt`) and how they are used
-together. The [workbook guide](../docs/workbook-guide.md#updating-an-existing-workbook)
+`tests/requirements.txt` and `.github/requirements.txt`), and
+[Validation](../docs/validation.md) describes how they are used together. The [workbook guide](../docs/workbook-guide.md#updating-an-existing-workbook)
 describes building and updating a workbook on Windows, and
 [verifying the round trip](../docs/workbook-guide.md#verifying-the-round-trip).
 

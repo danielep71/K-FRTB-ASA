@@ -102,7 +102,7 @@ one issue, titled `Traffic alert: <snapshot date>`, when any of these holds:
 
 A count blank in the older snapshot raises nothing. At most one issue is
 opened per snapshot date: the job skips a date whose issue exists, open or
-closed. Like every issue it is assigned to me, labelled `P3` and
+closed. Like every issue it is assigned to me, labeled `P3` and
 `repository`, and filed under the open milestone with the earliest due date.
 Its target completion date is seven days after the snapshot, or the
 milestone's due date if that is sooner, so it passes *Issue triage*.
@@ -145,7 +145,7 @@ has no environment, so it never receives the App key or token.
 
 ## 🔑 GitHub App configuration
 
-I configure the App and credentials before approving the migration merge:
+To set up or recreate the App and its credentials:
 
 1. Create a dedicated traffic GitHub App, disable its webhook and grant only
    **Administration: Read-only** (GitHub adds Metadata: Read-only).
@@ -153,11 +153,8 @@ I configure the App and credentials before approving the migration merge:
 3. Keep the `analytics` environment restricted to `main`. Add the App Client ID
    as variable **TRAFFIC_APP_CLIENT_ID** and the complete PEM key as secret
    **TRAFFIC_APP_PRIVATE_KEY** in that environment, not at repository scope.
-4. Confirm configuration before merging the migration. After integration into
-   the default branch, dispatch **Export repository traffic** on `main` and
-   verify a successful run and a new `traffic-history` commit.
-5. Only after that successful run, I delete the old `TRAFFIC_TOKEN` environment
-   secret and revoke the personal token. There is no fallback to that token.
+4. Dispatch **Export repository traffic** on `main` and verify a successful
+   run and a new `traffic-history` commit. There is no fallback token.
 
 Never put the private key in source, logs, issues, screenshots or chat.
 The configuration check sees only whether the key exists. Only the pinned
@@ -215,8 +212,8 @@ branch to make a failed publication pass.
 
 The former layout kept `data/daily.csv` with other columns, `latest.json` and
 one JSON snapshot per day. Right after the main integration of #185 and
-before the first scheduled run, I move those files to `data/legacy/` and
-replay them:
+before the first scheduled run, I moved those files to `data/legacy/` and
+replayed them:
 
 ```sh
 python3 tools/traffic_history.py import-legacy --snapshots data/legacy/snapshots --data data
