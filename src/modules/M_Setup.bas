@@ -24,8 +24,10 @@ Attribute VB_Name = "M_Setup"
 '   and table formatting.
 '
 ' STATE OWNERSHIP
-'   Turns alerts and screen updating off while building and back on at the
-'   end. Activates each sheet once to set gridlines and frozen panes.
+'   Turns alerts, screen updating and printer communication off while
+'   building and back on at the end, so Excel applies the page setup of every
+'   sheet in one batch instead of querying the printer for each property
+'   (#295). Activates each sheet once to set gridlines and frozen panes.
 '
 ' ERROR POLICY
 '   Formatting is best effort: a host that rejects a format property keeps
@@ -123,6 +125,10 @@ Private Sub SetAlerts(ByVal enabled As Boolean)
     On Error Resume Next
     Application.DisplayAlerts = enabled
     Application.ScreenUpdating = enabled
+    'Each PageSetup change queries the default printer, which can wait for a
+    'timeout per property when that printer is unreachable (#295). Hosts
+    'without the property ignore it.
+    Application.PrintCommunication = enabled
     On Error GoTo 0
 End Sub
 
