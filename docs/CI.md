@@ -133,7 +133,7 @@ timeout is 10 minutes.
   even when a check failed; a missing report fails the job.
 - **Concurrency:** a PR run has one group per PR, and a newer head cancels
   the older run. A push or dispatch run has a group of its own and is never
-  cancelled, so each pushed commit keeps its result. The PR milestone
+  canceled, so each pushed commit keeps its result. The PR milestone
   workflow has one group per PR for PR events, and one for its scheduled,
   manual and push scans, so one PR's pending event no longer replaces
   another's.
@@ -185,8 +185,8 @@ before merging. Issue #2 records the readback and a representative blocked
 PR (October 18, 2026); the release ruleset has been strict since the
 readback of October 31, 2026
 ([settings evidence](REPOSITORY_SETTINGS_EVIDENCE.md)). A task PR proves
-the hosted command; release-to-main integration and synchronization into the
-prototype branch (#31) install the workflow on the respective branch lines.
+the hosted command; release-to-main integration and the merge-commit synchronization into the
+release branches install the workflow on each branch line.
 The prototype workflow installs both requirements manifests in its own test
 environment before pytest discovers the shared maintenance tests. Its
 LibreOffice installation step tries the runner's package mirror first, with
@@ -217,7 +217,7 @@ PRs; it was deleted after the closeout (#62):
 | --- | --- |
 | GitHub Actions, `/` | `release/v0.2.0` |
 | pip, `/.github` (`requirements.txt`: PyYAML configuration parser; `requirements-quality.txt`: Ruff, mypy and stubs) | `release/v0.2.0` |
-| pip, `/tests/requirements.txt` (prototype NumPy, openpyxl, pytest) | `release/v0.2.0` |
+| pip, `/tests` (`requirements.txt`: prototype NumPy, openpyxl, pytest) | `release/v0.2.0` |
 
 The two previous Actions entries are consolidated into one. Both pip
 manifest locations remain covered; no dependency is copied into the historical

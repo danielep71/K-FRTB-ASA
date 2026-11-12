@@ -82,8 +82,8 @@ under #31. Both branches match `release/**`: readback on October 18
 confirmed the active force-push restriction and the separate deletion rule
 with no bypass for `release/v0.1.0`. On October 27, 2026 the owner confirmed
 that the rulesets cover `release/v0.2.0` without change (#117).
-See [branch governance](GOVERNANCE.md) for task PRs, controlled active-branch
-fast-forward after main integration and the deletion of obsolete release
+See [branch governance](GOVERNANCE.md) for task PRs, merge-commit
+synchronization after main integration and the deletion of obsolete release
 branches. Task branches can be deleted automatically
 after merge.
 
@@ -164,4 +164,5 @@ and non-fast-forward updates, and has no bypass actors. The `analytics`
 environment is restricted to branch `main` (no tags) and holds the
 `TRAFFIC_TOKEN` secret. The first successful collection ran on October 18,
 2026 ([run 39105087826](https://github.com/danielep71/K-FRTB-ASA/actions/runs/39105087826),
-data commit `af6a68a`); #23 is closed.
+data commit `af6a68a`); #23 is closed. (superseded by #181: a GitHub App
+token replaced `TRAFFIC_TOKEN`, which I deleted on October 31, 2026)

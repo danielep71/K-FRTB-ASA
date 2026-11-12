@@ -69,7 +69,9 @@ integration branch `release/v0.2.0` (`release/v0.1.0` until October 27, 2026).
 The table below is the readback of October 27, 2026, kept as it was. Since
 then, #20, #30, #79 and #82 have closed with the
 [Excel run of October 31, 2026](evidence/2026-10-31-excel-run-323260b.md) on
-`323260b`; the remaining manual Excel checks are in #28, #72, #85 and #206.
+`323260b`; the remaining Excel checks are in #28, #72, #85 and #206, and
+`tools\Check-FRTB-Excel.cmd` (#274) runs those of #28, #72 and #85
+unattended. It has not yet run in desktop Excel.
 
 | Issue | State on October 27, 2026 | Deliverable |
 | --- | --- | --- |
@@ -96,7 +98,7 @@ then, #20, #30, #79 and #82 have closed with the
 | [#85](https://github.com/danielep71/K-FRTB-ASA/issues/85) | Open | Output-placeholder fix verified in LibreOffice; desktop Excel verification pending #28 |
 | [#87](https://github.com/danielep71/K-FRTB-ASA/issues/87) | Closed | Repository-specific comments and supported file policies |
 | [#93](https://github.com/danielep71/K-FRTB-ASA/issues/93) | Closed | Maintenance-audit documentation reconciliation |
-| [#95](https://github.com/danielep71/K-FRTB-ASA/issues/95) | Closed | Repository references after the rename to K-FRTB-ASA |
+| [#95](https://github.com/danielep71/K-FRTB-ASA/issues/95) | Closed | Repository references after the rename to K-FRTB-SA |
 | [#98](https://github.com/danielep71/K-FRTB-ASA/issues/98) | Closed | Market risk and CVA method maps |
 | [#100](https://github.com/danielep71/K-FRTB-ASA/issues/100) | Closed | Project website, live on GitHub Pages |
 | [#102](https://github.com/danielep71/K-FRTB-ASA/issues/102) | Closed | Market risk framework diagram as a map of approaches |
