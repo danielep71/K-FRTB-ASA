@@ -175,6 +175,18 @@ def test_the_launcher_passes_the_branch_and_reports_each_exit_code():
     assert "echo NOT STARTED:" in launcher
 
 
+def test_the_build_turns_alerts_off_again_before_it_saves():
+    # BuildWorkbook and FinishWorkbook end by turning Excel alerts back on;
+    # a hidden Excel then waits on the macro-free question of the .xlsx
+    # template save, which nobody can answer (#302)
+    build = (ROOT / "tools" / "Build-Workbook.ps1").read_text(encoding="ascii")
+    last_macro = max(build.index("'BuildWorkbook')"), build.index("'FinishWorkbook')"),
+                     build.index("'Test_RunRegression_Silent')"))
+    again = build.index("$excel.DisplayAlerts = $false", last_macro)
+    assert again < build.index("$workbook.SaveAs($OutputPath, 51)")
+    assert again < build.index("$workbook.SaveAs($OutputPath, 52)")
+
+
 def test_identical_templates_have_no_differences():
     wb = openpyxl.load_workbook(TEMPLATE)
     assert compare_templates.compare(wb, openpyxl.load_workbook(TEMPLATE)) == []
