@@ -366,15 +366,20 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- `tools\Build-Workbook.ps1` turns Excel alerts off again after the
+  workbook's macros have run and before it saves. The macros turn alerts
+  back on when they finish, so the `-Template` save as `.xlsx` waited on a
+  hidden question about dropping the VB project, and the build hung in
+  desktop Excel (#302).
 - The unattended Excel check reads the exit code of each synchronization
   launcher. It started them with `Start-Process` and never read the process
   handle, so the exit code was empty and both launchers were reported as
   failed, although their logs show they succeeded (#297).
 - The workbook build turns Excel's printer communication off while it sets
   the page setup of every sheet, and back on at the end, so Excel applies it
-  in one batch. Before, each of about fifteen properties on each of the 22
-  sheets queried the default printer, and an unreachable printer made the
-  build hang in desktop Excel (#295).
+  in one batch instead of querying the default printer for each property
+  (#295). It was meant to stop the `-Template` build from hanging in desktop
+  Excel; the cause of that hang was the save, fixed by #302.
 - The unattended Excel check exits 2 with "NOT STARTED: Excel could not be
   started" when Excel is missing or COM cannot start it, as documented,
   instead of ending with exit code 1 and a raw COM error (#290).
