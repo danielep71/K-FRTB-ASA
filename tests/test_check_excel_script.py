@@ -201,8 +201,23 @@ def test_the_default_printer_is_switched_for_the_run_and_restored():
     # without the PDF printer nothing changes; the log names no printer of the operator
     assert "default printer unchanged: $pdfPrinter is not installed" in run
     assert not [line for line in text.splitlines() if "Write-Log" in line and "$printerBefore" in line]
-    escape = text.split("function Set-DefaultPrinter {", 1)[1].split("\n}", 1)[0]
-    assert r".Replace('\', '\\')" in escape and r""".Replace("'", "\'")""" in escape
+    assert "$wql = ConvertTo-WqlLiteral $Name" in text
+
+
+@pytest.mark.skipif(not PWSH, reason="PowerShell 7 (pwsh) is not installed")
+def test_printer_names_are_escaped_for_wql():
+    # The script's own function, run on a shared printer and a quote (#304)
+    command = (
+        "$t = $null; $e = $null; $ast = [System.Management.Automation.Language.Parser]::ParseFile("
+        f"'{SCRIPT}', [ref]$t, [ref]$e); "
+        "$f = $ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] "
+        "-and $n.Name -eq 'ConvertTo-WqlLiteral' }, $true) | Select-Object -First 1; "
+        "Invoke-Expression $f.Extent.Text; ConvertTo-WqlLiteral \"\\\\server\\queue O'Brien\""
+    )
+    completed = subprocess.run([str(PWSH), "-NoProfile", "-NonInteractive", "-Command", command],
+                               capture_output=True, text=True, timeout=120, check=False)
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    assert completed.stdout.strip() == r"\\\\server\\queue O\'Brien"
 
 
 def test_identical_templates_have_no_differences():

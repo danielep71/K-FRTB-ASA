@@ -193,10 +193,17 @@ function Get-DefaultPrinterName {
     return [string]$printer.Name
 }
 
+function ConvertTo-WqlLiteral {
+    # A WQL string literal escapes every backslash and quote with a backslash,
+    # so a shared printer \\server\queue is written \\\\server\\queue (#304)
+    param([string]$Text)
+    return $Text.Replace('\', '\\').Replace("'", "\'")
+}
+
 function Set-DefaultPrinter {
     # True when the printer exists and Windows made it the default
     param([string]$Name)
-    $wql = $Name.Replace('\', '\\').Replace("'", "\'")
+    $wql = ConvertTo-WqlLiteral $Name
     $printer = Get-CimInstance -ClassName Win32_Printer -Filter "Name = '$wql'" -ErrorAction SilentlyContinue |
         Select-Object -First 1
     if ($null -eq $printer) { return $false }
