@@ -517,6 +517,16 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- The record of the unattended Excel check of November 12, 2026, on
+  `1badef1`: 21 of 21 checks passed on one host, and the validator reports
+  PASS (#306). It binds the run to the candidate, the logs and the workbooks
+  by SHA-256, compares the Excel-built template with the committed one, and
+  lists the earlier attempts of the day and their fixes (#296, #298, #303,
+  #305). Six screenshots taken by the check are in `docs/assets/screenshots/`.
+  The README, CONTRIBUTING, RELEASING, SCOPE, ROADMAP, the v0.2.0 guide,
+  `validation.md`, `EXCEL_EVIDENCE.md` and the indexes cite it, and no longer
+  say that the check has not yet run in Excel; the remaining Excel review is
+  #206.
 - `tools\Check-FRTB-Excel.cmd` runs every Excel check of a branch
   unattended. It checks the branch out, records the run with
   `Record-FRTB-ExcelRun.ps1`, and runs `TEST_Acceptance` in Excel: the

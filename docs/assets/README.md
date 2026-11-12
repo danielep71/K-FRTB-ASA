@@ -40,3 +40,10 @@ separator) on October 31, 2026, during the run recorded in
 screenshot is cropped to the workbook. They show the sample portfolio with
 the default settings, and the frozen panes and Control column widths before
 #203.
+
+The files named `check-1badef1-*.png` come from the unattended check of
+November 12, 2026, on `1badef1`, on the same host
+([record](../evidence/2026-11-12-excel-check-1badef1.md)): `Results` after the
+sample run, `Control` with the #203 layout, `Results`, `Out_Summary` and `Log`
+after a failed run, and `Results` after **Clear outputs**. The check took them
+itself, in the development workbook of that run.
