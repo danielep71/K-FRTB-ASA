@@ -98,9 +98,8 @@ differences from a documented default.
 | Secret scanning | **On** | Detects supported secret patterns in the repository |
 | Push protection | **On** | Blocks pushes that contain a detected secret |
 
-I turned on Dependabot security updates on 2026-10-31. A security update PR
-opens against main, the default branch, whatever `target-branch` says. I
-retarget it to the active release branch, so it follows the normal task-PR
+A Dependabot security update PR opens against the default branch, whatever
+`target-branch` says. I retarget it to the active release branch, so it follows the normal task-PR
 review and reaches main with the next integration I request.
 
 <a id="reuse"></a>

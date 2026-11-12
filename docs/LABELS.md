@@ -23,7 +23,7 @@ issues, must have:
 PRs retain the assignee and exactly one priority, and link to their owning
 issue. **PRs must have no milestone**, including closed, merged and bot PRs.
 Milestone ownership is recorded on the issue only (#104). The metadata
-workflow removes PR assignments automatically; issue triage remains manual,
+workflow removes PR milestones automatically; issue triage remains manual,
 with the read-only audit described below.
 
 **P1 is reserved for a confirmed calculation bug: wrong results for valid

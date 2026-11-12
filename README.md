@@ -71,9 +71,11 @@
 > and every output is reconciled with an independent Python reference.
 > **One desktop Excel run is recorded**, on `323260b` and one host
 > ([evidence](docs/evidence/2026-10-31-excel-run-323260b.md)); the remaining
-> manual Excel checks are in #28, #72, #85 and #206. The long-term platform
-> decision is open ([scope](docs/SCOPE.md#platform-and-environment)), and no
-> result is validated for regulatory use ([validation](docs/validation.md)).
+> Excel checks are in #28, #72, #85 and #206; `tools\Check-FRTB-Excel.cmd`
+> (#274) runs those of #28, #72 and #85 unattended, but it has not yet run in
+> desktop Excel. The long-term platform decision is open
+> ([scope](docs/SCOPE.md#platform-and-environment)), and no result is
+> validated for regulatory use ([validation](docs/validation.md)).
 
 > [!NOTE]
 > The macro-enabled workbook is **not stored in the repository**.
@@ -120,7 +122,7 @@ need to **check** an FRTB-SA number:
 | Default risk charge (DRC) | Prototype: non-securitizations |
 | Residual risk add-on (RRAO) | Prototype |
 | Independent benchmarks and runtime evidence | Python reference reconciled with the VBA run in LibreOffice; desktop Excel run recorded on `323260b` ([evidence](docs/evidence/2026-10-31-excel-run-323260b.md)) |
-| Excel round trip and evidence tooling | One-step recorder, read-only VBA export, source comparison and evidence validator; both round trips passed in Excel on `323260b` (#28, #30) |
+| Excel round trip and evidence tooling | One-step recorder, read-only VBA export, source comparison and evidence validator; both round trips passed in Excel on `323260b` (#28, #30). An unattended check runs the remaining Excel checks (#274); it has not yet run in desktop Excel |
 | Market risk and CVA method maps | Five diagrams in [`docs/assets/market-risk/`](docs/assets/market-risk/README.md) (#98, #102) |
 | Issue-only milestones | PR milestones removed automatically (#104) |
 
@@ -138,7 +140,7 @@ need to **check** an FRTB-SA number:
 | RRAO | Exotic (1.0%) and other (0.1%) residual risks |
 | Input validation | Unknown risk classes, buckets, tenors and sub-types (including a vega or curvature sub-type the risk class does not define), ratings and seniorities, non-numeric amounts and the reporting currency as an FX bucket are rejected and logged |
 | Parameters | Eight `P_*` sheets with MAR references, checked against the BIS Basel Framework on 2026-10-17 |
-| Testing | Hand-calculated formula tests, an independent Python reference, headless LibreOffice runs of the VBA, an in-workbook regression test, a static VBA lint, and offline tests of the sync, export-comparison and evidence tools |
+| Testing | Hand-calculated formula tests, an independent Python reference, headless LibreOffice runs of the VBA, an in-workbook regression test, in-workbook acceptance checks, a static VBA lint, and offline tests of the sync, export-comparison, evidence and unattended-check tools |
 | Deployment | Plain exported VBA; no add-in, COM component, DLL or extra VBA reference |
 
 ---
@@ -238,6 +240,7 @@ role.
 | Parameter spot check | The `P_*` sheets equal an independently typed list of the regulatory values |
 | VBA reconciliation | The VBA, run headless in LibreOffice, reproduces every output of the Python reference, with and without the discretions, and logs every invalid row |
 | In-workbook regression | 52 items PASS |
+| Acceptance checks | `TEST_Acceptance` passes in LibreOffice; its Excel-only checks run in desktop Excel through `tools\Check-FRTB-Excel.cmd`, which has not yet run there |
 
 Static checks, runtime execution, independent numerical comparison and
 methodology review establish different things. The
@@ -299,7 +302,7 @@ issue and carry no milestone (#104).
 ## 📜 Regulatory basis and evidence
 
 The methodology follows the Basel Framework (MAR21-MAR23, in force since
-1 January 2023) and keeps any jurisdiction-specific implementation separate.
+January 1, 2023) and keeps any jurisdiction-specific implementation separate.
 Each implemented rule carries its paragraph reference; a link to a regulation
 is not proof that an implementation matches it.
 [Scope](docs/SCOPE.md#source-and-validation-policy) defines the source and

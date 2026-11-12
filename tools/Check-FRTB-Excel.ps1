@@ -344,11 +344,16 @@ Write-Log "CANDIDATE=$sha"
 Write-Log "BRANCH=$Branch"
 Write-Log "START=$(Get-Timestamp)"
 
-# The Excel version tells which registry key holds the VBA project access
-$probe = New-Object -ComObject Excel.Application
-$excelVersion = [string]$probe.Version
-Write-Log "EXCEL=$excelVersion $([string]$probe.Build)"
-Close-Excel $probe $null
+# The Excel version tells which registry key holds the VBA project access.
+# Excel that cannot start is a check that could not start: exit 2, not 1
+try {
+    $probe = New-Object -ComObject Excel.Application
+    $excelVersion = [string]$probe.Version
+    Write-Log "EXCEL=$excelVersion $([string]$probe.Build)"
+    Close-Excel $probe $null
+} catch {
+    Stop-NotStarted "Excel could not be started: $($_.Exception.Message)"
+}
 
 $access = Get-VbaAccess $excelVersion
 $trustChange = ''
