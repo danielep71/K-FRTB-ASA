@@ -366,6 +366,10 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- The unattended Excel check reads the exit code of each synchronization
+  launcher. It started them with `Start-Process` and never read the process
+  handle, so the exit code was empty and both launchers were reported as
+  failed, although their logs show they succeeded (#297).
 - The unattended Excel check exits 2 with "NOT STARTED: Excel could not be
   started" when Excel is missing or COM cannot start it, as documented,
   instead of ending with exit code 1 and a raw COM error (#290).

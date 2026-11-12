@@ -609,11 +609,15 @@ try {
         $excelBeforeLauncher = Get-AutomationExcelIds
         $process = Start-Process -FilePath 'cmd.exe' -PassThru -NoNewWindow -ArgumentList @('/c', $command) `
                                  -RedirectStandardInput $answers -RedirectStandardOutput $logFile
+        # A Process from Start-Process keeps its exit code only when its
+        # handle is read while it runs; without it ExitCode is empty (#297)
+        $null = $process.Handle
         if (-not $process.WaitForExit(180000)) {
             Stop-TimedOutLauncher $process $excelBeforeLauncher
             Add-Result "LAUNCHER_$($launcher.Name)" 'FAIL' 'no answer after 3 minutes; its processes were stopped'
             continue
         }
+        $process.WaitForExit()      # the redirected output is complete
         $succeeded = Select-String -Path $logFile -Pattern $launcher.Success -SimpleMatch -Quiet
         Add-Result "LAUNCHER_$($launcher.Name)" $(if ($process.ExitCode -eq 0 -and $succeeded) { 'PASS' } else { 'FAIL' }) `
                    "exit code $($process.ExitCode)"
