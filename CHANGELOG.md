@@ -366,6 +366,10 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- The unattended Excel check reads the exit code of each synchronization
+  launcher. It started them with `Start-Process` and never read the process
+  handle, so the exit code was empty and both launchers were reported as
+  failed, although their logs show they succeeded (#297).
 - The workbook build turns Excel's printer communication off while it sets
   the page setup of every sheet, and back on at the end, so Excel applies it
   in one batch. Before, each of about fifteen properties on each of the 22
