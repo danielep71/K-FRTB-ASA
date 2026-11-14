@@ -517,6 +517,20 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- `docs/FRTB-SA_methodology_guide.pdf`, a 78-page methodology guide to the
+  standardised approach as the workbook implements it (#311). It follows the
+  calculation chain:
+  - the rules and the architecture;
+  - sensitivities and delta aggregation;
+  - the five risk classes;
+  - vega and curvature;
+  - default risk capital and the residual risk add-on;
+  - the sample portfolio end to end;
+  - the limits, the decided interpretations and the validation.
+
+  Its worked numbers are those of the sample portfolio and match the
+  independent Python reference. `docs/methodology.md` stays authoritative. The
+  documentation index links the guide.
 - The record of the unattended Excel check of November 12, 2026, on
   `1badef1`: 21 of 21 checks passed on one host, and the validator reports
   PASS (#306). It binds the run to the candidate, the logs and the workbooks
