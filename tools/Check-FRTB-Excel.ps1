@@ -20,9 +20,12 @@
        not changed) and runs TEST_Acceptance.Test_RunAcceptanceInExcel_Silent:
        the sample run, the state after a failed run and after Clear outputs
        (#85), numeric text with a comma and with a point, the frozen panes,
-       the autofilters, the Control descriptions (#203) and the invalid-row
-       variant (#28). It writes acceptance.txt, and pictures of the sheets
-       after a failed run, after Clear outputs and after the sample run;
+       the autofilters, the Control descriptions (#203), the values Excel
+       displays, the absence of dates, the view of every sheet (#206) and the
+       invalid-row variant (#28). It writes acceptance.txt, and pictures of
+       the sheets after a failed run, after Clear outputs and after the
+       sample run. Then it takes a picture of every sheet, before and after a
+       sample run, into the folder sheets (#316);
     5. builds the workbook from source with the regression test, and the
        template from source, and records the SHA-256 of that template and of
        the committed one, with their differences (tools\compare_templates.py);
@@ -90,6 +93,8 @@ $msoAutomationSecurityLow = 1
 $msoAutomationSecurityForceDisable = 3
 $xlScreen = 1
 $xlBitmap = 2
+$sheetPictureRows = 60
+$sheetPictureColumns = 26
 $amountTolerance = 0.01
 $script:results = New-Object System.Collections.Generic.List[object]
 
@@ -349,6 +354,28 @@ function Export-SheetPicture {
     }
 }
 
+function ConvertTo-ColumnName {
+    # 1 -> A, 26 -> Z, 27 -> AA
+    param([int]$Number)
+    $name = ''
+    while ($Number -gt 0) {
+        $rest = ($Number - 1) % 26
+        $name = [string][char](65 + $rest) + $name
+        $Number = [int][Math]::Floor(($Number - 1) / 26)
+    }
+    return $name
+}
+
+function Get-PictureAddress {
+    # From A1 to the last used cell of a sheet, at most $sheetPictureRows rows
+    # and $sheetPictureColumns columns
+    param($Sheet)
+    $used = $Sheet.UsedRange
+    $lastRow = [Math]::Min([int]$used.Row + [int]$used.Rows.Count - 1, $sheetPictureRows)
+    $lastColumn = [Math]::Min([int]$used.Column + [int]$used.Columns.Count - 1, $sheetPictureColumns)
+    return 'A1:' + (ConvertTo-ColumnName $lastColumn) + $lastRow
+}
+
 # ------------------------------------------------------------------ start
 foreach ($tool in @('git', 'python')) {
     if ($null -eq (Get-Command $tool -ErrorAction SilentlyContinue)) { Stop-NotStarted "$tool is not on PATH." }
@@ -520,6 +547,35 @@ try {
         Add-Result 'PICTURES' 'PASS' 'results, control, failed-results, failed-out-summary, failed-log, cleared-results'
     } catch {
         Add-Result 'PICTURES' 'FAIL' "stopped: $($_.Exception.Message)"
+    } finally {
+        Close-Excel $excel $workbook
+    }
+
+    # Every sheet, before and after a sample run, for the review of #206
+    Assert-TimeLeft
+    Write-Host '== Sheet pictures'
+    $copy = Join-Path $script:bundle 'sheets.xlsm'
+    $sheetFolder = Join-Path $script:bundle 'sheets'
+    [void](New-Item -ItemType Directory -Path $sheetFolder -Force)
+    Copy-Item -LiteralPath $development -Destination $copy -Force
+    $excel = $null; $workbook = $null
+    try {
+        $excel = New-Excel $msoAutomationSecurityLow
+        $workbook = $excel.Workbooks.Open($copy)
+        $wanted = 0; $taken = 0
+        foreach ($stage in @('before', 'after')) {
+            if ($stage -eq 'after') { [void](Invoke-Macro $excel $workbook 'M_Main.RunFRTB_Silent') }
+            foreach ($sheet in @($workbook.Worksheets)) {
+                $wanted++
+                $name = [string]$sheet.Name
+                $picture = Join-Path $sheetFolder ("$stage-$name.png")
+                if (Export-SheetPicture $workbook $name (Get-PictureAddress $sheet) $picture) { $taken++ }
+            }
+        }
+        $status = if ($wanted -gt 0 -and $taken -eq $wanted) { 'PASS' } else { 'FAIL' }
+        Add-Result 'SHEET_PICTURES' $status "$taken of $wanted pictures in sheets, before and after a sample run"
+    } catch {
+        Add-Result 'SHEET_PICTURES' 'FAIL' "stopped: $($_.Exception.Message)"
     } finally {
         Close-Excel $excel $workbook
     }

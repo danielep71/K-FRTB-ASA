@@ -517,6 +517,13 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- The unattended Excel check helps the review of the sheets (#206, #316).
+  After a sample run, `TEST_Acceptance` checks that no cell holds a date,
+  in Excel and in LibreOffice, and, in Excel only, that no cell displays
+  `####` and that every sheet has its gridlines off and the tab color of its
+  group. `Check-FRTB-Excel.ps1` then takes a picture of every sheet, before
+  and after a sample run, into the folder `sheets` of its zip.
+
 - `docs/FRTB-SA_methodology_guide.pdf`, a 78-page methodology guide to the
   standardized approach as the workbook implements it (#311). It follows the
   calculation chain:
