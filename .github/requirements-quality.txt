@@ -255,7 +255,7 @@ mypy==2.4.1 \
     --hash=sha256:ef8d5be90032261197ac388d945d8ff4f476c95880798a1911760af64ddfe71f \
     --hash=sha256:f44dd4c5ab22df21206dd926c98381ebdbf5bfd696df37dd38ded2d23143fcb6 \
     --hash=sha256:f9118a3f50de264b614861bb11814833a742138ac3c8e2e49a860b6977fb2704
-    # via -r requirements-quality.in
+    # via -r .github/requirements-quality.in
 mypy-extensions==1.2.0 \
     --hash=sha256:993e7a20aa5671eb41a7132cf555af30062da99729601601b9a8382b11cae768 \
     --hash=sha256:c6e275a07f1c2fc096b62940452d0eaa3f3af7de45d704787866240a7c6d5a51
@@ -283,15 +283,15 @@ ruff==0.17.4 \
     --hash=sha256:e3b84eb74f260d1c2dbd236fd9d4c011d4fdd0a52bdf8aea57a10e3a1b71fca5 \
     --hash=sha256:f32d178b50e826e00f6c6c1be3f56333068acb9b67fe167143527fa9b81e890d \
     --hash=sha256:f99e95a1515161138be3cbd1b06c06e739d8feb38ade35564556999fffc3686e
-    # via -r requirements-quality.in
+    # via -r .github/requirements-quality.in
 types-openpyxl==3.1.5.20261017 \
     --hash=sha256:3315cfebad290cc7ade1fccaf3a46ee820b3a8e7df726ff4f18d30ab7f383d68 \
     --hash=sha256:3deb3b6279b65ab379c126df0ee1fd27500c9628edb8d9667d73f637462917dc
-    # via -r requirements-quality.in
-types-pyyaml==6.0.12.20261103 \
-    --hash=sha256:444654c61f635dab82c092a511aa96a0ce31164810784b9a37314e3e56532ac8 \
-    --hash=sha256:7a1b5f837881dd35d5448b5f18275164f89f206185e31e8eae6e0b42607bc001
-    # via -r requirements-quality.in
+    # via -r .github/requirements-quality.in
+types-pyyaml==6.0.12.20261111 \
+    --hash=sha256:b7e46cbc847dc235305e95e3e3570792d72e6ccf64bf9b831306f48da490322d \
+    --hash=sha256:c511f563eaf820b948c4ff6f43fe0b9d48b227be442a69058d9f68f139cae1fb
+    # via -r .github/requirements-quality.in
 typing-extensions==4.16.0 \
     --hash=sha256:481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8 \
     --hash=sha256:dc983d19a509c94dba722ee6abd33940f7c05a89e243c47e907eb4db6f1a43e5
