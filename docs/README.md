@@ -8,6 +8,7 @@ procedures. Keep root entry documents linked rather than copying them here.
 | Need | Document |
 | --- | --- |
 | Prototype formulas, parameters and decided interpretations | [Methodology](methodology.md) |
+| The theory step by step, with worked numbers from the sample portfolio | [Methodology guide, 78 slides (PDF)](FRTB-SA_methodology_guide.pdf) |
 | Prototype source, template, build, sheets and inputs | [Workbook guide](workbook-guide.md) |
 | Prototype checks and what is not validated | [Validation](validation.md) |
 | Recording and validating an Excel run | [Excel evidence](EXCEL_EVIDENCE.md) |
