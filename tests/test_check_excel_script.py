@@ -226,6 +226,9 @@ def test_every_sheet_is_pictured_before_and_after_a_sample_run():
     stage = text[text.index("== Sheet pictures"):text.index("# ------------------------------------------------------------ 3. builds")]
     assert "foreach ($stage in @('before', 'after'))" in stage
     assert "M_Main.RunFRTB_Silent" in stage
+    # The development workbook is saved with results: the before pictures
+    # need Clear outputs first
+    assert "if ($stage -eq 'before') { [void](Invoke-Macro $excel $workbook 'M_Main.ClearOutputs') }" in stage
     assert "foreach ($sheet in @($workbook.Worksheets))" in stage
     assert "Get-PictureAddress $sheet" in stage
     assert "Add-Result 'SHEET_PICTURES'" in stage

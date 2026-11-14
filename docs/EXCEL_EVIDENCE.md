@@ -171,7 +171,8 @@ Then it runs unattended:
      reference's (#28);
 3. takes pictures of the sheets after a failed run, after **Clear outputs**
    and after the sample run; then, in a copy of the development workbook, a
-   picture of every sheet before and after a sample run, into the folder
+   picture of every sheet after **Clear outputs** (`before-*`) and after a
+   sample run (`after-*`), into the folder
    `sheets` (up to its first 60 rows and 26 columns), for the review of #206;
 4. builds the workbook from source with the regression test, and the
    template from source, then records the template digests and their

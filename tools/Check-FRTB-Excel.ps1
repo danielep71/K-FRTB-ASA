@@ -24,8 +24,8 @@
        displays, the absence of dates, the view of every sheet (#206) and the
        invalid-row variant (#28). It writes acceptance.txt, and pictures of
        the sheets after a failed run, after Clear outputs and after the
-       sample run. Then it takes a picture of every sheet, before and after a
-       sample run, into the folder sheets (#316);
+       sample run. Then it takes a picture of every sheet, after Clear
+       outputs and after a sample run, into the folder sheets (#316);
     5. builds the workbook from source with the regression test, and the
        template from source, and records the SHA-256 of that template and of
        the committed one, with their differences (tools\compare_templates.py);
@@ -551,7 +551,8 @@ try {
         Close-Excel $excel $workbook
     }
 
-    # Every sheet, before and after a sample run, for the review of #206
+    # Every sheet, before and after a sample run, for the review of #206.
+    # The development workbook is saved with results, so Clear outputs first.
     Assert-TimeLeft
     Write-Host '== Sheet pictures'
     $copy = Join-Path $script:bundle 'sheets.xlsm'
@@ -564,6 +565,7 @@ try {
         $workbook = $excel.Workbooks.Open($copy)
         $wanted = 0; $taken = 0
         foreach ($stage in @('before', 'after')) {
+            if ($stage -eq 'before') { [void](Invoke-Macro $excel $workbook 'M_Main.ClearOutputs') }
             if ($stage -eq 'after') { [void](Invoke-Macro $excel $workbook 'M_Main.RunFRTB_Silent') }
             foreach ($sheet in @($workbook.Worksheets)) {
                 $wanted++
