@@ -518,7 +518,7 @@ Unreleased describe integrated work, not a published version.
 ### Added
 
 - `docs/FRTB-SA_methodology_guide.pdf`, a 78-page methodology guide to the
-  standardised approach as the workbook implements it (#311). It follows the
+  standardized approach as the workbook implements it (#311). It follows the
   calculation chain:
   - the rules and the architecture;
   - sensitivities and delta aggregation;
