@@ -14,7 +14,7 @@ The layout separates source, tests, documentation, and tools while distinguishin
 | `src/workbook/` | Macro-free workbook template `FRTB_Template.xlsx`, generated from `src/modules` (#30) |
 | `tests/` | Verification source: independent Python reference, reconciliation and tooling tests |
 | `tests/modules/` | VBA test modules imported into development builds (`TEST_*`) |
-| `docs/` | Authoritative versioned scope, governance, structure, methodology, validation, and milestone documentation |
+| `docs/` | Authoritative versioned scope, governance, structure, methodology, validation, and milestone documentation, and the methodology guide `FRTB-SA_methodology_guide.pdf` |
 | `docs/assets/` | Documentation images and their sources: the social preview, `market-risk/` with the market risk and CVA method maps, and `screenshots/` from the recorded Excel run |
 | `docs/evidence/` | Dated, sanitized evidence records bound to reviewed commits |
 | `docs/Milestones/` | Detailed milestone guides |
