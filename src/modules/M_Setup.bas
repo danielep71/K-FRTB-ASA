@@ -367,12 +367,53 @@ Private Sub FormatParamRows(ByVal ws As Object, ByVal r1 As Long, ByVal r2 As Lo
 End Sub
 
 
+' Wraps column k of rows r1..r2 and sets each row high enough for its lines.
+' AutoFit measured the text in the fallback font of the headless build, which
+' is narrower than Aptos, so Excel cut the second line off (#206). The line
+' count here is the same on every host: words, broken after a hyphen too,
+' filled into 1.2 characters per unit of column width: Excel fit 50
+' characters of these texts into a column 40 wide.
 Private Sub WrapColumn(ByVal ws As Object, ByVal r1 As Long, ByVal r2 As Long, ByVal k As Long)
+    Dim r As Long, lines As Long, perLine As Long
     On Error Resume Next
     ws.Range(TableCell(ws, r1, k), TableCell(ws, r2, k)).WrapText = True
-    ws.Range(ws.Rows(r1), ws.Rows(r2)).AutoFit
+    perLine = Int(ws.Columns(LAYOUT_FIRST_COL + k - 1).ColumnWidth * 1.2)
+    For r = r1 To r2
+        lines = WrappedLines(CStr(TableCell(ws, r, k).Value), perLine)
+        If lines > 1 Then ws.Rows(r).RowHeight = 4 + 13.5 * lines
+    Next r
     On Error GoTo 0
 End Sub
+
+
+' Lines that text needs at perLine characters a line, breaking at spaces and
+' after hyphens.
+Private Function WrappedLines(ByVal text As String, ByVal perLine As Long) As Long
+    Dim words As Variant, i As Long, word As String, used As Long, lines As Long, gap As Long
+    Dim afterHyphen As Boolean
+    WrappedLines = 1
+    If perLine < 1 Or Len(text) = 0 Then Exit Function
+    lines = 1
+    words = Split(Replace(text, "-", "- "), " ")
+    For i = LBound(words) To UBound(words)
+        word = words(i)
+        If Len(word) > 0 Then
+            If used > 0 And Not afterHyphen Then gap = 1 Else gap = 0
+            If used > 0 And used + gap + Len(word) > perLine Then
+                lines = lines + 1
+                used = 0
+                gap = 0
+            End If
+            used = used + gap + Len(word)
+            Do While used > perLine
+                lines = lines + 1
+                used = used - perLine
+            Loop
+            afterHyphen = (Right$(word, 1) = "-")
+        End If
+    Next i
+    WrappedLines = lines
+End Function
 
 
 ' Button in the subtitle row, slot-th (0-based) from the left edge of anchorCol.
@@ -569,35 +610,47 @@ End Sub
 '------------------------------------------------------------------------------
 '                              INPUT SHEETS
 '------------------------------------------------------------------------------
+' Input number formats. A format such as #,##0.#### ends a whole number with
+' the decimal separator in Excel ("5.000.000,"), so amounts show two decimals
+' and years one to three (#206).
+Private Const FMT_AMOUNT As String = "#,##0.00"
+Private Const FMT_YEARS As String = "0.0##"
+
 Private Sub BuildInputSheets()
     BuildInputSheet SH_IN_DELTA, "Delta sensitivities in the reporting currency; rows with the same risk factor are netted (MAR21.4(2)).", _
         Array("ID", "RiskClass", "Bucket", "Qualifier", "SubType", "Tenor", "Sensitivity", "Comment"), _
-        Array(10, 11, 9, 18, 13, 9, 16, 34), 7
+        Array(10, 11, 9, 18, 13, 9, 16, 34), Array("", "", "", "", "", FMT_YEARS, FMT_AMOUNT, "")
     BuildInputSheet SH_IN_VEGA, "Vega x implied volatility per option maturity (and GIRR YIELD underlying maturity; GIRR INFLATION and XCCY: none), MAR21.25 and MAR21.8 FAQ4.", _
         Array("ID", "RiskClass", "Bucket", "Qualifier", "SubType", "OptionMaturity", "UnderlyingMaturity", "Sensitivity", "Comment"), _
-        Array(10, 11, 9, 18, 13, 15, 18, 16, 34), 8
+        Array(10, 11, 9, 18, 13, 15, 18, 16, 34), Array("", "", "", "", "", FMT_YEARS, FMT_YEARS, FMT_AMOUNT, "")
     BuildInputSheet SH_IN_CURV, "Curvature risk CVR up and CVR down per risk factor, net across instruments, positive for a loss and before the FX divisor; shocks per MAR21.98-99 (MAR21.5).", _
         Array("ID", "RiskClass", "Bucket", "Qualifier", "SubType", "CVR_Up", "CVR_Down", "RefReportingCcy", "Comment"), _
-        Array(10, 11, 9, 18, 13, 14, 14, 16, 34), 6
+        Array(10, 11, 9, 18, 13, 14, 14, 16, 34), Array("", "", "", "", "", FMT_AMOUNT, FMT_AMOUNT, "", "")
     BuildInputSheet SH_IN_DRC, "Positions for the default risk charge: signed notional and market value, maturity in years, optional LGD override (MAR22).", _
         Array("ID", "Obligor", "Bucket", "CreditQuality", "Seniority", "Notional", "MarketValue", "Maturity", "LGD", "Comment"), _
-        Array(10, 16, 9, 14, 13, 14, 14, 10, 8, 30), 6
+        Array(10, 16, 9, 14, 13, 14, 14, 10, 8, 30), Array("", "", "", "", "", FMT_AMOUNT, FMT_AMOUNT, FMT_YEARS, FMT_YEARS, "")
     BuildInputSheet SH_IN_RRAO, "Gross notional of instruments with residual risks: EXOTIC or OTHER (MAR23).", _
-        Array("ID", "Category", "GrossNotional", "Comment"), Array(10, 12, 16, 50), 3
+        Array("ID", "Category", "GrossNotional", "Comment"), Array(10, 12, 16, 50), Array("", "", FMT_AMOUNT, "")
 End Sub
 
 
 Private Sub BuildInputSheet(ByVal sheetName As String, ByVal subtitle As String, ByVal headers As Variant, _
-                            ByVal widths As Variant, ByVal firstNumCol As Long)
-    Dim ws As Object, nCols As Long
+                            ByVal widths As Variant, ByVal formats As Variant)
+    Dim ws As Object, nCols As Long, k As Long
     Set ws = GetSheet(sheetName)
     ws.Cells.Clear
     nCols = UBound(headers) - LBound(headers) + 1
     ApplyFrame ws, sheetName, subtitle, LAYOUT_FIRST_COL + nCols - 1
     SetWidths ws, widths
     WriteTableHeader ws, LAYOUT_HEADER_ROW, headers, COLOR_INPUT_HEADER
-    FormatDataRows ws, LAYOUT_FIRST_DATA_ROW, LAYOUT_FIRST_DATA_ROW + INPUT_ROWS - 1, nCols, firstNumCol, "#,##0.####", True
+    FormatDataRows ws, LAYOUT_FIRST_DATA_ROW, LAYOUT_FIRST_DATA_ROW + INPUT_ROWS - 1, nCols, 0, "", True
     On Error Resume Next
+    For k = 1 To nCols
+        If formats(LBound(formats) + k - 1) <> "" Then
+            ws.Range(TableCell(ws, LAYOUT_FIRST_DATA_ROW, k), _
+                     TableCell(ws, LAYOUT_FIRST_DATA_ROW + INPUT_ROWS - 1, k)).NumberFormat = formats(LBound(formats) + k - 1)
+        End If
+    Next k
     ws.Range(TableCell(ws, LAYOUT_HEADER_ROW, 1), TableCell(ws, LAYOUT_HEADER_ROW, nCols)).AutoFilter
     ' Short codes (risk class and bucket) centered
     ws.Range(TableCell(ws, LAYOUT_FIRST_DATA_ROW, 2), TableCell(ws, LAYOUT_FIRST_DATA_ROW + INPUT_ROWS - 1, 3)).HorizontalAlignment = -4108
@@ -686,6 +739,7 @@ Private Sub WriteParamGirr()
     PutRow ws, r + 7, Array("GAMMA", 0.5, "MAR21.50")
     PutRow ws, r + 8, Array("SPECIFIED_DIVISOR", Sqr(2), "MAR21.44")
     FormatParamRows ws, r, r + 8, 3, 2, 2, "KEY"
+    TableCell(ws, r + 8, 2).NumberFormat = "0.0000"         'sqrt(2), shown to four decimals (#206)
 
     ccys = Array("EUR", "USD", "GBP", "AUD", "JPY", "SEK", "CAD")
     r = PutTable(ws, r + 10, "GIRR_SPECIFIED_CCY", "Specified currencies (MAR21.44)", Array("Currency"))
@@ -859,6 +913,7 @@ Private Sub WriteParamFx()
     PutRow ws, r + 2, Array("SPECIFIED_DIVISOR", Sqr(2), "MAR21.88")
     PutRow ws, r + 3, Array("CURVATURE_DIVISOR", 1.5, "MAR21.98")
     FormatParamRows ws, r, r + 3, 3, 2, 2, "KEY"
+    TableCell(ws, r + 2, 2).NumberFormat = "0.0000"         'sqrt(2), shown to four decimals (#206)
 
     pairs = Array("USD/EUR", "USD/JPY", "USD/GBP", "USD/AUD", "USD/CAD", "USD/CHF", "USD/MXN", "USD/CNY", _
                   "USD/NZD", "USD/RUB", "USD/HKD", "USD/SGD", "USD/TRY", "USD/KRW", "USD/SEK", "USD/ZAR", _

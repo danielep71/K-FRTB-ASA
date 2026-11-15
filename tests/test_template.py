@@ -58,8 +58,57 @@ def test_template_saved_presentation():
     assert wb["In_Delta"]["B2"].value == "Delta sensitivities"
     assert wb["In_Delta"]["D5"].value == "Risk class"
     for name in ("Results", "Out_Summary", "Out_RiskClass", "Out_Buckets", "Out_DRC", "Log"):
-        assert wb[name]["C5"].fill.fgColor.rgb == "FF2E75B6", name
+        assert wb[name]["C5"].fill.fgColor.rgb == "FF1F3864", name  # the input navy (#206)
         assert wb[name]["C6"].value == "No results yet: press Run FRTB-SA.", name
+
+
+def wrapped_lines(text: str, per_line: int) -> int:
+    """M_Setup.WrappedLines: words, broken after a hyphen too."""
+    lines, used, after_hyphen = 1, 0, False
+    for word in text.replace("-", "- ").split(" "):
+        if not word:
+            continue
+        gap = 1 if used and not after_hyphen else 0
+        if used and used + gap + len(word) > per_line:
+            lines, used, gap = lines + 1, 0, 0
+        used += gap + len(word)
+        while used > per_line:
+            lines, used = lines + 1, used - per_line
+        after_hyphen = word.endswith("-")
+    return lines
+
+
+def test_template_formats_and_wrapped_rows():
+    # Excel ends #,##0.#### with the separator on a whole number (#206)
+    wb = openpyxl.load_workbook(build_template.TEMPLATE)
+    expected = {
+        "In_Delta": {"H": "0.0##", "I": "#,##0.00"},
+        "In_Vega": {"H": "0.0##", "I": "0.0##", "J": "#,##0.00"},
+        "In_Curvature": {"H": "#,##0.00", "I": "#,##0.00"},
+        "In_DRC": {"H": "#,##0.00", "I": "#,##0.00", "J": "0.0##", "K": "0.0##"},
+        "In_RRAO": {"E": "#,##0.00"},
+    }
+    for name, columns in expected.items():
+        ws = wb[name]
+        for row in (6, 200):
+            for column, number_format in columns.items():
+                assert ws[f"{column}{row}"].number_format == number_format, (name, column, row)
+            assert all("#.####" not in c.number_format and ",##0.####" not in c.number_format for c in ws[row]), name
+    # A wrapped description gets one line of height per line it needs
+    for name, tag_row in (("P_CSR", 7), ("P_EQ", 7)):
+        ws = wb[name]
+        per_line = int(round(ws.column_dimensions["D"].width) * 1.2)
+        for row in range(tag_row, tag_row + 18):
+            text = ws.cell(row, 4).value
+            if isinstance(text, str) and ws.cell(row, 4).alignment.wrap_text:
+                lines = wrapped_lines(text, per_line)
+                height = ws.row_dimensions[row].height or 20.1
+                assert height >= 13.5 * lines, (name, row, lines, height)
+    for name in ("P_GIRR", "P_FX"):
+        ws = wb[name]
+        divisor = [c for row in ws.iter_rows(min_col=FIRST_COL, max_col=FIRST_COL) for c in row
+                   if c.value == "SPECIFIED_DIVISOR"][0]
+        assert ws.cell(divisor.row, FIRST_COL + 1).number_format == "0.0000", name
 
 
 def test_presentation_normalization_preserves_content_and_is_idempotent(tmp_path):

@@ -201,6 +201,9 @@ Private Sub WriteSummary()
     PutSummary ws, 9, "ERRORS", LogErrorCount()
     PutSummary ws, 10, "WARNINGS", LogWarningCount()
     FormatDataRows ws, LAYOUT_FIRST_DATA_ROW, LAYOUT_HEADER_ROW + 10, 2, 2, "#,##0", False
+    On Error Resume Next
+    TableCell(ws, LAYOUT_HEADER_ROW + 4, 2).HorizontalAlignment = -4152    'the scenario name, as the numbers (#206)
+    On Error GoTo 0
 
     WriteResultsSheet best, sbm, drc, rrao
 End Sub
@@ -238,12 +241,12 @@ Private Sub WriteResultsSheet(ByVal best As Long, ByVal sbm As Double, ByVal drc
     Next s
     FormatDataRows ws, LAYOUT_FIRST_DATA_ROW, r, 5, 3, "#,##0", False
     StyleTotalRow ws, r, 5
+    ' The binding scenario's total in navy: red would read as an error (#206)
     On Error Resume Next
-    TableCell(ws, r, 2 + best).Font.Color = COLOR_FAIL_TEXT
+    TableCell(ws, r, 2 + best).Font.Color = COLOR_INPUT_HEADER
     On Error GoTo 0
 
     blockRow = r + 2
-    WriteSectionHeading ws, blockRow, "Capital requirement", 5
     WriteKeyRow ws, blockRow + 1, "Binding correlation scenario", ScenarioName(best)
     WriteKeyRow ws, blockRow + 2, "SBM capital (max over scenarios)", sbm
     WriteKeyRow ws, blockRow + 3, "DRC (non-securitization)", drc
@@ -251,6 +254,9 @@ Private Sub WriteResultsSheet(ByVal best As Long, ByVal sbm As Double, ByVal drc
     WriteKeyRow ws, blockRow + 5, "Total capital requirement", sbm + drc + rrao
     FormatDataRows ws, blockRow + 1, blockRow + 5, 3, 3, "#,##0", False
     StyleTotalRow ws, blockRow + 5, 3
+    ' After the rows, so their borders do not replace the heading rule, and
+    ' as wide as the block below it (#206)
+    WriteSectionHeading ws, blockRow, "Capital requirement", 3
 
     TableCell(ws, blockRow + 7, 1).Value = "Last run " & Format(Now, "yyyy-mm-dd hh:mm:ss") & _
         " - " & LogErrorCount() & " error(s), " & LogWarningCount() & " warning(s) on Log"
@@ -277,6 +283,7 @@ Private Sub WriteKeyRow(ByVal ws As Object, ByVal r As Long, ByVal label As Stri
     TableCell(ws, r, 1).Value = label
     TableCell(ws, r, 3).Value = value
     On Error Resume Next
+    TableCell(ws, r, 3).HorizontalAlignment = -4152          'a scenario name aligns with the amounts (#206)
     ws.Range(TableCell(ws, r, 1), TableCell(ws, r, 2)).Merge
     TableCell(ws, r, 1).Font.Bold = True
     On Error GoTo 0
