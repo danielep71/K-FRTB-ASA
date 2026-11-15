@@ -9,11 +9,9 @@ run-name: Prototype checks — ${{ github.ref_name }} @ ${{ github.sha }}
 # not available on hosted runners, so Excel compilation and runtime remain
 # manual evidence (docs/EXCEL_EVIDENCE.md).
 
+# No branch filter: a PR stacked on another task branch is checked too (#320).
 on:
   pull_request:
-    branches:
-      - main
-      - "release/**"
     paths:
       - src/**
       - tests/**

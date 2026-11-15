@@ -286,6 +286,10 @@ WRITE_ALLOWED: dict[tuple[str | None, str], set[str]] = {
     ("traffic-export.yml", "alert"): {"issues"},
     ("pr-milestones.yml", "reconcile"): {"pull-requests"},
 }
+# Workflows name the default branch in their branch filters, so every filter
+# must keep it (#320).
+DEFAULT_BRANCH = "main"
+FILTERED_EVENTS = ("push", "pull_request", "pull_request_target")
 DEFAULT_BRANCH_ONLY = "github.ref == format('refs/heads/{0}', github.event.repository.default_branch)"
 LABEL_RECONCILE_CONDITION = "github.event_name != 'pull_request' && " + DEFAULT_BRANCH_ONLY
 
@@ -311,6 +315,7 @@ def validate_workflow(document: dict[str, Any], name: str | None = None) -> None
         raise ValueError("workflow requires name, on, and jobs")
     if "permissions" not in document:
         raise ValueError("workflow must declare top-level permissions")
+    validate_branch_filters(document["on"])
     for job_id, job in document["jobs"].items():
         if not isinstance(job, dict):
             raise ValueError("workflow job must be a mapping")
@@ -333,14 +338,31 @@ def validate_workflow(document: dict[str, Any], name: str | None = None) -> None
         raise ValueError("labels-sync reconcile must run only outside pull requests on the default branch")
 
 
+def validate_branch_filters(events: Any) -> None:
+    """Fail when a push or pull request branch filter leaves out the default branch."""
+    if not isinstance(events, dict):
+        return
+    for event in FILTERED_EVENTS:
+        config = events.get(event)
+        if not isinstance(config, dict):
+            continue
+        if "branches" in config and DEFAULT_BRANCH not in config["branches"]:
+            raise ValueError(f"{event} branch filter must include the default branch {DEFAULT_BRANCH}")
+        if DEFAULT_BRANCH in config.get("branches-ignore", []):
+            raise ValueError(f"{event} branches-ignore must not exclude the default branch {DEFAULT_BRANCH}")
+
+
 def validate_controls(root: Path) -> None:
     milestone_workflow = load_yaml((root / ".github/workflows/pr-milestones.yml").read_text())
     validate_milestone_workflow(milestone_workflow)
     workflow = load_yaml((root / ".github/workflows/integrity.yml").read_text())
-    for event in ("pull_request", "push"):
-        config = workflow["on"][event]
-        if set(config) != {"branches"} or set(config["branches"]) != {"main", "release/**"}:
-            raise ValueError(f"integrity {event} must cover main and release/** without path filters")
+    events = workflow["on"]
+    # Every PR base gets the required check; pushes run only where they land.
+    if "pull_request" not in events or events["pull_request"] not in (None, {}):
+        raise ValueError("integrity pull_request must run for every base, without branch or path filters")
+    push = events.get("push")
+    if not isinstance(push, dict) or set(push) != {"branches"} or set(push["branches"]) != {"main", "release/**"}:
+        raise ValueError("integrity push must cover main and release/** without path filters")
     job = workflow["jobs"]["integrity"]
     if job["name"] != "Repository integrity" or "if" in job or "strategy" in job:
         raise ValueError("integrity must provide one unconditional stable Repository integrity check")

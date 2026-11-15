@@ -98,8 +98,14 @@ Workflow: [Repository integrity](../.github/workflows/integrity.yml).
 The job ID is `integrity`; the exact check name is **Repository integrity**.
 The producer is **GitHub Actions** (app slug `github-actions`, app ID `15368`).
 There is no matrix, job condition, path filter or changed-file shortcut.
-PRs targeting `main` or `release/**`, and pushes to those branches, run the
-same command on Ubuntu 24.04. Manual dispatch is also available after
+Every PR, whatever its base, and pushes to `main` and `release/**`, run the
+same command on Ubuntu 24.04. A PR stacked on another task branch therefore
+gets the check before it merges into that branch. Pushes run only where they
+land, so a task-branch push does not repeat its PR run; the push run on `main`
+is the one [Releasing](../RELEASING.md) reads on a tag candidate (#320).
+`tools/check_repository.py` keeps these triggers, keeps the job unconditional
+(a skipped run would count as passing), and fails when any workflow's `push`,
+`pull_request` or `pull_request_target` branch filter leaves out `main`. Manual dispatch is also available after
 default-branch activation. Checkout is pinned to the existing reviewed SHA,
 credentials are not persisted, permissions are `contents: read` and the
 timeout is 10 minutes.
