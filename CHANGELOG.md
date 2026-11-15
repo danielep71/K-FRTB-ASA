@@ -517,6 +517,12 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- A synchronization pull request needs no new automated review when its head
+  is the integration merge commit, its diff against the release branch is
+  empty, and the integration's final-head review covered the same tree. Its
+  record names that review; the required check still runs. A synchronization
+  that changes any file is reviewed as usual (#321).
+
 - The unattended Excel check helps the review of the sheets (#206, #316).
   After a sample run, `TEST_Acceptance` checks that no cell holds a date,
   in Excel and in LibreOffice, and, in Excel only, that no cell displays
