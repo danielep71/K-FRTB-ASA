@@ -186,14 +186,79 @@ class RepositoryIntegrityTests(unittest.TestCase):
             checker.validate_controls(root)
             workflow_path = root / ".github/workflows/integrity.yml"
             workflow = checker.load_yaml(workflow_path.read_text())
-            workflow["on"]["pull_request"]["paths"] = ["tools/**"]
-            workflow_path.write_text(yaml.safe_dump(workflow))
-            with self.assertRaisesRegex(ValueError, "without path filters"):
-                checker.validate_controls(root)
+            original = workflow_path.read_text()
+            broken_triggers = {
+                "pull_request path filter": (lambda events: events.update(pull_request={"paths": ["tools/**"]}),
+                                             "every base, without branch or path filters"),
+                "pull_request branch filter": (lambda events: events.update(pull_request={"branches": ["main", "release/**"]}),
+                                               "every base, without branch or path filters"),
+                "no pull_request trigger": (lambda events: events.pop("pull_request"),
+                                            "every base, without branch or path filters"),
+                "push on every branch": (lambda events: events.update(push=None),
+                                         "push must cover main and release/\\*\\* without path filters"),
+                "push path filter": (lambda events: events["push"].update(paths=["tools/**"]),
+                                     "push must cover main and release/\\*\\* without path filters"),
+            }
+            for label, (change, message) in broken_triggers.items():
+                workflow = checker.load_yaml(original)
+                change(workflow["on"])
+                workflow_path.write_text(yaml.safe_dump(workflow))
+                with self.subTest(label), self.assertRaisesRegex(ValueError, message):
+                    checker.validate_controls(root)
             workflow_path.write_text((source / ".github/workflows/integrity.yml").read_text())
             dependabot_path = root / ".github/dependabot.yml"
             dependabot_path.write_text(dependabot_path.read_text().replace("target-branch: release/v0.2.0", "target-branch: main", 1))
             with self.assertRaisesRegex(ValueError, "Dependabot must cover"):
+                checker.validate_controls(root)
+
+    def test_branch_filters_must_keep_the_default_branch(self):
+        # main is named in the filters, so a filter that drops it fails (#320)
+        source = Path(__file__).resolve().parents[2]
+        for name in sorted((source / ".github/workflows").glob("*.yml")):
+            checker.validate_branch_filters(checker.load_yaml(name.read_text())["on"])
+        cases = {
+            "push": {"push": {"branches": ["release/**"]}},
+            "pull_request": {"pull_request": {"branches": ["release/**"], "paths": ["src/**"]}},
+            "pull_request_target": {"pull_request_target": {"branches": ["release/**"]}},
+        }
+        for event, events in cases.items():
+            with self.subTest(event), self.assertRaisesRegex(ValueError, f"{event} branch filter must include the default branch main"):
+                checker.validate_branch_filters(events)
+        # Patterns apply in order, with GitHub's globs (#322 review)
+        for branches in (["main", "!main"], ["!main", "m*", "!ma*"], ["release/**", "*/main"]):
+            with self.subTest(branches=branches), self.assertRaisesRegex(ValueError, "must include the default branch main"):
+                checker.validate_branch_filters({"push": {"branches": branches}})
+        for ignored in (["main"], ["m*"], ["**"], ["release/**", "ma*n"]):
+            with self.subTest(ignored=ignored), self.assertRaisesRegex(ValueError, "branches-ignore must not exclude the default branch main"):
+                checker.validate_branch_filters({"push": {"branches-ignore": ignored}})
+        for unsupported in ("ma?n", "mai[n]", "main+"):
+            with self.subTest(unsupported=unsupported), self.assertRaisesRegex(ValueError, "unsupported branch filter pattern"):
+                checker.validate_branch_filters({"push": {"branches": [unsupported]}})
+        accepted: list[object] = [
+            {"pull_request": None}, {"push": {"branches": ["main"]}}, {"schedule": [{"cron": "0 0 * * *"}]},
+            {"push": {"branches": ["**"]}}, {"push": {"branches": ["*"]}}, {"push": {"branches": ["!main", "main"]}},
+            {"push": {"branches": ["ma*", "!release/**"]}}, {"push": {"branches-ignore": ["release/**", "*/main"]}},
+        ]
+        for allowed in accepted:
+            checker.validate_branch_filters(allowed)
+        workflow = checker.load_yaml((source / ".github/workflows/prototype-checks.yml").read_text())
+        workflow["on"]["pull_request"]["branches"] = ["release/**"]
+        with self.assertRaisesRegex(ValueError, "default branch main"):
+            checker.validate_workflow(workflow, "prototype-checks.yml")
+
+    def test_integrity_job_stays_unconditional(self):
+        # A job-level if makes a skipped run, which counts as passing (#320)
+        source = Path(__file__).resolve().parents[2]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name in CONTROL_FILES:
+                (root / name).parent.mkdir(parents=True, exist_ok=True)
+                (root / name).write_text((source / name).read_text())
+            integrity = root / ".github/workflows/integrity.yml"
+            workflow = checker.load_yaml(integrity.read_text())
+            workflow["jobs"]["integrity"]["if"] = "github.event_name == 'pull_request'"
+            integrity.write_text(yaml.safe_dump(workflow))
+            with self.assertRaisesRegex(ValueError, "unconditional"):
                 checker.validate_controls(root)
 
     def test_reproducibility_controls(self):

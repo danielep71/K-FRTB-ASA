@@ -38,8 +38,8 @@ REQUIRE_LIBREOFFICE=1 python3 -m pytest -v tests
 LibreOffice Calc and the Python UNO bridge (`python3-uno` on Debian/Ubuntu)
 are required for the reconciliation tests; without them those tests are
 skipped unless `REQUIRE_LIBREOFFICE=1` is set. The `Prototype checks`
-workflow runs the same commands on pull requests into `main` and `release/**`
-that change `src/`, `tests/`, `tools/`, `.github/requirements.txt`,
+workflow runs the same commands on pull requests into any branch, stacked
+ones included (#320), that change `src/`, `tests/`, `tools/`, `.github/requirements.txt`,
 `.github/requirements.in` or the workflow itself. The universal
 `Repository integrity` check runs on every pull request; other workflows,
 such as the label checks, have path filters of their own.

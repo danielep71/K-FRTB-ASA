@@ -517,6 +517,14 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- `Repository integrity` and `Prototype checks` run on pull requests into any
+  branch, so a pull request stacked on another task branch is checked before
+  it merges into it. Pushes still run `Repository integrity` only on `main`
+  and `release/**`. `tools/check_repository.py` now fails when a workflow's
+  branch filter leaves out `main`, the default branch the filters name. It
+  also fails when the integrity triggers change or its job gets a condition
+  (#320).
+
 - The unattended Excel check helps the review of the sheets (#206, #316).
   After a sample run, `TEST_Acceptance` checks that no cell holds a date,
   in Excel and in LibreOffice, and, in Excel only, that no cell displays
