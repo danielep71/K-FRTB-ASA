@@ -517,6 +517,12 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- A synchronization pull request needs no new automated review when its head
+  is the integration merge commit, its diff against the release branch is
+  empty, and the integration's final-head review covered the same tree. Its
+  record names that review; the required check still runs. A synchronization
+  that changes any file is reviewed as usual (#321).
+
 - `Repository integrity` and `Prototype checks` run on pull requests into any
   branch, so a pull request stacked on another task branch is checked before
   it merges into it. Pushes still run `Repository integrity` only on `main`

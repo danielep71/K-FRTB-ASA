@@ -74,7 +74,18 @@ a version tag, release, workbook or website.
 After integration, synchronize the active release branch through a reviewed
 merge-commit PR from main, with strict required checks and resolved conversations.
 No administrator or app bypass exists. Do not directly fast-forward the protected
-branch. At a milestone transition, create the next explicitly approved integration
+branch.
+
+A synchronization PR needs no new automated review when all three hold (#321):
+
+1. its head is the integration merge commit;
+2. its diff against the release branch is empty;
+3. the integration PR's final-head review covered the same tree.
+
+Its record names that review, with its link and the integration head, instead
+of a new one. The required `Repository integrity` check still runs and must
+pass. A synchronization PR that changes any file is reviewed as usual, like
+any push that changes content after a review. At a milestone transition, create the next explicitly approved integration
 branch and update this document, contribution guidance and automated PR targets together.
 
 ### Release-branch lifecycle

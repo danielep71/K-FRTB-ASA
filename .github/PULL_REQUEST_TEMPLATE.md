@@ -20,7 +20,7 @@ risks, dependencies, or missing evidence; write None when applicable.
 - [ ] Base is `release/v0.2.0` for current prototype/maintenance tasks (milestone 2, v0.2.0 — ASA prototype), `release/v0.3.0` for milestone 3 tasks, another explicitly approved branch for later milestones, or this is an explicitly requested release-to-main integration. Do not target the superseded `release/v0.1.0` or recreate the deleted setup branch `release/v0.0.1`.
 - [ ] Linked issue and PR have assignee `danielep71` and exactly one priority; P1 is only for a confirmed calculation bug (wrong results for valid inputs), with `bug`. The linked issue has the appropriate milestone; the PR has no milestone.
 - [ ] Scope, compatibility impact, affected documentation, and CHANGELOG.md are current.
-- [ ] Applicable checks pass and the automated review is finished on the final head SHA, with every finding addressed or explained and resolved; a push that changes content after a review gets a new review.
+- [ ] Applicable checks pass and the automated review is finished on the final head SHA, with every finding addressed or explained and resolved; a push that changes content after a review gets a new review. Only a synchronization PR whose head is the integration merge commit, with an empty diff against the release branch, names the integration's final-head review instead ([governance](https://github.com/danielep71/K-FRTB-ASA/blob/main/docs/GOVERNANCE.md#branches)).
 - [ ] Evidence and limitations are accurate; no credentials, confidential data, or undisclosed vulnerability details are included.
 
 Task PRs squash-merge into the integration branch. Explicitly requested main
