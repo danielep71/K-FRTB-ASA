@@ -372,6 +372,13 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- The unattended Excel check no longer reports a wrapped Trust Center
+  message as missing: it matches the message in the log whatever line
+  breaks the console put inside it. A sheet picture whose paste came out
+  empty is copied again, up to four times, and is reported as not taken if
+  it stays blank, so a blank picture is never counted. The check of
+  November 15, 2026 on `7aaa47e` showed both faults (#324).
+
 - `tools\Build-Workbook.ps1` turns Excel alerts off again after the
   workbook's macros have run and before it saves. The macros turn alerts
   back on when they finish, so the `-Template` save as `.xlsx` waited on a

@@ -236,6 +236,55 @@ def test_every_sheet_is_pictured_before_and_after_a_sample_run():
     assert "$sheetPictureColumns = 26" in text
 
 
+def test_an_empty_paste_is_retried_and_never_counted():
+    # Chart.Paste sometimes pastes nothing after CopyPicture; a blank picture
+    # must be retried, and reported as not taken if it stays blank (#324)
+    text = script_text()
+    export = text.split("function Export-SheetPicture {", 1)[1].split("function Test-LogMentions {", 1)[0]
+    assert "for ($attempt = 1; $attempt -le $pictureAttempts; $attempt++)" in export
+    assert "if ([int]$chartObject.Chart.Shapes.Count -gt 0) { break }" in export
+    empty = export.index("if ([int]$chartObject.Chart.Shapes.Count -eq 0) {")
+    assert export.index("return $false", empty) < export.index("[void]$chartObject.Chart.Export($Path)")
+    assert re.search(r"\} finally \{\s+if \(\$null -ne \$chartObject\)", export)
+    assert "$pictureAttempts = 4" in text
+
+
+def test_the_trust_center_message_is_found_across_line_breaks():
+    text = script_text()
+    check = text.split("} elseif ($runTrustCheck) {", 1)[1].split("'not requested'", 1)[0]
+    assert "Test-LogMentions (Join-Path $script:bundle 'build-trust-center.log')" in check
+    assert "Select-String" not in check
+
+
+def run_script_function(name, body):
+    # Defines one function of the script in pwsh and runs the body after it
+    command = (
+        "$t = $null; $e = $null; $ast = [System.Management.Automation.Language.Parser]::ParseFile("
+        f"'{SCRIPT}', [ref]$t, [ref]$e); "
+        "$f = $ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] "
+        f"-and $n.Name -eq '{name}' }}, $true) | Select-Object -First 1; "
+        f"Invoke-Expression $f.Extent.Text; {body}"
+    )
+    return subprocess.run([str(PWSH), "-NoProfile", "-NonInteractive", "-Command", command],
+                          capture_output=True, text=True, timeout=120, check=False)
+
+
+@pytest.mark.skipif(not PWSH, reason="PowerShell 7 (pwsh) is not installed")
+def test_a_wrapped_message_is_found_and_a_missing_one_is_not(tmp_path):
+    # The log of November 15, 2026 wrapped the message at the console width
+    wrapped = tmp_path / "wrapped.log"
+    wrapped.write_text("Excel denied access to the VBA project. Enable 'Trust access to the VBA project \r\n"
+                       "object model' and retry.\r\nEXIT=1\r\n", encoding="utf-8-sig")
+    other = tmp_path / "other.log"
+    other.write_text("Excel could not start.\r\nEXIT=1\r\n", encoding="utf-8-sig")
+    phrase = "'Trust access to the VBA project object model'"
+    body = (f"(Test-LogMentions '{wrapped}' {phrase}), (Test-LogMentions '{other}' {phrase}), "
+            f"(Test-LogMentions '{tmp_path / 'absent.log'}' {phrase}) -join ','")
+    completed = run_script_function("Test-LogMentions", body)
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    assert completed.stdout.strip() == "True,False,False"
+
+
 @pytest.mark.skipif(not PWSH, reason="PowerShell 7 (pwsh) is not installed")
 def test_column_numbers_become_column_names():
     command = (
