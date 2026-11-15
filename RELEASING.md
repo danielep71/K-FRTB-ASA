@@ -17,11 +17,12 @@ No version has been tagged or published. v0.1.0, first named v0.0.1, is the
 **repository setup baseline**: labels, governance, settings, forms, CI and
 traffic analytics. It is not a working or regulatory-validated calculator.
 v0.2.0 is the Excel/VBA **ASA prototype**; its LibreOffice evidence exists,
-and two desktop Excel sessions are recorded on one host: a run with both
+and three desktop Excel sessions are recorded on one host: a run with both
 round trips on `323260b` ([Excel run](docs/evidence/2026-10-31-excel-run-323260b.md))
 and the unattended check `tools\Check-FRTB-Excel.cmd` (#274) on `1badef1`,
-21 of 21 PASS ([Excel check](docs/evidence/2026-11-12-excel-check-1badef1.md)). The
-remaining Excel review is #206, the formatting of every sheet. I decided its six
+21 of 21 PASS ([Excel check](docs/evidence/2026-11-12-excel-check-1badef1.md)),
+and on `308cbc6`, 24 of 24 PASS with the formatting review of every sheet
+(#206, [Excel check](docs/evidence/2026-11-15-excel-check-308cbc6.md)). I decided its six
 methodology interpretations (#29) on October 27, 2026, and they are
 implemented; they are not independently reviewed, and v0.3.0 reviews them for
 the certified scope under the [roadmap](docs/ROADMAP.md).

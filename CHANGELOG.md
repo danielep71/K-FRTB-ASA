@@ -7,6 +7,12 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The unattended check of November 15, 2026 on `308cbc6` passed 24 of 24 in
+  desktop Excel, with the formatting review of every sheet and its fixes
+  (#206). Its record is `docs/evidence/2026-11-15-excel-check-308cbc6.md`. The 22 sheet
+  screenshots are in `docs/assets/screenshots/`, four of them in the README,
+  and the status documents name the run.
+
 - The unattended Excel check makes Microsoft Print to PDF the default
   printer for the run and restores the operator's default printer at the
   end, also when the run fails, so Excel does not wait on a slow printer
