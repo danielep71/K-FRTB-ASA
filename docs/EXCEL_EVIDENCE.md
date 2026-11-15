@@ -17,7 +17,8 @@ trip. [Validation](validation.md) owns what the other checks show. The remaining
 Excel review of the ASA prototype (v0.2.0) is #206. Two sessions are
 recorded: a run on `323260b`
 ([record](evidence/2026-10-31-excel-run-323260b.md)) and the unattended check
-on `1badef1` ([record](evidence/2026-11-12-excel-check-1badef1.md)).
+on `1badef1` ([record](evidence/2026-11-12-excel-check-1badef1.md)) and on
+`308cbc6` ([record](evidence/2026-11-15-excel-check-308cbc6.md)).
 
 > [!IMPORTANT]
 > The validator never runs Excel. It checks three things:
@@ -138,7 +139,8 @@ below gives the same bundle by hand.
 `tools\Check-FRTB-Excel.cmd` runs every Excel check of a branch with one
 double-click: `release/v0.2.0` by default, or the branch given as its first
 argument (#274). It passed 21 of 21 on `1badef1`
-([record](evidence/2026-11-12-excel-check-1badef1.md)). It needs what the
+([record](evidence/2026-11-12-excel-check-1badef1.md)) and 24 of 24 on
+`308cbc6` ([record](evidence/2026-11-15-excel-check-308cbc6.md)). It needs what the
 recorded run needs. It asks at most two questions, at the start:
 * whether to turn on the VBA project access, when it is off; if you agree,
   it stays on after the run, and the evidence records the change;

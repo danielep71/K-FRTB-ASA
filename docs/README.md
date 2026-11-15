@@ -31,6 +31,7 @@ procedures. Keep root entry documents linked rather than copying them here.
 | Prototype evaluation before the Excel run | [Interim evaluation](evidence/2026-10-27-prototype-evaluation.md) |
 | First desktop Excel run, on `323260b` | [Excel run](evidence/2026-10-31-excel-run-323260b.md) |
 | Unattended Excel check, on `1badef1` | [Excel check](evidence/2026-11-12-excel-check-1badef1.md) |
+| Unattended Excel check with the sheet review, on `308cbc6` | [Excel check](evidence/2026-11-15-excel-check-308cbc6.md) |
 | Recorded changes | [Changelog](../CHANGELOG.md) |
 
 Durable evidence records live in [evidence](evidence/) and milestone guides in
