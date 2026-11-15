@@ -346,7 +346,9 @@ function Export-SheetPicture {
         $ws = $Workbook.Worksheets.Item($Sheet)
         [void]$ws.Activate()
         $range = $ws.Range($Address)
-        $chartObject = $ws.ChartObjects().Add(0, 0, [double]$range.Width + 4, [double]$range.Height + 4)
+        # Right of the range, so the copies never picture the chart itself
+        $chartObject = $ws.ChartObjects().Add([double]$range.Left + [double]$range.Width + 20, [double]$range.Top,
+                                              [double]$range.Width + 4, [double]$range.Height + 4)
         for ($attempt = 1; $attempt -le $pictureAttempts; $attempt++) {
             try {
                 [void]$range.CopyPicture($xlScreen, $xlBitmap)

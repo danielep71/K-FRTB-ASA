@@ -247,6 +247,9 @@ def test_an_empty_paste_is_retried_and_never_counted():
     assert export.index("return $false", empty) < export.index("[void]$chartObject.Chart.Export($Path)")
     assert re.search(r"\} finally \{\s+if \(\$null -ne \$chartObject\)", export)
     assert "$pictureAttempts = 4" in text
+    # The chart is created right of the range, never over the cells pictured
+    assert "ChartObjects().Add([double]$range.Left + [double]$range.Width + 20, [double]$range.Top," in export
+    assert "ChartObjects().Add(0, 0" not in text
 
 
 def test_the_trust_center_message_is_found_across_line_breaks():
