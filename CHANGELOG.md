@@ -372,6 +372,25 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- The sheet review in desktop Excel (#206) found these faults, now fixed:
+  - **Fonts and alignment:** a run or **Clear outputs** left the rewritten
+    output cells in Arial at the bottom of the cell, the template's Normal
+    style. Every cell is again Aptos and vertically centered.
+  - **Headers:** output tables have the same navy header as the other
+    sheets.
+  - **Input formats:** amounts showed a trailing decimal separator in Excel
+    (`5.000.000,`). They now show two decimals, and tenors and maturities
+    in years one to three.
+  - **Wrapped descriptions:** the bucket descriptions of `P_CSR` and `P_EQ`
+    lost their second line in Excel. Their rows now get the height of the
+    lines they need, counted the same way on every host.
+  - **Results and outputs:** the "Capital requirement" rule spans its table;
+    the binding scenario is right-aligned with the amounts, and its SBM
+    total is navy rather than red. The flags of `Out_RiskClass` and the
+    buckets of `Out_Buckets` are centered, and the bucket table of
+    `Out_DRC` is centered vertically before a run.
+  - **Divisor:** `SPECIFIED_DIVISOR` shows four decimals.
+
 - The unattended Excel check no longer reports a wrapped Trust Center
   message as missing: it matches the message in the log whatever line
   breaks the console put inside it. A sheet picture whose paste came out
