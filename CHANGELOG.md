@@ -372,6 +372,12 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- `M_Setup` compiles in desktop Excel again. #326 declared two module
+  constants after the first procedures, which Excel rejects ("Only comments
+  may appear after End Sub") and LibreOffice accepts. They now stand in the
+  module constants. `tools/vba_lint.py` reports any module-level code after
+  a procedure (#327).
+
 - The sheet review in desktop Excel (#206) found these faults, now fixed:
   - **Fonts and alignment:** a run or **Clear outputs** left the rewritten
     output cells in Arial at the bottom of the cell, the template's Normal

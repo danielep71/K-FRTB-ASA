@@ -52,6 +52,12 @@ Option Explicit
 '                              MODULE CONSTANTS
 '------------------------------------------------------------------------------
 Private Const INPUT_ROWS As Long = 200                       'Pre-formatted input rows per input sheet
+' Input number formats. A format such as #,##0.#### ends a whole number with
+' the decimal separator in Excel ("5.000.000,"), so amounts show two decimals
+' and years one to three (#206). Declarations stay above the first procedure:
+' Excel accepts only comments after End Sub (#327).
+Private Const FMT_AMOUNT As String = "#,##0.00"
+Private Const FMT_YEARS As String = "0.0##"
 
 '------------------------------------------------------------------------------
 '                              PUBLIC MACROS
@@ -610,12 +616,6 @@ End Sub
 '------------------------------------------------------------------------------
 '                              INPUT SHEETS
 '------------------------------------------------------------------------------
-' Input number formats. A format such as #,##0.#### ends a whole number with
-' the decimal separator in Excel ("5.000.000,"), so amounts show two decimals
-' and years one to three (#206).
-Private Const FMT_AMOUNT As String = "#,##0.00"
-Private Const FMT_YEARS As String = "0.0##"
-
 Private Sub BuildInputSheets()
     BuildInputSheet SH_IN_DELTA, "Delta sensitivities in the reporting currency; rows with the same risk factor are netted (MAR21.4(2)).", _
         Array("ID", "RiskClass", "Bucket", "Qualifier", "SubType", "Tenor", "Sensitivity", "Comment"), _
