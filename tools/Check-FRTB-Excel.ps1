@@ -95,6 +95,7 @@ $xlScreen = 1
 $xlBitmap = 2
 $sheetPictureRows = 60
 $sheetPictureColumns = 26
+$pictureAttempts = 4
 $amountTolerance = 0.01
 $script:results = New-Object System.Collections.Generic.List[object]
 
@@ -335,23 +336,52 @@ function Get-ExpectedTotal {
 }
 
 function Export-SheetPicture {
-    # Best effort: a picture of the top of a sheet, as Excel shows it
+    # Best effort: a picture of the top of a sheet, as Excel shows it.
+    # Chart.Paste right after CopyPicture sometimes pastes nothing, and the
+    # empty chart would export as a blank picture: copy and paste again until
+    # the chart holds the picture, and never count a blank one (#324)
     param($Workbook, [string]$Sheet, [string]$Address, [string]$Path)
+    $chartObject = $null
     try {
         $ws = $Workbook.Worksheets.Item($Sheet)
         [void]$ws.Activate()
         $range = $ws.Range($Address)
-        [void]$range.CopyPicture($xlScreen, $xlBitmap)
-        $chartObject = $ws.ChartObjects().Add(0, 0, [double]$range.Width + 4, [double]$range.Height + 4)
-        [void]$chartObject.Activate()
-        [void]$chartObject.Chart.Paste()
+        # Right of the range, so the copies never picture the chart itself
+        $chartObject = $ws.ChartObjects().Add([double]$range.Left + [double]$range.Width + 20, [double]$range.Top,
+                                              [double]$range.Width + 4, [double]$range.Height + 4)
+        for ($attempt = 1; $attempt -le $pictureAttempts; $attempt++) {
+            try {
+                [void]$range.CopyPicture($xlScreen, $xlBitmap)
+                [void]$chartObject.Activate()
+                [void]$chartObject.Chart.Paste()
+            } catch {
+                Write-Log "   picture of $Sheet, attempt $($attempt): $($_.Exception.Message)"
+            }
+            if ([int]$chartObject.Chart.Shapes.Count -gt 0) { break }
+            Start-Sleep -Milliseconds 500
+        }
+        if ([int]$chartObject.Chart.Shapes.Count -eq 0) {
+            Write-Log "   picture of $Sheet not taken: the chart stayed empty after $pictureAttempts attempts"
+            return $false
+        }
         [void]$chartObject.Chart.Export($Path)
-        [void]$chartObject.Delete()
         return $true
     } catch {
         Write-Log "   picture of $Sheet not taken: $($_.Exception.Message)"
         return $false
+    } finally {
+        if ($null -ne $chartObject) { try { [void]$chartObject.Delete() } catch { } }
     }
+}
+
+function Test-LogMentions {
+    # True when the log holds the text, whatever line breaks the console put
+    # inside it: a child PowerShell wraps its error messages at the window
+    # width (#324)
+    param([string]$Path, [string]$Text)
+    if (-not (Test-Path -LiteralPath $Path)) { return $false }
+    $content = (Get-Content -LiteralPath $Path -Raw) -replace '\s+', ' '
+    return $content.Contains(($Text -replace '\s+', ' '))
 }
 
 function ConvertTo-ColumnName {
@@ -623,8 +653,8 @@ try {
             Restore-UserVbaAccess $excelVersion $before
         }
         $restored = if ($null -eq $before) { 'absent' } else { $before }
-        $named = Select-String -Path (Join-Path $script:bundle 'build-trust-center.log') `
-                               -Pattern 'Trust access to the VBA project object model' -SimpleMatch -Quiet
+        $named = Test-LogMentions (Join-Path $script:bundle 'build-trust-center.log') `
+                                  'Trust access to the VBA project object model'
         $ok = ($code -ne 0) -and $named
         Add-Result 'TRUST_CENTER_ERROR' $(if ($ok) { 'PASS' } else { 'FAIL' }) `
                    "exit code $code; message names the setting: $named; your setting restored to $restored"
