@@ -105,7 +105,10 @@ land, so a task-branch push does not repeat its PR run; the push run on `main`
 is the one [Releasing](../RELEASING.md) reads on a tag candidate (#320).
 `tools/check_repository.py` keeps these triggers, keeps the job unconditional
 (a skipped run would count as passing), and fails when any workflow's `push`,
-`pull_request` or `pull_request_target` branch filter leaves out `main`. Manual dispatch is also available after
+`pull_request` or `pull_request_target` branch filter leaves out `main`. It
+reads the patterns in order, as GitHub does, so a later `!` pattern excludes
+what an earlier one included; `*` stops at `/` and `**` does not, and other
+glob characters are rejected. Manual dispatch is also available after
 default-branch activation. Checkout is pinned to the existing reviewed SHA,
 credentials are not persisted, permissions are `contents: read` and the
 timeout is 10 minutes.

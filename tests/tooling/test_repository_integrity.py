@@ -224,9 +224,21 @@ class RepositoryIntegrityTests(unittest.TestCase):
         for event, events in cases.items():
             with self.subTest(event), self.assertRaisesRegex(ValueError, f"{event} branch filter must include the default branch main"):
                 checker.validate_branch_filters(events)
-        with self.assertRaisesRegex(ValueError, "branches-ignore must not exclude the default branch main"):
-            checker.validate_branch_filters({"push": {"branches-ignore": ["main"]}})
-        accepted: list[object] = [{"pull_request": None}, {"push": {"branches": ["main"]}}, {"schedule": [{"cron": "0 0 * * *"}]}]
+        # Patterns apply in order, with GitHub's globs (#322 review)
+        for branches in (["main", "!main"], ["!main", "m*", "!ma*"], ["release/**", "*/main"]):
+            with self.subTest(branches=branches), self.assertRaisesRegex(ValueError, "must include the default branch main"):
+                checker.validate_branch_filters({"push": {"branches": branches}})
+        for ignored in (["main"], ["m*"], ["**"], ["release/**", "ma*n"]):
+            with self.subTest(ignored=ignored), self.assertRaisesRegex(ValueError, "branches-ignore must not exclude the default branch main"):
+                checker.validate_branch_filters({"push": {"branches-ignore": ignored}})
+        for unsupported in ("ma?n", "mai[n]", "main+"):
+            with self.subTest(unsupported=unsupported), self.assertRaisesRegex(ValueError, "unsupported branch filter pattern"):
+                checker.validate_branch_filters({"push": {"branches": [unsupported]}})
+        accepted: list[object] = [
+            {"pull_request": None}, {"push": {"branches": ["main"]}}, {"schedule": [{"cron": "0 0 * * *"}]},
+            {"push": {"branches": ["**"]}}, {"push": {"branches": ["*"]}}, {"push": {"branches": ["!main", "main"]}},
+            {"push": {"branches": ["ma*", "!release/**"]}}, {"push": {"branches-ignore": ["release/**", "*/main"]}},
+        ]
         for allowed in accepted:
             checker.validate_branch_filters(allowed)
         workflow = checker.load_yaml((source / ".github/workflows/prototype-checks.yml").read_text())

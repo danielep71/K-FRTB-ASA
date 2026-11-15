@@ -338,17 +338,39 @@ def validate_workflow(document: dict[str, Any], name: str | None = None) -> None
         raise ValueError("labels-sync reconcile must run only outside pull requests on the default branch")
 
 
+def branch_pattern_matches(pattern: str, branch: str) -> bool:
+    """Match a branch against one GitHub filter pattern: ``*`` stops at ``/``, ``**`` does not.
+
+    Other glob characters are rejected rather than guessed.
+    """
+    if re.search(r"[?+\[\]]", pattern):
+        raise ValueError(f"unsupported branch filter pattern {pattern!r}: use only * and **")
+    expression = "".join(".*" if part == "**" else "[^/]*" if part == "*" else re.escape(part)
+                         for part in re.split(r"(\*\*|\*)", pattern))
+    return re.fullmatch(expression, branch) is not None
+
+
 def validate_branch_filters(events: Any) -> None:
-    """Fail when a push or pull request branch filter leaves out the default branch."""
+    """Fail when a push or pull request branch filter leaves out the default branch.
+
+    Patterns apply in order, as GitHub applies them: a later ``!`` pattern
+    excludes what an earlier one included.
+    """
     if not isinstance(events, dict):
         return
     for event in FILTERED_EVENTS:
         config = events.get(event)
         if not isinstance(config, dict):
             continue
-        if "branches" in config and DEFAULT_BRANCH not in config["branches"]:
-            raise ValueError(f"{event} branch filter must include the default branch {DEFAULT_BRANCH}")
-        if DEFAULT_BRANCH in config.get("branches-ignore", []):
+        if "branches" in config:
+            included = False
+            for pattern in config["branches"]:
+                negated = pattern.startswith("!")
+                if branch_pattern_matches(pattern[1:] if negated else pattern, DEFAULT_BRANCH):
+                    included = not negated
+            if not included:
+                raise ValueError(f"{event} branch filter must include the default branch {DEFAULT_BRANCH}")
+        if any(branch_pattern_matches(pattern, DEFAULT_BRANCH) for pattern in config.get("branches-ignore", [])):
             raise ValueError(f"{event} branches-ignore must not exclude the default branch {DEFAULT_BRANCH}")
 
 
