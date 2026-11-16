@@ -388,6 +388,15 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- Two tools now match the template baseline (#332):
+  - **Issue triage:** the audit reports a dependency section that is empty
+    or holds only `_No response_`.
+  - **Traffic history:** each daily metric and each day's snapshot record the
+    newest collection that observed them, besides the one that last changed
+    them. A collection replayed out of order no longer replaces values a
+    later collection observed. Earlier files are read with the new columns
+    blank and upgraded on the next merge.
+
 - `M_Setup` compiles in desktop Excel again. #326 declared two module
   constants after the first procedures, which Excel rejects ("Only comments
   may appear after End Sub") and LibreOffice accepts. They now stand in the

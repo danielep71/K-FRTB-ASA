@@ -22,8 +22,8 @@ rewritten.
 
 | File | Key | Contents |
 | --- | --- | --- |
-| `daily.csv` | `date` | Views and unique views, clones and unique clones per UTC day. `views_collected_at` and `clones_collected_at` give the collection that last changed each pair. |
-| `snapshots.csv` | `snapshot_date` | One row per collection day: the first and last day the API reported, the 14-day totals, the repository's `stars`, `forks`, `watchers` and `open_issues` at collection time, and `collected_at`, the collection that last changed that day's snapshot, referrers or paths. |
+| `daily.csv` | `date` | Views and unique views, clones and unique clones per UTC day. `views_collected_at` and `clones_collected_at` give the collection that last changed each pair; `views_observed_at` and `clones_observed_at` the newest collection that reported it, changed or not (#332). |
+| `snapshots.csv` | `snapshot_date` | One row per collection day: the first and last day the API reported, the 14-day totals, the repository's `stars`, `forks`, `watchers` and `open_issues` at collection time, `collected_at`, the collection that last changed that day's snapshot, referrers or paths, and `observed_at`, the newest collection of that day. |
 | `referrers.csv` | `snapshot_date`, `rank` | The top 10 referrers over the 14 days before each collection. |
 | `paths.csv` | `snapshot_date`, `rank` | The top 10 repository paths over the same window. |
 | `badges/*.json` | — | The README badges, rewritten from the stored data after each merge (*Badges* below). |
@@ -66,15 +66,17 @@ its value does, so a rerun with the same data changes nothing.
   `snapshots.csv`.
 - **Same-day runs:** a collection day's snapshot, referrers and paths are one
   unit. A second collection on the same UTC day replaces the unit only if any
-  of the three changed.
-- **Order:** "newest" means the latest collection time. Merging an older
-  collection after a newer one that changed the values never replaces them;
-  it can only fill a date or metric that nothing newer reported. A stored time
-  is that of the collection that last *changed* the values, so that a rerun
-  with the same data changes nothing. An older collection replayed after a
-  newer but unchanged one can therefore replace its values: replay saved
-  collections in collection order, as `import-legacy` does. The workflow
-  merges each collection once, in order.
+  of the three changed; otherwise it only records its time in `observed_at`.
+- **Order:** "newest" means the latest collection time. Each value keeps two
+  times: the collection that last *changed* it and the newest collection that
+  *observed* it. Merging an older collection after a newer one never replaces
+  its values, even when the newer one found nothing new: A at 06:00, A at
+  18:00, then B at 12:00 keeps A (#332). An older collection can only fill a
+  date or metric that nothing newer reported, and a rerun of the same
+  collection changes nothing.
+- **Earlier files:** files written before the observation times are read with
+  them blank, which counts as the collection time, and are rewritten with the
+  current header on the next merge.
 
 ### Zero or unavailable
 
