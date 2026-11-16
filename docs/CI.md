@@ -69,13 +69,20 @@ after installation and all maintenance fixtures are offline.
   coverage, incorrect update targets, Windows-only test dependencies missing
   from `tests/requirements.txt`, and the traffic collector's safeguards.
 
-CodeQL runs as GitHub's **default setup** for Actions and Python: the
-default query suite, weekly and on pull requests into main (#214 ran it; a
-release-branch PR such as #224 gets no CodeQL run). It is configured in the
-repository's security settings, not in a workflow file. Its configuration therefore cannot
-be rebuilt from a commit; [settings evidence](REPOSITORY_SETTINGS_EVIDENCE.md)
-records its last readback. A versioned CodeQL workflow would duplicate the
-scans, so none is added (#223).
+[CodeQL](../.github/workflows/codeql.yml) is a versioned **advanced setup**
+(#334). It analyzes GitHub Actions, JavaScript/TypeScript (the label scripts
+under `.github/scripts`) and Python with the `security-extended` query suite.
+It runs on every pull request, on pushes to `main` and `release/**`, weekly
+(Wednesday 04:23 UTC) and on manual dispatch. Each language is one job,
+without a build (`build-mode: none`). The job may write only
+`security-events`, and its actions are pinned by SHA.
+
+It replaces GitHub's default setup, which analyzed only Actions and Python
+with the default suite and could not be rebuilt from a commit. The default
+setup offered no JavaScript, because it lists only the languages it detects.
+The default setup must stay disabled in the repository settings: GitHub
+refuses advanced uploads while it is on, and the two would duplicate the
+scans.
 
 [External link check](../.github/workflows/link-check.yml) runs weekly on
 Mondays at 04:41 UTC and on manual dispatch, read-only and outside the required
@@ -98,8 +105,17 @@ Workflow: [Repository integrity](../.github/workflows/integrity.yml).
 The job ID is `integrity`; the exact check name is **Repository integrity**.
 The producer is **GitHub Actions** (app slug `github-actions`, app ID `15368`).
 There is no matrix, job condition, path filter or changed-file shortcut.
-PRs targeting `main` or `release/**`, and pushes to those branches, run the
-same command on Ubuntu 24.04. Manual dispatch is also available after
+Every PR, whatever its base, and pushes to `main` and `release/**`, run the
+same command on Ubuntu 24.04. A PR stacked on another task branch therefore
+gets the check before it merges into that branch. Pushes run only where they
+land, so a task-branch push does not repeat its PR run; the push run on `main`
+is the one [Releasing](../RELEASING.md) reads on a tag candidate (#320).
+`tools/check_repository.py` keeps these triggers, keeps the job unconditional
+(a skipped run would count as passing), and fails when any workflow's `push`,
+`pull_request` or `pull_request_target` branch filter leaves out `main`. It
+reads the patterns in order, as GitHub does, so a later `!` pattern excludes
+what an earlier one included; `*` stops at `/` and `**` does not, and other
+glob characters are rejected. Manual dispatch is also available after
 default-branch activation. Checkout is pinned to the existing reviewed SHA,
 credentials are not persisted, permissions are `contents: read` and the
 timeout is 10 minutes.
@@ -224,8 +240,12 @@ manifest locations remain covered; no dependency is copied into the historical
 setup branch. The integrity gate rejects duplicate entries, retired or wrong
 targets, lost ecosystem/directory coverage and any `milestone` setting.
 There is no npm package manifest: the label scripts use Node built-ins. No npm updater or
-other absent ecosystem is configured. Each entry runs weekly, limits open
-PRs to five, assigns `danielep71`, and sets exactly P3 plus type labels.
+other absent ecosystem is configured. Each entry runs weekly, waits 14 days
+after a release before proposing a version (`cooldown: default-days: 14`),
+limits open PRs to five, assigns `danielep71`, and sets exactly P3 plus type
+labels. The weekly schedule does not replace the cooldown, and the integrity
+gate rejects an entry without it (#330). Security updates are not delayed by
+the cooldown.
 I still verify all metadata during triage and put any owning issue in the
 appropriate milestone.
 
@@ -253,9 +273,14 @@ The workflow runs trusted inline Python without checkout, third-party actions,
 PR code, PR text interpolation or custom secrets. Its token has only
 `pull-requests: write` for PR metadata updates and listing; all other
 permissions are absent. Each mutation first reads the live issues endpoint and
-refuses to modify an object without a `pull_request` marker. An unset milestone
-is a no-op. Offline fixtures exercise pagination, actual issue refusal,
-idempotence and error propagation against the workflow's inline implementation.
+refuses to modify an object without a `pull_request` marker. After each
+removal it reads the PR back with an independent GET and fails if a milestone
+remains; the PATCH response alone is not taken as proof. The job summary lists
+each PR changed with the title of the removed milestone, as data: backslashes,
+pipes and line breaks are neutralized (#330). An unset milestone is a no-op.
+Offline fixtures exercise pagination, actual issue refusal, idempotence, the
+read-back, the summary and error propagation against the workflow's inline
+implementation.
 
 Default-branch activation is required. My October 27 instruction
 to apply this rule to past and future PRs is recorded in #104; focused policy

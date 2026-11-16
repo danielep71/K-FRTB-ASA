@@ -121,10 +121,13 @@ node .github/scripts/labels-drift.mjs --self-test
 
 **Sync issue labels** validates PRs into `main` and `release/**` without write
 permissions. A relevant push to `main`, or a manual dispatch on the default
-branch, runs trusted reconciliation with `issues: write`; a dispatch on any
+branch, runs trusted reconciliation with `issues: write` and `pull-requests: read`; a dispatch on any
 other branch skips it, so no branch other than the default can apply its
 catalogue. It records the live catalogue before
 changes, a plan, the resulting catalogue and an independent drift report.
+A label still used by an issue or PR is never pruned: the refusal, and a
+`--dry-run` of reconcile, which reads and changes nothing, name up to ten of
+its issues and PRs, sorted, with "and others" when there are more (#330).
 Reconciliation verifies the exact final match; it is not best effort.
 
 **Detect issue-label drift** runs offline fixtures on relevant PRs. Scheduled

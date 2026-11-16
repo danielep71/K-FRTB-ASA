@@ -19,8 +19,8 @@ import lo_runner
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 HOST_INDEPENDENT = ("SAMPLE_RUN", "FAILED_RUN", "CLEAR_OUTPUTS", "NUMERIC_TEXT", "UNDEFINED_SUB_TYPES",
-                    "INVALID_ROW_VARIANT")
-EXCEL_ONLY = ("FROZEN_PANES", "AUTOFILTERS", "CONTROL_DESCRIPTIONS")
+                    "NO_DATES", "INVALID_ROW_VARIANT")
+EXCEL_ONLY = ("FROZEN_PANES", "AUTOFILTERS", "CONTROL_DESCRIPTIONS", "DISPLAYED_VALUES", "SHEET_VIEW")
 
 
 def test_the_acceptance_data_is_current():

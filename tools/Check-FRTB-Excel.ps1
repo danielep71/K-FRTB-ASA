@@ -20,9 +20,12 @@
        not changed) and runs TEST_Acceptance.Test_RunAcceptanceInExcel_Silent:
        the sample run, the state after a failed run and after Clear outputs
        (#85), numeric text with a comma and with a point, the frozen panes,
-       the autofilters, the Control descriptions (#203) and the invalid-row
-       variant (#28). It writes acceptance.txt, and pictures of the sheets
-       after a failed run, after Clear outputs and after the sample run;
+       the autofilters, the Control descriptions (#203), the values Excel
+       displays, the absence of dates, the view of every sheet (#206) and the
+       invalid-row variant (#28). It writes acceptance.txt, and pictures of
+       the sheets after a failed run, after Clear outputs and after the
+       sample run. Then it takes a picture of every sheet, after Clear
+       outputs and after a sample run, into the folder sheets (#316);
     5. builds the workbook from source with the regression test, and the
        template from source, and records the SHA-256 of that template and of
        the committed one, with their differences (tools\compare_templates.py);
@@ -90,6 +93,9 @@ $msoAutomationSecurityLow = 1
 $msoAutomationSecurityForceDisable = 3
 $xlScreen = 1
 $xlBitmap = 2
+$sheetPictureRows = 60
+$sheetPictureColumns = 26
+$pictureAttempts = 4
 $amountTolerance = 0.01
 $script:results = New-Object System.Collections.Generic.List[object]
 
@@ -330,23 +336,74 @@ function Get-ExpectedTotal {
 }
 
 function Export-SheetPicture {
-    # Best effort: a picture of the top of a sheet, as Excel shows it
+    # Best effort: a picture of the top of a sheet, as Excel shows it.
+    # Chart.Paste right after CopyPicture sometimes pastes nothing, and the
+    # empty chart would export as a blank picture: copy and paste again until
+    # the chart holds the picture, and never count a blank one (#324)
     param($Workbook, [string]$Sheet, [string]$Address, [string]$Path)
+    $chartObject = $null
     try {
         $ws = $Workbook.Worksheets.Item($Sheet)
         [void]$ws.Activate()
         $range = $ws.Range($Address)
-        [void]$range.CopyPicture($xlScreen, $xlBitmap)
-        $chartObject = $ws.ChartObjects().Add(0, 0, [double]$range.Width + 4, [double]$range.Height + 4)
-        [void]$chartObject.Activate()
-        [void]$chartObject.Chart.Paste()
+        # Right of the range, so the copies never picture the chart itself
+        $chartObject = $ws.ChartObjects().Add([double]$range.Left + [double]$range.Width + 20, [double]$range.Top,
+                                              [double]$range.Width + 4, [double]$range.Height + 4)
+        for ($attempt = 1; $attempt -le $pictureAttempts; $attempt++) {
+            try {
+                [void]$range.CopyPicture($xlScreen, $xlBitmap)
+                [void]$chartObject.Activate()
+                [void]$chartObject.Chart.Paste()
+            } catch {
+                Write-Log "   picture of $Sheet, attempt $($attempt): $($_.Exception.Message)"
+            }
+            if ([int]$chartObject.Chart.Shapes.Count -gt 0) { break }
+            Start-Sleep -Milliseconds 500
+        }
+        if ([int]$chartObject.Chart.Shapes.Count -eq 0) {
+            Write-Log "   picture of $Sheet not taken: the chart stayed empty after $pictureAttempts attempts"
+            return $false
+        }
         [void]$chartObject.Chart.Export($Path)
-        [void]$chartObject.Delete()
         return $true
     } catch {
         Write-Log "   picture of $Sheet not taken: $($_.Exception.Message)"
         return $false
+    } finally {
+        if ($null -ne $chartObject) { try { [void]$chartObject.Delete() } catch { } }
     }
+}
+
+function Test-LogMentions {
+    # True when the log holds the text, whatever line breaks the console put
+    # inside it: a child PowerShell wraps its error messages at the window
+    # width (#324)
+    param([string]$Path, [string]$Text)
+    if (-not (Test-Path -LiteralPath $Path)) { return $false }
+    $content = (Get-Content -LiteralPath $Path -Raw) -replace '\s+', ' '
+    return $content.Contains(($Text -replace '\s+', ' '))
+}
+
+function ConvertTo-ColumnName {
+    # 1 -> A, 26 -> Z, 27 -> AA
+    param([int]$Number)
+    $name = ''
+    while ($Number -gt 0) {
+        $rest = ($Number - 1) % 26
+        $name = [string][char](65 + $rest) + $name
+        $Number = [int][Math]::Floor(($Number - 1) / 26)
+    }
+    return $name
+}
+
+function Get-PictureAddress {
+    # From A1 to the last used cell of a sheet, at most $sheetPictureRows rows
+    # and $sheetPictureColumns columns
+    param($Sheet)
+    $used = $Sheet.UsedRange
+    $lastRow = [Math]::Min([int]$used.Row + [int]$used.Rows.Count - 1, $sheetPictureRows)
+    $lastColumn = [Math]::Min([int]$used.Column + [int]$used.Columns.Count - 1, $sheetPictureColumns)
+    return 'A1:' + (ConvertTo-ColumnName $lastColumn) + $lastRow
 }
 
 # ------------------------------------------------------------------ start
@@ -524,6 +581,37 @@ try {
         Close-Excel $excel $workbook
     }
 
+    # Every sheet, before and after a sample run, for the review of #206.
+    # The development workbook is saved with results, so Clear outputs first.
+    Assert-TimeLeft
+    Write-Host '== Sheet pictures'
+    $copy = Join-Path $script:bundle 'sheets.xlsm'
+    $sheetFolder = Join-Path $script:bundle 'sheets'
+    [void](New-Item -ItemType Directory -Path $sheetFolder -Force)
+    Copy-Item -LiteralPath $development -Destination $copy -Force
+    $excel = $null; $workbook = $null
+    try {
+        $excel = New-Excel $msoAutomationSecurityLow
+        $workbook = $excel.Workbooks.Open($copy)
+        $wanted = 0; $taken = 0
+        foreach ($stage in @('before', 'after')) {
+            if ($stage -eq 'before') { [void](Invoke-Macro $excel $workbook 'M_Main.ClearOutputs') }
+            if ($stage -eq 'after') { [void](Invoke-Macro $excel $workbook 'M_Main.RunFRTB_Silent') }
+            foreach ($sheet in @($workbook.Worksheets)) {
+                $wanted++
+                $name = [string]$sheet.Name
+                $picture = Join-Path $sheetFolder ("$stage-$name.png")
+                if (Export-SheetPicture $workbook $name (Get-PictureAddress $sheet) $picture) { $taken++ }
+            }
+        }
+        $status = if ($wanted -gt 0 -and $taken -eq $wanted) { 'PASS' } else { 'FAIL' }
+        Add-Result 'SHEET_PICTURES' $status "$taken of $wanted pictures in sheets, before and after a sample run"
+    } catch {
+        Add-Result 'SHEET_PICTURES' 'FAIL' "stopped: $($_.Exception.Message)"
+    } finally {
+        Close-Excel $excel $workbook
+    }
+
     # ------------------------------------------------------------ 3. builds
     Assert-TimeLeft
     Write-Host '== Build from source with the regression test'
@@ -565,8 +653,8 @@ try {
             Restore-UserVbaAccess $excelVersion $before
         }
         $restored = if ($null -eq $before) { 'absent' } else { $before }
-        $named = Select-String -Path (Join-Path $script:bundle 'build-trust-center.log') `
-                               -Pattern 'Trust access to the VBA project object model' -SimpleMatch -Quiet
+        $named = Test-LogMentions (Join-Path $script:bundle 'build-trust-center.log') `
+                                  'Trust access to the VBA project object model'
         $ok = ($code -ne 0) -and $named
         Add-Result 'TRUST_CENTER_ERROR' $(if ($ok) { 'PASS' } else { 'FAIL' }) `
                    "exit code $code; message names the setting: $named; your setting restored to $restored"

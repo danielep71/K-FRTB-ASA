@@ -1,9 +1,11 @@
 name: Repository integrity
 
 # No path filters: documentation-only PRs must produce the same required check.
+# No branch filter on pull_request: a PR stacked on another task branch gets
+# the check too. Pushes run only where they land, on main and release/**, so a
+# task-branch push does not repeat its PR run (#320).
 on:
   pull_request:
-    branches: [main, "release/**"]
   push:
     branches: [main, "release/**"]
   workflow_dispatch:

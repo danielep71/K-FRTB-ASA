@@ -14,6 +14,8 @@ Excel's "Debug > Compile" for the subset of VBA used in this project:
   module);
 * no duplicate declarations in one scope;
 * private procedures are not called from other modules;
+* module-level declarations come before the first procedure: Excel rejects
+  anything but comments after End Sub (LibreOffice accepts it);
 * files are ASCII, so the Windows-1252 import in Excel is lossless.
 
 It is a heuristic, not a VBA parser. Usage: python3 tools/vba_lint.py
@@ -162,6 +164,7 @@ def parse(  # noqa: C901 -- one pass over the lines; a branch per statement kind
         errors.append(f"{path.name}: missing module banner (' MODULE: {path.stem})")
 
     current = None
+    seen_procedure = False
     for n, code in logical_lines(text):
         if not code.strip():
             continue
@@ -174,6 +177,7 @@ def parse(  # noqa: C901 -- one pass over the lines; a branch per statement kind
             if name.lower() in mod.procs:
                 errors.append(f"{path.name}:{n}: duplicate procedure {name}")
             mod.procs[name.lower()] = current
+            seen_procedure = True
             mod.module_names.add(name.lower())
             if current.public:
                 mod.public_names.add(name.lower())
@@ -184,6 +188,8 @@ def parse(  # noqa: C901 -- one pass over the lines; a branch per statement kind
         if current is not None:
             current.body.append((n, code))
             continue
+        if seen_procedure:
+            errors.append(f"{path.name}:{n}: only comments may appear after End Sub, End Function or End Property")
         mod.module_lines.append((n, code))
         dm = re.match(r"^\s*(Public|Private|Dim)\s+(Const\s+)?(.*)$", code, re.I)
         if dm:

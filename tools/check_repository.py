@@ -285,7 +285,12 @@ WRITE_ALLOWED: dict[tuple[str | None, str], set[str]] = {
     ("traffic-export.yml", "export"): {"contents"},
     ("traffic-export.yml", "alert"): {"issues"},
     ("pr-milestones.yml", "reconcile"): {"pull-requests"},
+    ("codeql.yml", "analyze"): {"security-events"},
 }
+# Workflows name the default branch in their branch filters, so every filter
+# must keep it (#320).
+DEFAULT_BRANCH = "main"
+FILTERED_EVENTS = ("push", "pull_request", "pull_request_target")
 DEFAULT_BRANCH_ONLY = "github.ref == format('refs/heads/{0}', github.event.repository.default_branch)"
 LABEL_RECONCILE_CONDITION = "github.event_name != 'pull_request' && " + DEFAULT_BRANCH_ONLY
 
@@ -311,6 +316,7 @@ def validate_workflow(document: dict[str, Any], name: str | None = None) -> None
         raise ValueError("workflow requires name, on, and jobs")
     if "permissions" not in document:
         raise ValueError("workflow must declare top-level permissions")
+    validate_branch_filters(document["on"])
     for job_id, job in document["jobs"].items():
         if not isinstance(job, dict):
             raise ValueError("workflow job must be a mapping")
@@ -333,14 +339,53 @@ def validate_workflow(document: dict[str, Any], name: str | None = None) -> None
         raise ValueError("labels-sync reconcile must run only outside pull requests on the default branch")
 
 
+def branch_pattern_matches(pattern: str, branch: str) -> bool:
+    """Match a branch against one GitHub filter pattern: ``*`` stops at ``/``, ``**`` does not.
+
+    Other glob characters are rejected rather than guessed.
+    """
+    if re.search(r"[?+\[\]]", pattern):
+        raise ValueError(f"unsupported branch filter pattern {pattern!r}: use only * and **")
+    expression = "".join(".*" if part == "**" else "[^/]*" if part == "*" else re.escape(part)
+                         for part in re.split(r"(\*\*|\*)", pattern))
+    return re.fullmatch(expression, branch) is not None
+
+
+def validate_branch_filters(events: Any) -> None:
+    """Fail when a push or pull request branch filter leaves out the default branch.
+
+    Patterns apply in order, as GitHub applies them: a later ``!`` pattern
+    excludes what an earlier one included.
+    """
+    if not isinstance(events, dict):
+        return
+    for event in FILTERED_EVENTS:
+        config = events.get(event)
+        if not isinstance(config, dict):
+            continue
+        if "branches" in config:
+            included = False
+            for pattern in config["branches"]:
+                negated = pattern.startswith("!")
+                if branch_pattern_matches(pattern[1:] if negated else pattern, DEFAULT_BRANCH):
+                    included = not negated
+            if not included:
+                raise ValueError(f"{event} branch filter must include the default branch {DEFAULT_BRANCH}")
+        if any(branch_pattern_matches(pattern, DEFAULT_BRANCH) for pattern in config.get("branches-ignore", [])):
+            raise ValueError(f"{event} branches-ignore must not exclude the default branch {DEFAULT_BRANCH}")
+
+
 def validate_controls(root: Path) -> None:
     milestone_workflow = load_yaml((root / ".github/workflows/pr-milestones.yml").read_text())
     validate_milestone_workflow(milestone_workflow)
     workflow = load_yaml((root / ".github/workflows/integrity.yml").read_text())
-    for event in ("pull_request", "push"):
-        config = workflow["on"][event]
-        if set(config) != {"branches"} or set(config["branches"]) != {"main", "release/**"}:
-            raise ValueError(f"integrity {event} must cover main and release/** without path filters")
+    events = workflow["on"]
+    # Every PR base gets the required check; pushes run only where they land.
+    if "pull_request" not in events or events["pull_request"] not in (None, {}):
+        raise ValueError("integrity pull_request must run for every base, without branch or path filters")
+    push = events.get("push")
+    if not isinstance(push, dict) or set(push) != {"branches"} or set(push["branches"]) != {"main", "release/**"}:
+        raise ValueError("integrity push must cover main and release/** without path filters")
     job = workflow["jobs"]["integrity"]
     if job["name"] != "Repository integrity" or "if" in job or "strategy" in job:
         raise ValueError("integrity must provide one unconditional stable Repository integrity check")
@@ -368,6 +413,8 @@ def validate_controls(root: Path) -> None:
             raise ValueError("Dependabot PRs must have no milestone setting")
         if item["assignees"] != ["danielep71"] or [label for label in item["labels"] if label in {"P1", "P2", "P3"}] != ["P3"]:
             raise ValueError("Dependabot requires owner and exactly P3")
+        if item.get("cooldown") != {"default-days": 14}:
+            raise ValueError("Dependabot version updates require a 14-day cooldown (default-days: 14)")
 
 
 INTEGRITY_CONCURRENCY = {

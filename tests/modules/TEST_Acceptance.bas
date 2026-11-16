@@ -7,8 +7,9 @@ Attribute VB_Name = "TEST_Acceptance"
 '   (#274): the sample run, the state after a failed run and after Clear
 '   outputs (#85), numeric text with a comma and with a point, the rejection
 '   of sub-types MAR21 does not define (#245, #276), the frozen panes, the
-'   autofilters, the width of the Control descriptions (#203) and the
-'   invalid-row variant (#28).
+'   autofilters, the width of the Control descriptions (#203), the values
+'   Excel displays, the absence of dates and the view of every sheet (#206,
+'   #316), and the invalid-row variant (#28).
 '
 ' PUBLIC SURFACE
 '   Test_RunAcceptanceInExcel_Silent: run every check and write one line per
@@ -16,11 +17,11 @@ Attribute VB_Name = "TEST_Acceptance"
 '   which it adds; cell C2 holds RESULT=PASS or RESULT=FAIL.
 '   tools/Check-FRTB-Excel.ps1 runs it in desktop Excel.
 '   Test_RunAcceptance_Silent: the same, with the checks only Excel can make
-'   (the window panes, the autofilters and the column widths) SKIPPED; the
-'   LibreOffice tests run it.
+'   (the window panes, the autofilters, the column widths, the displayed
+'   values and the sheet view) SKIPPED; the LibreOffice tests run it.
 '
 ' DEPENDENCIES
-'   CORE_Config, CORE_Util, M_Main, TEST_AcceptanceData.
+'   CORE_Config, CORE_Util, M_Main, M_Setup (ManagedSheets), TEST_AcceptanceData.
 '
 ' STATE OWNERSHIP
 '   Changes inputs, parameters, outputs and the window of the workbook it
@@ -53,6 +54,8 @@ Private Const AMOUNT_TOLERANCE As Double = 0.01             'Out_Summary amounts
 Private Const CLEARED_NOTE As String = "No results yet: press Run FRTB-SA."
 Private Const FAILED_NOTE As String = "Run failed (see the Log sheet): "
 Private Const TEXT_COMPARE As Long = 1                      'vbTextCompare
+Private Const VAR_DATE As Long = 7                          'vbDate, as VarType returns it
+Private Const MAX_LISTED As Long = 10                       'cells named in a FAIL detail
 
 '------------------------------------------------------------------------------
 '                               MODULE STATE
@@ -86,6 +89,9 @@ Private Sub RunAll(ByVal inExcel As Boolean)
     RunCheck "FROZEN_PANES"
     RunCheck "AUTOFILTERS"
     RunCheck "CONTROL_DESCRIPTIONS"
+    RunCheck "DISPLAYED_VALUES"
+    RunCheck "NO_DATES"
+    RunCheck "SHEET_VIEW"
     RunCheck "INVALID_ROW_VARIANT"                           'last: it adds input rows
     WriteReport
 End Sub
@@ -103,6 +109,9 @@ Private Sub RunCheck(ByVal checkName As String)
         Case "FROZEN_PANES": result = CheckFrozenPanes(detail)
         Case "AUTOFILTERS": result = CheckAutofilters(detail)
         Case "CONTROL_DESCRIPTIONS": result = CheckControlDescriptions(detail)
+        Case "DISPLAYED_VALUES": result = CheckDisplayedValues(detail)
+        Case "NO_DATES": result = CheckNoDates(detail)
+        Case "SHEET_VIEW": result = CheckSheetView(detail)
         Case "INVALID_ROW_VARIANT": result = CheckVariant(detail)
     End Select
     mReport.Add Array(checkName, result, detail)
@@ -360,6 +369,92 @@ Private Function CheckControlDescriptions(ByRef detail As String) As String
 End Function
 
 
+' After a sample run, no cell of the 22 sheets shows "####": every column is
+' wide enough for the values Excel displays (#206).
+Private Function CheckDisplayedValues(ByRef detail As String) As String
+    Dim names As Variant, i As Long, ws As Object, cell As Object, found As Long, cellCount As Long
+    Dim listed As String
+    If Not mInExcel Then
+        detail = "Excel only: the displayed text depends on Excel's fonts and column widths"
+        CheckDisplayedValues = "SKIPPED"
+        Exit Function
+    End If
+    RunFRTB_Silent
+    names = ManagedSheets()
+    For i = LBound(names) To UBound(names)
+        Set ws = GetSheet(CStr(names(i)))
+        For Each cell In ws.UsedRange.Cells
+            cellCount = cellCount + 1
+            If IsHashes(CStr(cell.Text)) Then
+                found = found + 1
+                If found <= MAX_LISTED Then listed = listed & ws.Name & "!" & cell.Address(False, False) & " "
+            End If
+        Next cell
+    Next i
+    If found = 0 Then
+        detail = cellCount & " cells on " & (UBound(names) - LBound(names) + 1) & _
+                 " sheets after a sample run; none shows ####"
+        CheckDisplayedValues = "PASS"
+    Else
+        detail = found & " cells show ####: " & listed & IIf(found > MAX_LISTED, "and more", "")
+        CheckDisplayedValues = "FAIL"
+    End If
+End Function
+
+
+' After a sample run, no cell of the 22 sheets holds a date: MAR references,
+' codes and tenors stay text or numbers (#206).
+Private Function CheckNoDates(ByRef detail As String) As String
+    Dim names As Variant, i As Long, ws As Object, cell As Object, found As Long, cellCount As Long
+    Dim listed As String
+    RunFRTB_Silent
+    names = ManagedSheets()
+    For i = LBound(names) To UBound(names)
+        Set ws = GetSheet(CStr(names(i)))
+        For Each cell In ws.UsedRange.Cells
+            cellCount = cellCount + 1
+            If VarType(cell.Value) = VAR_DATE Then
+                found = found + 1
+                If found <= MAX_LISTED Then listed = listed & ws.Name & "!" & cell.Address(False, False) & " "
+            End If
+        Next cell
+    Next i
+    If found = 0 Then
+        detail = cellCount & " cells on " & (UBound(names) - LBound(names) + 1) & _
+                 " sheets after a sample run; none holds a date"
+        CheckNoDates = "PASS"
+    Else
+        detail = found & " cells hold a date: " & listed & IIf(found > MAX_LISTED, "and more", "")
+        CheckNoDates = "FAIL"
+    End If
+End Function
+
+
+' Every sheet hides its gridlines and has the tab color of its role: README
+' navy, inputs and parameters gold, outputs blue, Test_Expected green (#206).
+Private Function CheckSheetView(ByRef detail As String) As String
+    Dim names As Variant, i As Long, ws As Object, problems As String
+    If Not mInExcel Then
+        detail = "Excel only: gridlines and tab colors as Excel shows them"
+        CheckSheetView = "SKIPPED"
+        Exit Function
+    End If
+    names = ManagedSheets()
+    For i = LBound(names) To UBound(names)
+        Set ws = GetSheet(CStr(names(i)))
+        ws.Activate
+        If Application.ActiveWindow.DisplayGridlines Then problems = problems & ws.Name & " shows gridlines; "
+        If ws.Tab.Color <> ExpectedTabColor(ws.Name) Then
+            problems = problems & ws.Name & " tab color " & ws.Tab.Color & ", not " & ExpectedTabColor(ws.Name) & "; "
+        End If
+    Next i
+    GetSheet(SH_README).Activate
+    detail = IIf(problems = "", (UBound(names) - LBound(names) + 1) & _
+                 " sheets without gridlines, each with the tab color of its role", problems)
+    CheckSheetView = IIf(problems = "", "PASS", "FAIL")
+End Function
+
+
 ' The discretions on and invalid rows on every input sheet: every invalid row
 ' is logged and the results equal the reference for the same inputs (#28).
 Private Function CheckVariant(ByRef detail As String) As String
@@ -524,6 +619,25 @@ Private Function HeaderCount(ByVal ws As Object) As Long
         k = k + 1
     Loop
     HeaderCount = k
+End Function
+
+
+' True when a cell's displayed text is only "#", as Excel shows a value too
+' wide for its column.
+Private Function IsHashes(ByVal shown As String) As Boolean
+    If Len(shown) = 0 Then Exit Function
+    IsHashes = (Replace(shown, "#", "") = "")
+End Function
+
+
+' The tab color M_Setup gives a sheet of this name.
+Private Function ExpectedTabColor(ByVal sheetName As String) As Long
+    Select Case True
+        Case sheetName = SH_README: ExpectedTabColor = TAB_REFERENCE
+        Case sheetName = SH_TEST: ExpectedTabColor = TAB_TEST
+        Case sheetName = SH_RESULTS, sheetName = SH_LOG, Left$(sheetName, 4) = "Out_": ExpectedTabColor = TAB_OUTPUT
+        Case Else: ExpectedTabColor = TAB_INPUT
+    End Select
 End Function
 
 

@@ -182,18 +182,21 @@ src/workbook/FRTB_Template.xlsx` shows whether the template changed.
 
 Every sheet carries the same frame: the product name in gold (`FFC000`) on
 a black bar, the title in white on a blue bar (`265A99`), an italic grey
-subtitle and tables from column C. Input tables have navy headers (`1F3864`)
-and cream input cells (`FFF2CC`); output tables have blue headers
-(`2E75B6`); PASS and FAIL use green (`E2EFDA`) and red (`FFC7CE`). The font
-is Aptos and gridlines are hidden. The palette is defined once in
-`CORE_Config`.
+subtitle and tables from column C. Table headers are navy (`1F3864`) on
+every sheet, and input cells are cream (`FFF2CC`); PASS and FAIL use green
+(`E2EFDA`) and red (`FFC7CE`). Every cell is Aptos and vertically centered,
+also after a run or **Clear outputs** rewrites an output sheet, and
+gridlines are hidden. Input amounts show two decimals (`#,##0.00`) and
+tenors and maturities in years one to three (`0.0##`). A wrapped
+description row is as high as its lines need (#206). The palette is defined
+once in `CORE_Config`.
 
 The XLSX saves colored tabs, hidden gridlines and frozen panes before any
 macro runs. Data rows are 20.1 points high, table headers are 42 points high,
 and input tables use thin gray borders. The README uses dashed internal
 separators. Display titles and column captions use readable words; engine
 sheet names, parameter codes and column positions remain unchanged.
-Initial output sheets show blue headers and a no-results message, without
+Initial output sheets show navy headers and a no-results message, without
 invented calculation values. Printing uses A4 landscape, one page wide with
 unlimited height, repeated heading rows and an Aptos page-number footer.
 Output print areas remain automatic so later runs are not clipped to an

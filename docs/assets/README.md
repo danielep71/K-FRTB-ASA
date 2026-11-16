@@ -47,3 +47,10 @@ November 12, 2026, on `1badef1`, on the same host
 sample run, `Control` with the #203 layout, `Results`, `Out_Summary` and `Log`
 after a failed run, and `Results` after **Clear outputs**. The check took them
 itself, in the development workbook of that run.
+
+The files named `check-308cbc6-<sheet>.png` show each of the 22 sheets after
+a run of the sample portfolio, with the fixes of the formatting review
+(#206). They come from the unattended check of November 15, 2026, on
+`308cbc6`, on the same host ([record](../evidence/2026-11-15-excel-check-308cbc6.md)). Each
+shows at most the first 60 rows and 26 columns of its sheet. The README of
+the repository shows four of them.
