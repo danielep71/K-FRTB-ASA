@@ -48,18 +48,32 @@ PATHS = "paths.csv"
 KEYS: dict[str, tuple[str, ...]] = {DAILY: ("date",), SNAPSHOTS: ("snapshot_date",),
                                     REFERRERS: ("snapshot_date", "rank"),
                                     PATHS: ("snapshot_date", "rank")}
+# A *_collected_at column holds the time of the collection that last changed
+# the values; an *_observed_at column the time of the newest collection that
+# reported them, changed or not. A replayed older collection never replaces
+# values observed later (#332).
 HEADERS: dict[str, tuple[str, ...]] = {
-    DAILY: ("date", "views", "unique_views", "views_collected_at",
-            "clones", "unique_clones", "clones_collected_at"),
-    SNAPSHOTS: ("snapshot_date", "collected_at", "first_date", "last_date",
+    DAILY: ("date", "views", "unique_views", "views_collected_at", "views_observed_at",
+            "clones", "unique_clones", "clones_collected_at", "clones_observed_at"),
+    SNAPSHOTS: ("snapshot_date", "collected_at", "observed_at", "first_date", "last_date",
                 "views_14d", "unique_views_14d", "clones_14d", "unique_clones_14d",
                 "stars", "forks", "watchers", "open_issues"),
     REFERRERS: ("snapshot_date", "rank", "referrer", "count", "uniques"),
     PATHS: ("snapshot_date", "rank", "path", "title", "count", "uniques"),
 }
-# A snapshots.csv written before the repository counts were added; read as
-# having them blank, and rewritten with the current header on the next merge.
-LEGACY_HEADERS: dict[str, tuple[str, ...]] = {SNAPSHOTS: HEADERS[SNAPSHOTS][:8]}
+# Earlier layouts, read with the missing columns blank and rewritten with the
+# current header on the next merge: a snapshots.csv from before the repository
+# counts, and files from before the observation times (#332). A blank
+# observation time reads as the collection time.
+LEGACY_HEADERS: dict[str, tuple[tuple[str, ...], ...]] = {
+    DAILY: (("date", "views", "unique_views", "views_collected_at",
+             "clones", "unique_clones", "clones_collected_at"),),
+    SNAPSHOTS: (("snapshot_date", "collected_at", "first_date", "last_date",
+                 "views_14d", "unique_views_14d", "clones_14d", "unique_clones_14d"),
+                ("snapshot_date", "collected_at", "first_date", "last_date",
+                 "views_14d", "unique_views_14d", "clones_14d", "unique_clones_14d",
+                 "stars", "forks", "watchers", "open_issues")),
+}
 RESPONSES = ("views.json", "clones.json", "referrers.json", "paths.json", "repository.json")
 # Snapshot column, and the repository API field it is read from.
 REPOSITORY_COUNTS = {"stars": "stargazers_count", "forks": "forks_count",
@@ -72,7 +86,8 @@ ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 STAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 NUMERIC = {"views", "unique_views", "clones", "unique_clones", "views_14d", "unique_views_14d",
            "clones_14d", "unique_clones_14d", "rank", "count", "uniques", *REPOSITORY_COUNTS}
-STAMPS = {"collected_at", "views_collected_at", "clones_collected_at"}
+STAMPS = {"collected_at", "views_collected_at", "clones_collected_at",
+          "observed_at", "views_observed_at", "clones_observed_at"}
 Row = dict[str, str]
 
 
@@ -217,7 +232,7 @@ def read_history(path: Path) -> list[Row]:
         raise TrafficError(f"{path.name}: unreadable ({error})") from error
     reader = csv.DictReader(io.StringIO(content))
     found = tuple(reader.fieldnames or ())
-    if found != header and found != LEGACY_HEADERS.get(path.name):
+    if found != header and found not in LEGACY_HEADERS.get(path.name, ()):
         raise TrafficError(f"{path.name}: header is {reader.fieldnames}, expected {list(header)}")
     rows = []
     seen: dict[tuple[str, ...], int] = {}
@@ -244,12 +259,15 @@ def check_fields(name: str, number: int, row: Mapping[str, str]) -> None:
 
     A daily metric may be blank together with its collection time: that metric
     was never reported for the date. A snapshot's repository counts are blank
-    when it was collected before they were recorded.
+    when it was collected before they were recorded, and an observation time
+    is blank in a row written before observation times existed.
     """
     def blank_metric(key: str) -> bool:
+        if key.endswith("observed_at") and row[key] == "":
+            return True
         if name == SNAPSHOTS and key in REPOSITORY_COUNTS:
             return row[key] == ""
-        metric = key.removesuffix("_collected_at").removeprefix("unique_")
+        metric = key.removesuffix("_collected_at").removesuffix("_observed_at").removeprefix("unique_")
         return (name == DAILY and row[metric] == "" and row[f"unique_{metric}"] == ""
                 and row[f"{metric}_collected_at"] == "")
 
@@ -278,25 +296,25 @@ def merge_daily(rows: list[Row], collection: Collection) -> list[Row]:
     """Newest collection wins per date and metric; unreported dates keep their values.
 
     Views and clones each carry the time of the collection that last changed
-    them, so a rerun with the same data changes nothing. A metric stored by a
-    later collection than this one is never replaced, and an older collection
-    can still fill a metric that no newer collection reported. Because the
-    time is that of the last change, not of the last observation, an older
-    collection replayed after a newer but unchanged one can replace its
-    values: replay saved collections in collection order, as import-legacy
-    does. The workflow merges each collection once, in order.
+    them and the time of the newest collection that reported them. A metric
+    observed by a later collection than this one is never replaced, even if
+    that collection found the same values: replaying A at t1, A at t3, then B
+    at t2 keeps A (#332). A rerun of the same collection changes nothing, and
+    an older collection can still fill a metric no newer collection reported.
     """
     by_date = {row["date"]: row for row in rows}
     for prefix, series in (("views", collection.views), ("clones", collection.clones)):
         stamp_key = f"{prefix}_collected_at"
+        seen_key = f"{prefix}_observed_at"
         for day, (total, unique) in series.days.items():
             row = by_date.setdefault(day, {key: "" for key in HEADERS[DAILY]} | {"date": day})
-            if row[stamp_key] > collection.stamp:
+            if (row[seen_key] or row[stamp_key]) > collection.stamp:
                 continue
             values = {prefix: str(total), f"unique_{prefix}": str(unique)}
             if any(row[key] != value for key, value in values.items()):
                 row.update(values)
                 row[stamp_key] = collection.stamp
+            row[seen_key] = collection.stamp
     return [by_date[day] for day in sorted(by_date)]
 
 
@@ -305,6 +323,7 @@ def snapshot_row(collection: Collection) -> Row:
     return {
         "snapshot_date": collection.snapshot_date,
         "collected_at": collection.stamp,
+        "observed_at": collection.stamp,
         "first_date": reported[0] if reported else "",
         "last_date": reported[-1] if reported else "",
         "views_14d": str(collection.views.count),
@@ -330,21 +349,22 @@ def merge_day(current: Mapping[str, list[Row]], collection: Collection) -> dict[
     """Merge a collection day's snapshot, referrers and paths as one unit.
 
     The snapshot's ``collected_at`` is the time of the collection that last
-    changed any of the three. A later collection replaces the unit only if
-    something in it differs; an earlier one replayed afterwards does not,
-    unless the later one changed nothing (see merge_daily on replay order).
+    changed any of the three, and ``observed_at`` the time of the newest
+    collection of that day. A later collection replaces the unit only if
+    something in it differs, and otherwise only advances ``observed_at``; an
+    earlier one replayed afterwards never replaces it (#332).
     """
     day = collection.snapshot_date
     unit = {name: current[name] for name in (SNAPSHOTS, REFERRERS, PATHS)}
     stored = on_day(current[SNAPSHOTS], day)
-    if stored and stored[0]["collected_at"] > collection.stamp:
+    if stored and (stored[0]["observed_at"] or stored[0]["collected_at"]) > collection.stamp:
         return unit
     new = {
         SNAPSHOTS: [snapshot_row(collection)],
         REFERRERS: [{"snapshot_date": day} | row for row in collection.referrers],
         PATHS: [{"snapshot_date": day} | row for row in collection.paths],
     }
-    ignore = {"collected_at"}
+    ignore = {"collected_at", "observed_at"}
     unchanged = (
         bool(stored)
         and all(stored[0][key] == new[SNAPSHOTS][0][key]
@@ -353,7 +373,10 @@ def merge_day(current: Mapping[str, list[Row]], collection: Collection) -> dict[
         and on_day(current[PATHS], day) == new[PATHS]
     )
     if unchanged:
-        return unit
+        seen = dict(stored[0]) | {"observed_at": collection.stamp}
+        if seen == stored[0]:
+            return unit
+        return unit | {SNAPSHOTS: replace_day(current[SNAPSHOTS], day, [seen])}
     return {name: replace_day(current[name], day, rows) for name, rows in new.items()}
 
 
