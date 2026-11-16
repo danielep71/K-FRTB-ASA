@@ -207,8 +207,17 @@ class RepositoryIntegrityTests(unittest.TestCase):
                     checker.validate_controls(root)
             workflow_path.write_text((source / ".github/workflows/integrity.yml").read_text())
             dependabot_path = root / ".github/dependabot.yml"
-            dependabot_path.write_text(dependabot_path.read_text().replace("target-branch: release/v0.2.0", "target-branch: main", 1))
+            original_dependabot = dependabot_path.read_text()
+            dependabot_path.write_text(original_dependabot.replace("target-branch: release/v0.2.0", "target-branch: main", 1))
             with self.assertRaisesRegex(ValueError, "Dependabot must cover"):
+                checker.validate_controls(root)
+            # Every ecosystem waits 14 days before proposing a version (#330)
+            for days in ("7", "0"):
+                dependabot_path.write_text(original_dependabot.replace("default-days: 14", f"default-days: {days}", 1))
+                with self.subTest(days=days), self.assertRaisesRegex(ValueError, "14-day cooldown"):
+                    checker.validate_controls(root)
+            dependabot_path.write_text(original_dependabot.replace("    cooldown:\n      default-days: 14\n", "", 1))
+            with self.assertRaisesRegex(ValueError, "14-day cooldown"):
                 checker.validate_controls(root)
 
     def test_branch_filters_must_keep_the_default_branch(self):

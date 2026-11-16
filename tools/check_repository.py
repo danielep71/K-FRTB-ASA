@@ -412,6 +412,8 @@ def validate_controls(root: Path) -> None:
             raise ValueError("Dependabot PRs must have no milestone setting")
         if item["assignees"] != ["danielep71"] or [label for label in item["labels"] if label in {"P1", "P2", "P3"}] != ["P3"]:
             raise ValueError("Dependabot requires owner and exactly P3")
+        if item.get("cooldown") != {"default-days": 14}:
+            raise ValueError("Dependabot version updates require a 14-day cooldown (default-days: 14)")
 
 
 INTEGRITY_CONCURRENCY = {

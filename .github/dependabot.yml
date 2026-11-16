@@ -5,6 +5,10 @@ updates:
     target-branch: release/v0.2.0
     schedule:
       interval: weekly
+    # A version is proposed only 14 days after its release; security
+    # updates are separate and not delayed.
+    cooldown:
+      default-days: 14
     assignees: [danielep71]
     labels: [repository, ci, P3]
     open-pull-requests-limit: 5
@@ -13,6 +17,10 @@ updates:
     target-branch: release/v0.2.0
     schedule:
       interval: weekly
+    # A version is proposed only 14 days after its release; security
+    # updates are separate and not delayed.
+    cooldown:
+      default-days: 14
     assignees: [danielep71]
     labels: [repository, ci, P3]
     open-pull-requests-limit: 5
@@ -21,6 +29,10 @@ updates:
     target-branch: release/v0.2.0
     schedule:
       interval: weekly
+    # A version is proposed only 14 days after its release; security
+    # updates are separate and not delayed.
+    cooldown:
+      default-days: 14
     assignees: [danielep71]
     labels: [repository, tests, P3]
     open-pull-requests-limit: 5
