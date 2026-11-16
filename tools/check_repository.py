@@ -285,7 +285,6 @@ WRITE_ALLOWED: dict[tuple[str | None, str], set[str]] = {
     ("traffic-export.yml", "export"): {"contents"},
     ("traffic-export.yml", "alert"): {"issues"},
     ("pr-milestones.yml", "reconcile"): {"pull-requests"},
-    ("codeql.yml", "analyze"): {"security-events"},
 }
 # Workflows name the default branch in their branch filters, so every filter
 # must keep it (#320).

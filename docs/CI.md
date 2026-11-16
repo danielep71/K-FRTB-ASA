@@ -69,20 +69,21 @@ after installation and all maintenance fixtures are offline.
   coverage, incorrect update targets, Windows-only test dependencies missing
   from `tests/requirements.txt`, and the traffic collector's safeguards.
 
-[CodeQL](../.github/workflows/codeql.yml) is a versioned **advanced setup**
-(#334). It analyzes GitHub Actions, JavaScript/TypeScript (the label scripts
-under `.github/scripts`) and Python with the `security-extended` query suite.
-It runs on every pull request, on pushes to `main` and `release/**`, weekly
-(Wednesday 04:23 UTC) and on manual dispatch. Each language is one job,
-without a build (`build-mode: none`). The job may write only
-`security-events`, and its actions are pinned by SHA.
+CodeQL runs as GitHub's **default setup** for Actions and Python: the
+default query suite, weekly and on pull requests into main (#214 ran it; a
+release-branch PR such as #224 gets no CodeQL run). It is configured in the
+repository's security settings, not in a workflow file. Its configuration therefore cannot
+be rebuilt from a commit; [settings evidence](REPOSITORY_SETTINGS_EVIDENCE.md)
+records its last readback. A versioned CodeQL workflow would duplicate the
+scans, so none is added (#223).
 
-It replaces GitHub's default setup, which analyzed only Actions and Python
-with the default suite and could not be rebuilt from a commit. The default
-setup offered no JavaScript, because it lists only the languages it detects.
-The default setup must stay disabled in the repository settings: GitHub
-refuses advanced uploads while it is on, and the two would duplicate the
-scans.
+The default setup does not analyze JavaScript: its settings list only the
+languages GitHub detects, and on November 16, 2026 they did not offer the
+two label scripts under `.github/scripts`. I keep the default setup, and
+these scripts stay outside CodeQL (#334). They are small, run only on the
+default branch, and hold only `issues: write` and `pull-requests: read`.
+Their self-test runs on every relevant pull request, and the review covers
+them as code.
 
 [External link check](../.github/workflows/link-check.yml) runs weekly on
 Mondays at 04:41 UTC and on manual dispatch, read-only and outside the required
