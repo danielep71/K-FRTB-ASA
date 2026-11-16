@@ -40,7 +40,7 @@ keep the names and versions in effect when they were written.
 | Version number | [Semantic Versioning](https://semver.org/) `MAJOR.MINOR.PATCH`; before 1.0.0, MINOR marks a functional stage and PATCH a maintenance increment | `0.2.0`, `0.2.1` |
 | Pre-release | SemVer pre-release identifier | `0.2.0-prototype` |
 | Milestone | Version plus a short title | `v0.2.0 — ASA prototype` |
-| Integration branch | `release/` plus the tag name; `release/v0.2.0` superseded `release/v0.1.0`, named before the renumbering (#117) | `release/v0.2.0` |
+| Integration branch | `release/` plus the tag name; `release/v0.2.0` superseded `release/v0.1.0`, named before the renumbering (#117), and is obsolete since milestone 2 closed (#342) | `release/v0.3.0` |
 | Tag | `v` plus the version, annotated, on a main commit | `v0.2.0` |
 | Changelog section | Version and release date | `## [0.2.0] - YYYY-MM-DD` |
 

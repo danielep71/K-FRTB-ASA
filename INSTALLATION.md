@@ -12,7 +12,7 @@ with Python 3.13.18 and Node.js 24.22.2 for the integrity gate.
 ## Check out the active work
 
 ```sh
-git clone --branch release/v0.2.0 https://github.com/danielep71/K-FRTB-ASA.git
+git clone --branch release/v0.3.0 https://github.com/danielep71/K-FRTB-ASA.git
 cd K-FRTB-ASA
 git branch --show-current
 git rev-parse HEAD
@@ -20,9 +20,10 @@ git --version
 node --version
 ```
 
-Current prototype and maintenance work uses `release/v0.2.0`, milestone 2,
-v0.2.0 — ASA prototype (#117). It supersedes `release/v0.1.0`; the setup
-branch `release/v0.0.1` was deleted after the setup closeout (#62). Record the source commit when reporting results.
+Current work, including repository maintenance, uses `release/v0.3.0`,
+milestone 3 (#342). Milestone 2, v0.2.0 — ASA prototype, closed on
+November 16, 2026; its branches `release/v0.1.0` and `release/v0.2.0` are
+obsolete, and the setup branch `release/v0.0.1` was deleted (#62). Record the source commit when reporting results.
 Main remains the stable default. Create focused task
 branches from the integration branch following [Governance](docs/GOVERNANCE.md).
 
@@ -65,7 +66,7 @@ an engine or Excel, test a workbook, or establish verified capital results.
 ## ASA prototype (v0.2.0)
 
 The [v0.2.0 — ASA prototype](https://github.com/danielep71/K-FRTB-ASA/milestone/2)
-work integrates on `release/v0.2.0` (issue #20). Its approved Excel/VBA
+work, now closed (#32), integrated on `release/v0.2.0` (issue #20). Its approved Excel/VBA
 evaluation scope does not resolve the long-term platform decision or the
 remaining methodology questions in [Scope](docs/SCOPE.md).
 

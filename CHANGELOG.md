@@ -18,6 +18,20 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- `release/v0.3.0` is the only active integration branch, for milestone 3
+  and repository maintenance, since milestone 2 closed on November 16, 2026
+  (#342):
+  - **Dependabot:** all three entries target `release/v0.3.0`, and the
+    integrity gate requires it. Version updates follow once the
+    configuration reaches main.
+  - **Excel check:** `tools\Check-FRTB-Excel.cmd` and
+    `Check-FRTB-Excel.ps1` check out `release/v0.3.0` by default.
+  - **Documents:** the PR template, README, INSTALLATION, CONTRIBUTING,
+    SECURITY, RELEASING, governance, scope, roadmap, labels, CI, Excel
+    evidence, settings evidence and the website name `release/v0.3.0`.
+    `release/v0.1.0` and `release/v0.2.0` are obsolete and are deleted
+    under the release-branch lifecycle.
+
 - Security settings now match the template baseline (#334):
   - **`SECURITY.md`:** states best-effort targets for a private report:
     acknowledgement within 5 business days, a first assessment within 10,

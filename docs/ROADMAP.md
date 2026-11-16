@@ -11,7 +11,8 @@ requires; the issue tracker is authoritative for current progress.
 On October 27, 2026 the milestones were renumbered one step up: the setup
 milestone, first named v0.0.1, became v0.1.0, and every later milestone moved
 with it. The integration branch `release/v0.2.0` superseded `release/v0.1.0`
-the same day (#117). Dated records
+the same day (#117). Since milestone 2 closed on November 16, 2026,
+`release/v0.3.0` is the only integration branch (#342). Dated records
 keep the names in effect when they were written.
 
 ## 🗺️ Milestone plan
@@ -66,7 +67,8 @@ the setup baseline.
 [closeout record](evidence/2026-11-16-prototype-closeout.md) ·
 [Excel run](evidence/2026-10-31-excel-run-323260b.md) ·
 [Excel check](evidence/2026-11-12-excel-check-1badef1.md),
-integration branch `release/v0.2.0` (`release/v0.1.0` until October 27, 2026).
+integration branch `release/v0.2.0` (`release/v0.1.0` until October 27, 2026),
+obsolete since the milestone closed on November 16, 2026 (#342).
 
 The table below is the readback of October 27, 2026, kept as it was. Since
 then, #20, #30, #79 and #82 have closed with the
@@ -138,7 +140,8 @@ decisions; it does not complete the later milestones' exit conditions.
 ## 📐 v0.3.0 — Regulatory baseline and certification scope
 
 [Live milestone](https://github.com/danielep71/K-FRTB-ASA/milestone/3),
-integration branch `release/v0.3.0` (#132). It holds the methodology
+integration branch `release/v0.3.0` (#132), which also takes repository
+maintenance since milestone 2 closed (#342). It holds the methodology
 decisions of
 [#29](https://github.com/danielep71/K-FRTB-ASA/issues/29), decided on October
 27, 2026 and implemented; its exit condition, including their review for the
