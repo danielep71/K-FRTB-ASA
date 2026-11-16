@@ -74,8 +74,10 @@ matches the earlier configuration. The branch's closeout head
 `b4d6c02edcd60bb412a06999d1909e6eaba63837` (#53) is on main. No setup tag
 was created.
 
-The active prototype integration branch **`release/v0.2.0`** also receives
-repository maintenance and all three Dependabot entries, with owning issues in milestone 2. It
+The integration branch **`release/v0.3.0`** receives milestone 3 work,
+repository maintenance and all three Dependabot entries since milestone 2
+closed on November 16, 2026 (#342). Until then **`release/v0.2.0`** held
+them, with owning issues in milestone 2. It
 superseded `release/v0.1.0` on October 27, 2026 (#117), which had held them
 under the decision of October 18, 2026 (#51). Shared controls were synchronized
 under #31. Both branches match `release/**`: readback on October 18
@@ -124,7 +126,7 @@ only because the required check had not run.
 | Secret scanning alerts | Not offered while private | Secret Protection enabled |
 | Secret push protection | Off | Enabled |
 | CodeQL | Not configured | Default setup for GitHub Actions and Python (added automatically when Python code arrived), default query suite, weekly schedule; setup run succeeded; read back October 18, 2026 |
-| Dependabot version updates | No configuration | Added under #7; #51 consolidates three entries, on release/v0.2.0 since #118 (active on main through #120); PRs have no milestone under #104; scheduling uses the configuration on main; targets in CI.md |
+| Dependabot version updates | No configuration | Added under #7; #51 consolidates three entries, on release/v0.2.0 since #118 (active on main through #120) and on release/v0.3.0 since #342; PRs have no milestone under #104; scheduling uses the configuration on main; targets in CI.md |
 | Dependabot security update PRs | Off | Remain off; version-update targets do not govern security PRs; changing this is a new explicit settings decision (CI.md). Superseded by #191: on since October 31, 2026 ([settings](REPOSITORY_SETTINGS.md#security)) |
 
 [CodeQL setup evidence](https://github.com/danielep71/K-FRTB-ASA/actions/runs/39070451926).

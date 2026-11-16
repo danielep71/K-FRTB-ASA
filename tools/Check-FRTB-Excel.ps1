@@ -54,7 +54,7 @@
     start (local changes, no Git or Python, the VBA project access refused).
 
 .PARAMETER Branch
-    The branch of origin to check out. Default: release/v0.2.0.
+    The branch of origin to check out. Default: release/v0.3.0.
 
 .PARAMETER Commit
     An exact commit to check instead of the head of -Branch.
@@ -77,7 +77,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$Branch = 'release/v0.2.0',
+    [string]$Branch = 'release/v0.3.0',
     [string]$Commit,
     [int]$TimeoutMinutes = 60,
     [switch]$TrustCenterCheck,

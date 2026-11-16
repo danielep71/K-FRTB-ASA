@@ -208,7 +208,7 @@ class RepositoryIntegrityTests(unittest.TestCase):
             workflow_path.write_text((source / ".github/workflows/integrity.yml").read_text())
             dependabot_path = root / ".github/dependabot.yml"
             original_dependabot = dependabot_path.read_text()
-            dependabot_path.write_text(original_dependabot.replace("target-branch: release/v0.2.0", "target-branch: main", 1))
+            dependabot_path.write_text(original_dependabot.replace("target-branch: release/v0.3.0", "target-branch: main", 1))
             with self.assertRaisesRegex(ValueError, "Dependabot must cover"):
                 checker.validate_controls(root)
             # Every ecosystem waits 14 days before proposing a version (#330)
@@ -382,7 +382,7 @@ class RepositoryIntegrityTests(unittest.TestCase):
                     duplicate = copy.deepcopy(baseline)
                     duplicate["updates"].append(copy.deepcopy(entry))
                     retired = copy.deepcopy(baseline)
-                    retired["updates"][index]["target-branch"] = "release/v0.1.0"
+                    retired["updates"][index]["target-branch"] = "release/v0.2.0"
                     for broken in [missing, duplicate, retired]:
                         with self.assertRaisesRegex(ValueError, "Dependabot must cover"):
                             validate(broken)

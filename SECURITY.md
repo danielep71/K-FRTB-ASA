@@ -7,8 +7,8 @@
 
 | Material | Security maintenance status |
 | --- | --- |
-| Current `main`, the active `release/v0.2.0` and the milestone 3 integration branch `release/v0.3.0`: source and maintenance tooling | Reports accepted, and triaged by me |
-| Historical commits, including the deleted setup branch `release/v0.0.1` and the superseded `release/v0.1.0`, or unmaintained task branches | No separate backport commitment; report issues that also affect current maintained source |
+| Current `main` and the active integration branch `release/v0.3.0`: source and maintenance tooling | Reports accepted, and triaged by me |
+| Historical commits, including the deleted setup branch `release/v0.0.1` and the obsolete `release/v0.1.0` and `release/v0.2.0`, or unmaintained task branches | No separate backport commitment; report issues that also affect current maintained source |
 | Calculation engine, workbook, or packaged releases | None published or supported yet |
 
 I maintain this prototype alone; it is not a managed security service, and
