@@ -63,6 +63,7 @@ the setup baseline.
 [Live milestone](https://github.com/danielep71/K-FRTB-ASA/milestone/2) ·
 [milestone guide](Milestones/v0.2.0.md) ·
 [interim evaluation](evidence/2026-10-27-prototype-evaluation.md) ·
+[closeout record](evidence/2026-11-16-prototype-closeout.md) ·
 [Excel run](evidence/2026-10-31-excel-run-323260b.md) ·
 [Excel check](evidence/2026-11-12-excel-check-1badef1.md),
 integration branch `release/v0.2.0` (`release/v0.1.0` until October 27, 2026).
@@ -72,8 +73,11 @@ then, #20, #30, #79 and #82 have closed with the
 [Excel run of October 31, 2026](evidence/2026-10-31-excel-run-323260b.md) on
 `323260b`. The unattended check `tools\Check-FRTB-Excel.cmd` (#274) passed
 21 of 21 on `1badef1` on November 12, 2026
-([Excel check](evidence/2026-11-12-excel-check-1badef1.md)); the remaining Excel review is
-#206.
+([Excel check](evidence/2026-11-12-excel-check-1badef1.md)), closing #28, #72
+and #85, and 24 of 24 on `308cbc6` on November 15, 2026, with the review of
+every sheet (#206, [Excel check](evidence/2026-11-15-excel-check-308cbc6.md)).
+The [closeout record](evidence/2026-11-16-prototype-closeout.md) of
+November 16, 2026 reconciles the milestone's 96 issues and closes #32.
 
 | Issue | State on October 27, 2026 | Deliverable |
 | --- | --- | --- |
@@ -120,7 +124,8 @@ integrations #123 (version 0.2.0, the branch move and the website) and #128
 (install-step timeout, preview image and wiki link). These merges do not
 supply desktop Excel evidence. The [milestone guide](Milestones/v0.2.0.md)
 and an [interim evaluation](evidence/2026-10-27-prototype-evaluation.md)
-exist; the final closeout record follows the Excel run of #28 (#32).
+exist; the [closeout record](evidence/2026-11-16-prototype-closeout.md)
+followed on November 16, 2026 (#32).
 
 I decided the six methodology interpretations of
 [#29](https://github.com/danielep71/K-FRTB-ASA/issues/29) on October 27, 2026;

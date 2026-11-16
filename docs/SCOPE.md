@@ -51,7 +51,7 @@ execution is a distinct compatibility runtime.
 
 | Decision or evidence | Current record and remaining work |
 | --- | --- |
-| Long-term engine language/runtime and supported platforms | Explicit architecture decision informed by prototype evaluation (#32) |
+| Long-term engine language/runtime and supported platforms | Explicit architecture decision in v0.3.0, informed by the [prototype closeout](evidence/2026-11-16-prototype-closeout.md) (#32) |
 | Basel baseline and initial jurisdiction profile | Basel MAR21-MAR23 prototype baseline in methodology; no jurisdiction profile selected |
 | Initial products/risk classes | Prototype coverage above; CSR securitization rows rejected, securitization DRC out of scope and not identifiable on `In_DRC` |
 | Inputs, units, signs, identifiers and outputs | Workbook guide and methodology; the #29 interpretations are decided and implemented, and v0.3.0 reviews them for the certified scope |
