@@ -14,6 +14,7 @@ import check_repository as checker
 class PrMilestoneTests(unittest.TestCase):
     workflow: Any
     reconcile: "staticmethod[..., Any]"  # quoted: staticmethod is not subscriptable at runtime
+    summary: "staticmethod[..., Any]"
 
     @classmethod
     def setUpClass(cls):
@@ -24,6 +25,7 @@ class PrMilestoneTests(unittest.TestCase):
         namespace: dict[str, Any] = {"__name__": "fixture"}
         exec(compile(shell.split("\n", 1)[1].rsplit("\nPY", 1)[0], str(path), "exec"), namespace)
         cls.reconcile = staticmethod(namespace["reconcile"])
+        cls.summary = staticmethod(namespace["summary"])
 
     def test_full_scan_includes_closed_and_merged_without_shifting_pages(self):
         calls = []
@@ -40,10 +42,13 @@ class PrMilestoneTests(unittest.TestCase):
                 self.assertEqual(data, {"milestone": None})
                 pending.remove(number)
                 return {"milestone": None}
-            return {"pull_request": {}, "milestone": {} if number in pending else None}
+            return {"pull_request": {}, "milestone": {"title": "v0.2.0"} if number in pending else None}
 
-        self.reconcile(request, "owner/repo", {})
+        self.assertEqual(self.reconcile(request, "owner/repo", {}), [(2, "v0.2.0"), (101, "v0.2.0")])
         self.assertEqual(pending, set())
+        # Each PATCH is followed by an independent read of the new state
+        methods = [(method, int(path.rsplit("/", 1)[1])) for method, path, _ in calls if "/issues/" in path]
+        self.assertEqual(methods, [("GET", 2), ("PATCH", 2), ("GET", 2), ("GET", 101), ("PATCH", 101), ("GET", 101)])
         self.assertEqual([int(path.rsplit("/", 1)[1]) for method, path, _ in calls if method == "PATCH"], [2, 101])
         calls.clear()
         self.reconcile(request, "owner/repo", {})
@@ -73,6 +78,27 @@ class PrMilestoneTests(unittest.TestCase):
             self.reconcile(lambda *args: [{"milestone": None}] * 100, "owner/repo", {})
         with self.assertRaisesRegex(ValueError, "still has a milestone"):
             self.reconcile(lambda *args: {"pull_request": {}, "milestone": {}}, "owner/repo", {"number": 7, "pull_request": {}})
+
+    def test_a_milestone_still_read_back_fails(self):
+        # The PATCH response alone does not prove the new state (#330)
+        reads = []
+
+        def request(method, path, data=None):
+            if method == "PATCH":
+                return {"milestone": None}
+            reads.append(path)
+            return {"pull_request": {}, "milestone": {"title": "kept"}}
+
+        with self.assertRaisesRegex(ValueError, "PR #7 still has a milestone"):
+            self.reconcile(request, "owner/repo", {"number": 7, "pull_request": {}})
+        self.assertEqual(len(reads), 2)
+
+    def test_summary_lists_removed_milestones_as_data(self):
+        self.assertIn("No PR had a milestone.", self.summary([]))
+        text = self.summary([(5, "v0.2.0 | a\\b\nnext")])
+        self.assertIn("| PR | Removed milestone |", text)
+        self.assertIn("| #5 | v0.2.0 \\| a\\\\b next |", text)
+        self.assertEqual(text.count("\n| #"), 1)
 
     def test_control_cannot_gain_checkout_interpolation_or_extra_permissions(self):
         checker.validate_milestone_workflow(self.workflow)

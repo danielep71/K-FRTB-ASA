@@ -17,7 +17,8 @@ trip. [Validation](validation.md) owns what the other checks show. The remaining
 Excel review of the ASA prototype (v0.2.0) is #206. Two sessions are
 recorded: a run on `323260b`
 ([record](evidence/2026-10-31-excel-run-323260b.md)) and the unattended check
-on `1badef1` ([record](evidence/2026-11-12-excel-check-1badef1.md)).
+on `1badef1` ([record](evidence/2026-11-12-excel-check-1badef1.md)) and on
+`308cbc6` ([record](evidence/2026-11-15-excel-check-308cbc6.md)).
 
 > [!IMPORTANT]
 > The validator never runs Excel. It checks three things:
@@ -138,7 +139,8 @@ below gives the same bundle by hand.
 `tools\Check-FRTB-Excel.cmd` runs every Excel check of a branch with one
 double-click: `release/v0.2.0` by default, or the branch given as its first
 argument (#274). It passed 21 of 21 on `1badef1`
-([record](evidence/2026-11-12-excel-check-1badef1.md)). It needs what the
+([record](evidence/2026-11-12-excel-check-1badef1.md)) and 24 of 24 on
+`308cbc6` ([record](evidence/2026-11-15-excel-check-308cbc6.md)). It needs what the
 recorded run needs. It asks at most two questions, at the start:
 * whether to turn on the VBA project access, when it is off; if you agree,
   it stays on after the run, and the evidence records the change;
@@ -164,10 +166,16 @@ Then it runs unattended:
      (#245);
    * the frozen panes and autofilters of the committed template;
    * the width of the Control descriptions (#203);
+   * after a sample run, the values Excel displays (no cell shows `####`),
+     the absence of dates in every sheet, and the view of every sheet:
+     gridlines off and the tab color of its group (#316);
    * the invalid-row variant, whose results must equal the independent
      reference's (#28);
 3. takes pictures of the sheets after a failed run, after **Clear outputs**
-   and after the sample run;
+   and after the sample run; then, in a copy of the development workbook, a
+   picture of every sheet after **Clear outputs** (`before-*`) and after a
+   sample run (`after-*`), into the folder
+   `sheets` (up to its first 60 rows and 26 columns), for the review of #206;
 4. builds the workbook from source with the regression test, and the
    template from source, then records the template digests and their
    differences from the committed template;

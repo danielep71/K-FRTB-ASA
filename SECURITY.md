@@ -11,8 +11,17 @@
 | Historical commits, including the deleted setup branch `release/v0.0.1` and the superseded `release/v0.1.0`, or unmaintained task branches | No separate backport commitment; report issues that also affect current maintained source |
 | Calculation engine, workbook, or packaged releases | None published or supported yet |
 
-I maintain this prototype alone; it is not a managed security service.
-There is no guaranteed response or remediation time and no bug-bounty program.
+I maintain this prototype alone; it is not a managed security service, and
+there is no bug-bounty program. For a private report, I aim to:
+
+| Step | Target |
+| --- | --- |
+| Acknowledge the report | within 5 business days |
+| Give a first assessment | within 10 business days |
+| Update you on its status | at least every 14 days until it is closed |
+
+These are best-effort targets, not a contractual service level, and they set
+no remediation time. If I cannot meet one, I tell you in the report.
 
 ## 🧭 What the code reads, writes and deletes
 

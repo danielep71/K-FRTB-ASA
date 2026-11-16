@@ -15,6 +15,8 @@ const API_VERSION = "2022-11-28";
 const LABELS_PER_PAGE = 100;
 const MAX_LABEL_PAGES = 100;
 const MAX_ISSUE_PAGES = 100;
+// Issue and PR numbers shown for each label that blocks a prune.
+const USAGE_SAMPLE = 10;
 const MAX_RATE_LIMIT_RETRIES = 2;
 const MAX_RETRY_DELAY_MS = 5000;
 
@@ -152,18 +154,36 @@ export function planChanges(desiredLabels, liveLabels, { prune = true } = {}) {
   return changes;
 }
 
-// Pruning a label also removes it from every issue and PR, so a label that is
-// still used, by an open or a closed item, is never deleted. Every planned
-// deletion is checked before refusing, so one run lists every label to
-// migrate. A failed or malformed lookup still aborts at once.
-export async function assertUnusedDeletions(changes, listAssociations) {
-  const used = [];
+// The planned deletions still used by an issue or PR, open or closed: for each,
+// up to USAGE_SAMPLE issue/PR numbers, sorted, and whether more exist. Reads
+// only; a failed or malformed lookup aborts at once.
+export async function collectUsages(changes, listAssociations) {
+  const usages = [];
   for (const change of changes) {
     if (change.action !== "delete") continue;
     const associations = await listAssociations(change.currentName);
     if (!Array.isArray(associations)) throw new Error("GitHub issue associations response is not an array");
-    if (associations.length > 0) used.push(JSON.stringify(change.currentName));
+    if (associations.length === 0) continue;
+    const numbers = associations.map(item => item?.number).filter(Number.isInteger).sort((a, b) => a - b);
+    usages.push({ name: change.currentName, numbers: numbers.slice(0, USAGE_SAMPLE), more: associations.length > USAGE_SAMPLE });
   }
+  return usages;
+}
+
+// "label" (#3, #8 and others): the issues and PRs to migrate first.
+export function describeUsage(usage) {
+  const references = usage.numbers.map(number => `#${number}`).join(", ");
+  if (!references) return JSON.stringify(usage.name);
+  return `${JSON.stringify(usage.name)} (${references}${usage.more ? " and others" : ""})`;
+}
+
+// Pruning a label also removes it from every issue and PR, so a label that is
+// still used, by an open or a closed item, is never deleted. Every planned
+// deletion is checked before refusing, so one run lists every label to
+// migrate, with the issues and PRs that use it. A failed or malformed lookup
+// still aborts at once.
+export async function assertUnusedDeletions(changes, listAssociations) {
+  const used = (await collectUsages(changes, listAssociations)).map(describeUsage);
   if (used.length === 1) {
     throw new Error(`Refusing to prune used label ${used[0]}; migrate its issue/PR associations first`);
   }
@@ -299,10 +319,13 @@ async function listLiveLabels(repository, token) {
   throw new Error(`GitHub label pagination exceeded ${MAX_LABEL_PAGES} pages`);
 }
 
-async function listLabelAssociations(repository, token, name, request = githubRequest) {
+// Up to USAGE_SAMPLE + 1 issues and PRs that carry the label: enough to name
+// USAGE_SAMPLE of them and to know whether others exist.
+export async function listLabelAssociations(repository, token, name, request = githubRequest) {
   if (!name.includes(",")) {
-    return request(repository, token, "GET", `/issues?state=all&labels=${encodeURIComponent(name)}&per_page=1`);
+    return request(repository, token, "GET", `/issues?state=all&labels=${encodeURIComponent(name)}&per_page=${USAGE_SAMPLE + 1}`);
   }
+  const found = [];
   // GitHub splits its labels filter on commas after URL decoding. For these
   // names, inspect the actual labels on all issues and PRs, including closed.
   for (let page = 1; page <= MAX_ISSUE_PAGES; page += 1) {
@@ -312,9 +335,10 @@ async function listLabelAssociations(repository, token, name, request = githubRe
       if (!Array.isArray(issue.labels) || issue.labels.some(label => typeof label?.name !== "string")) {
         throw new Error("GitHub issue labels response is malformed");
       }
-      if (issue.labels.some(label => label.name.toLowerCase() === name.toLowerCase())) return [issue];
+      if (issue.labels.some(label => label.name.toLowerCase() === name.toLowerCase())) found.push(issue);
+      if (found.length > USAGE_SAMPLE) return found;
     }
-    if (batch.length < 100) return [];
+    if (batch.length < 100) return found;
   }
   throw new Error(`GitHub issue association pagination exceeded ${MAX_ISSUE_PAGES} pages`);
 }
@@ -367,7 +391,8 @@ function renderSummary({
   verified = null,
   dryRun = false,
   error = null,
-  partial = false
+  partial = false,
+  usages = null
 }) {
   const resolvedLabels = desiredLabels ?? [];
   const planned = changes !== null;
@@ -407,6 +432,20 @@ function renderSummary({
     for (const change of changes) {
       const detail = change.action === "update" ? change.fields.join(", ") : change.action === "delete" ? "outside the manifest" : "missing live label";
       lines.push(`| ${change.action} | ${codeSpan(change.name)} | ${markdownEscape(detail)} |`);
+    }
+    if (changes.some(change => change.action === "delete")) {
+      if (usages === null) {
+        lines.push("", "Label usage was not read: a deletion still used by an issue or PR is refused at reconcile.");
+      } else if (usages.length === 0) {
+        lines.push("", "No planned deletion is used by an issue or PR.");
+      } else {
+        lines.push("", "## Deletions blocked by use", "", "Reconcile refuses these deletions until their issues and PRs are migrated.", "",
+          "| Label | Issues and PRs |", "|---|---|");
+        for (const usage of usages) {
+          const references = usage.numbers.map(number => `#${number}`).join(", ") + (usage.more ? " and others" : "");
+          lines.push(`| ${codeSpan(usage.name)} | ${markdownEscape(references || "not reported")} |`);
+        }
+      }
     }
   }
   return `${lines.join("\n")}\n`;
@@ -575,7 +614,7 @@ async function runSelfTest(manifestPath) {
   const manyChecks = [];
   const manyLookup = async name => { manyChecks.push(name); return name === "unused" ? [] : [{ number: 7 }]; };
   await assert.rejects(() => assertUnusedDeletions(manyPlan, manyLookup),
-    { message: 'Refusing to prune 2 used labels: "old-a", "old-b"; migrate their issue/PR associations first' });
+    { message: 'Refusing to prune 2 used labels: "old-a" (#7), "old-b" (#7); migrate their issue/PR associations first' });
   assert.deepEqual(manyChecks, ["old-a", "unused", "old-b"], "every planned deletion must be checked before refusing");
   const abortChecks = [];
   await assert.rejects(() => assertUnusedDeletions(manyPlan, async name => {
@@ -604,6 +643,30 @@ async function runSelfTest(manifestPath) {
   await assert.rejects(() => listLabelAssociations("fixture/repo", "unused", "foo,bar", async () => ({})), /not an array/);
   await assert.rejects(() => listLabelAssociations("fixture/repo", "unused", "foo,bar", async () => Array.from({ length: 100 }, () => ({ labels: [] }))), /pagination exceeded/);
 
+
+  // The refusal and the dry run name up to ten users per label, sorted (#330)
+  const crowded = async () => Array.from({ length: 11 }, (_, index) => ({ number: 40 - index }));
+  await assert.rejects(() => assertUnusedDeletions(deletionPlan, crowded),
+    { message: 'Refusing to prune used label "retired" (#30, #31, #32, #33, #34, #35, #36, #37, #38, #39 and others); migrate its issue/PR associations first' });
+  const usages = await collectUsages(deletionPlan, async () => [{ number: 9 }, { number: 4 }]);
+  assert.deepEqual(usages, [{ name: "retired", numbers: [4, 9], more: false }]);
+  const dryRunSummary = renderSummary({ mode: "reconcile", manifest, manifestPath: "fixture-labels.json", desiredLabels: desired,
+    changes: deletionPlan, dryRun: true, usages });
+  assert.match(dryRunSummary, /## Deletions blocked by use/);
+  assert.match(dryRunSummary, /\| `retired` \| #4, #9 \|/);
+  assert.match(renderSummary({ mode: "reconcile", manifest, manifestPath: "x", desiredLabels: desired, changes: deletionPlan, dryRun: true, usages: [] }),
+    /No planned deletion is used by an issue or PR\./);
+  assert.match(renderSummary({ mode: "plan", manifest, manifestPath: "x", desiredLabels: desired, changes: deletionPlan, dryRun: true }),
+    /Label usage was not read/);
+  const sampled = [];
+  await listLabelAssociations("fixture/repo", "unused", "retired", async (_repository, _token, method, suffix) => {
+    sampled.push(suffix);
+    return [];
+  });
+  assert.deepEqual(sampled, ["/issues?state=all&labels=retired&per_page=11"]);
+  const commaUsers = await listLabelAssociations("fixture/repo", "unused", "foo,bar",
+    async () => Array.from({ length: 30 }, (_, index) => ({ number: index + 1, labels: [{ name: "foo,bar" }] })));
+  assert.equal(commaUsers.length, 11, "a comma label stops after one more than the sample");
 
   // Summary values from the API stay inside one code span (#217)
   assert.equal(codeSpan("plain"), "`plain`");
@@ -672,7 +735,12 @@ async function main() {
   const changes = planChanges(desired, live, { prune: manifest.prune });
   runState.changes = changes;
   if (options.mode === "plan" || options.dryRun) {
-    await publishSummary(renderSummary({ mode: options.mode, ...summaryBase, changes, dryRun: options.dryRun }));
+    // A dry run of reconcile reads which deletions are still used, without
+    // refusing or changing anything; an offline plan cannot read them.
+    const usages = options.mode === "reconcile"
+      ? await collectUsages(changes, name => listLabelAssociations(options.repository, process.env.GITHUB_TOKEN, name))
+      : null;
+    await publishSummary(renderSummary({ mode: options.mode, ...summaryBase, changes, dryRun: options.dryRun, usages }));
     return;
   }
 

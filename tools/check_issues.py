@@ -34,6 +34,8 @@ ASSIGNEE_FORM = "01-bug.yml"
 DEPENDENCY_STATUS_WORDS = re.compile(r"block|ready|waiting|depend|on[ -]hold|prerequisite", re.I)
 HEADING = re.compile(r"^#{2,3}\s+(.*)$")
 EXTERNAL = re.compile(r"^\s*(?:[-*]\s*)?external condition:\s*\S", re.I)
+# What an issue form writes for an optional field left empty.
+NO_RESPONSE = "_no response_"
 LABEL_GUIDE = Path("docs/LABELS.md")
 LABEL_SECTION = "Metadata rules"
 DEPENDABOT = Path(".github/dependabot.yml")
@@ -95,6 +97,13 @@ def dependency_section(body: str) -> list[str] | None:
                 section.append(following)
             return section
     return None
+
+
+def empty_section(lines: Iterable[str]) -> bool:
+    """True when a section says nothing: blank lines, HTML comments or _No response_ only (#332)."""
+    text = re.sub(r"<!--.*?-->", "", "\n".join(lines), flags=re.S)
+    content = [line.strip() for line in text.splitlines() if line.strip()]
+    return all(line.lower() == NO_RESPONSE for line in content)
 
 
 def references(lines: Iterable[str], repository: str, own: int) -> set[int]:
@@ -181,6 +190,10 @@ def dependency_findings(issue: Issue, states: Mapping[int, str], repository: str
     section = dependency_section(issue.body)
     if section is None:
         return [Finding(issue.number, "dependencies", "has no dependency section")]
+    if empty_section(section):
+        return [Finding(issue.number, "dependencies",
+                        "has an empty dependency section: write None, the prerequisite "
+                        "issues or an External condition: line")]
     named = references(section, repository, issue.number)
     missing = sorted(n for n in named if n not in states and n not in pulls)
     open_prerequisites = sorted(n for n in named if states.get(n) == "open")

@@ -1,7 +1,7 @@
 # 🧪 Validation
 
 [![Reconciliation: LibreOffice vs reference](https://img.shields.io/badge/reconciliation-LibreOffice%20vs%20reference-2ea44f)](#automated-checks)
-[![Excel evidence: recorded](https://img.shields.io/badge/Excel%20evidence-recorded%201badef1-2ea44f)](evidence/2026-11-12-excel-check-1badef1.md)
+[![Excel evidence: recorded](https://img.shields.io/badge/Excel%20evidence-recorded%20308cbc6-2ea44f)](evidence/2026-11-15-excel-check-308cbc6.md)
 [![Parameters: BIS checked](https://img.shields.io/badge/parameters-BIS%20checked-1f3a5f)](methodology.md#bis-check)
 
 This document states what is checked automatically, how, and what is not
@@ -18,7 +18,7 @@ checked. Treat any result as unvalidated for regulatory use.
 | Parameter spot check | `tests/test_vba_engine.py::test_parameter_sheets_match_regulatory_defaults` | The `P_*` sheets written by `M_Setup` equal an independently typed list in `tests/regulatory_defaults.py` |
 | VBA engine reconciliation | `python3 -m pytest tests/test_vba_engine.py` | The VBA modules, executed headless in LibreOffice, reproduce every `Out_RiskClass`, `Out_Buckets`, `Out_Summary` and `Out_DRC` value of the independent Python reference, on the sample portfolio, on a variant with three discretions enabled (`GIRR_SPECIFIED_CCY_DISCRETION`, `FX_SPECIFIED_PAIR_DISCRETION`, `FX_CURVATURE_DIVISOR`) and invalid rows, each of which must be logged, and on a separate run with `FX_CURVATURE_DIVISOR_ALL`; empty inputs give zero capital |
 | Numeric input contract | `python3 -m pytest tests/test_numeric_contract.py` | Valid numeric text converts as expected and invalid text is rejected in the VBA and the reference; a required key, parameter-table value or vertex-list entry that is blank or not a number stops the run with its location named and leaves every output sheet empty; **Clear outputs** and a failed run restore the template's output headers and note (#41, #45, #85) |
-| Excel acceptance checks | `python3 -m pytest tests/test_acceptance.py`, `python3 tools/build_acceptance_data.py --check` | `TEST_Acceptance`, run in LibreOffice, passes these checks: the sample run, the failed-run and Clear outputs state, numeric text, the rejection of undefined sub-types with their messages, and the invalid-row variant against the reference; the Excel-only window and column checks report SKIPPED. Its data module is current. `tools/Check-FRTB-Excel.ps1` runs the same checks in desktop Excel (#274); they passed there on `1badef1` |
+| Excel acceptance checks | `python3 -m pytest tests/test_acceptance.py`, `python3 tools/build_acceptance_data.py --check` | `TEST_Acceptance`, run in LibreOffice, passes these checks: the sample run, the failed-run and Clear outputs state, numeric text, the rejection of undefined sub-types with their messages, and the absence of dates after a sample run, and the invalid-row variant against the reference; the Excel-only window, column, displayed-value and sheet-view checks report SKIPPED. Its data module is current. `tools/Check-FRTB-Excel.ps1` runs the same checks in desktop Excel (#274); they passed there on `1badef1`, and with the displayed-value, date and sheet-view checks on `308cbc6` |
 | Unattended check and recorder scripts | `python3 -m pytest tests/test_check_excel_script.py tests/test_record_excel_run.py` | `tools/Check-FRTB-Excel.ps1` parses in PowerShell 7, stops with exit code 2 before writing anything when a tool is missing, and keeps what its help promises: the Trust Center handling, the watchdog and the launcher timeouts; `tools/compare_templates.py` lists template differences; `tools/record_excel_run.py` writes `host.json` from the logs only. No test runs Excel |
 | In-workbook regression test | run inside the reconciliation tests | `Test_RunRegression` passes all 52 items embedded by `M_Setup` |
 | Expected values current | `python3 tools/update_expected.py --check` | The values embedded in `M_Setup` equal the reference results for the sample |
@@ -38,8 +38,8 @@ REQUIRE_LIBREOFFICE=1 python3 -m pytest -v tests
 LibreOffice Calc and the Python UNO bridge (`python3-uno` on Debian/Ubuntu)
 are required for the reconciliation tests; without them those tests are
 skipped unless `REQUIRE_LIBREOFFICE=1` is set. The `Prototype checks`
-workflow runs the same commands on pull requests into `main` and `release/**`
-that change `src/`, `tests/`, `tools/`, `.github/requirements.txt`,
+workflow runs the same commands on pull requests into any branch, stacked
+ones included (#320), that change `src/`, `tests/`, `tools/`, `.github/requirements.txt`,
 `.github/requirements.in` or the workflow itself. The universal
 `Repository integrity` check runs on every pull request; other workflows,
 such as the label checks, have path filters of their own.
@@ -77,11 +77,15 @@ macros and saves the result as `.xlsx`.
     autofilters, the `Control` descriptions and the invalid-row variant), the
     `-FromSource` and `-Template` builds, the build's Trust Center error path,
     and the synchronization of #72 in both modes, from a folder, on failure
-    and through its two launchers.
+    and through its two launchers;
+  * the same [check](evidence/2026-11-15-excel-check-308cbc6.md) on `308cbc6`, 24 of 24
+    PASS: all of the above, with Microsoft Print to PDF as the printer for
+    the run (#305), the displayed values, dates and view of every sheet, and
+    a picture of each sheet before and after a sample run, which show the
+    fixes of the formatting review (#206, #316, #326).
 
-  A change after `1badef1` needs a new run; the check's switch to Microsoft
-  Print to PDF (#305) came after it. Not yet run in Excel: `Dev_ExportModules`,
-  and the formatting review of every sheet (#206). Other Excel versions,
+  A change after `308cbc6` needs a new run. Not yet run in Excel:
+  `Dev_ExportModules`, and printing. Other Excel versions,
   32-bit Excel and other regional settings, such as the period decimal
   separator, are untested.
 * **Regulatory correctness.** The reference and the VBA share the same

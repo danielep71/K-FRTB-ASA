@@ -94,6 +94,15 @@ End Function
 ' Clears everything from the table header row down, keeping the banner rows.
 Public Sub ClearTableArea(ByVal ws As Object)
     ws.Range(ws.Cells(LAYOUT_HEADER_ROW, 1), ws.Cells(ws.Rows.Count, 60)).Clear
+    ' Clear resets the cells to the Normal style, Arial at the bottom of the
+    ' cell. Every cell of the workbook is Aptos and vertically centered, as
+    ' ApplyFrame sets the whole sheet, so restore both, by column (#206)
+    On Error Resume Next
+    With ws.Range(ws.Columns(1), ws.Columns(60))
+        .Font.Name = FONT_NAME
+        .VerticalAlignment = -4108                           'xlCenter
+    End With
+    On Error GoTo 0
 End Sub
 
 '------------------------------------------------------------------------------
@@ -712,6 +721,7 @@ Public Sub WriteOutputPlaceholder(ByVal ws As Object, _
             .Font.Color = COLOR_WHITE
             .Interior.Color = COLOR_OUTPUT_HEADER
             .WrapText = True
+            .VerticalAlignment = -4108                       'as the obligor table (#206)
             .HorizontalAlignment = -4108
         End With
         On Error GoTo 0
