@@ -141,6 +141,20 @@ class DependencyTests(unittest.TestCase):
         self.assertEqual(rules([issue(2, "P3", BLOCKED_LABEL, body=blocked_by(7))]),
                          [(2, "dependencies"), (2, "blocked")])
 
+    def test_an_empty_dependency_section_is_a_finding(self) -> None:
+        # The heading alone, a form's _No response_ or a comment says nothing (#332)
+        heading = "## Dependencies and blocking status\n"
+        for body in (heading, heading + "\n_No response_\n", heading + "\n<!-- fill in -->\n\n## Next\n\nx\n",
+                     heading + "\n_No response_\n\n## Notes\n\nNone of this.\n"):
+            with self.subTest(body=body):
+                found = check_issues.audit([issue(1, body=body)], {1: "open"}, REPOSITORY, assignee="triage-person")
+                self.assertEqual([(f.number, f.rule) for f in found], [(1, "dependencies")])
+                self.assertIn("empty dependency section", found[0].message)
+        for body in (heading + "\nNone.\n", heading + "\n- External condition: the host\n", READY):
+            with self.subTest(body=body):
+                self.assertNotIn((1, "dependencies"), rules([issue(1, BLOCKED_LABEL if "External" in body else "P3",
+                                                                   body=body)]))
+
     def test_self_reference_is_ignored(self) -> None:
         self.assertEqual(rules([issue(2, "P3", body=blocked_by(2))]), [])
 
