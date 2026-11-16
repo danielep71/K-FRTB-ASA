@@ -136,6 +136,22 @@ def test_workbook_layout(lo_default_run):
     assert lo_default_run.sheetnames == expected
 
 
+def test_rewritten_outputs_keep_the_workbook_style(lo_default_run):
+    # Clear outputs resets the cells to the Normal style; every output cell a
+    # run writes is Aptos, vertically centered, under a navy header (#206)
+    for name in ("Results", "Out_Summary", "Out_RiskClass", "Out_Buckets", "Out_DRC", "Log"):
+        ws = lo_default_run[name]
+        assert ws["C5"].fill.fgColor.rgb == "FF1F3864", name
+        for row in ws.iter_rows(min_row=5, max_row=min(ws.max_row, 40), min_col=FIRST_COL, max_col=FIRST_COL + 5):
+            for cell in row:
+                if cell.value not in (None, ""):
+                    assert cell.font.name == "Aptos", (name, cell.coordinate, cell.font.name)
+                    assert cell.alignment.vertical == "center", (name, cell.coordinate)
+    results = lo_default_run["Results"]
+    binding = [c for c in results["C"] if c.value == "Binding correlation scenario"][0]
+    assert results.cell(binding.row, FIRST_COL + 2).alignment.horizontal == "right"
+
+
 # --------------------------------------------------------------------------
 # Parameters written by M_Setup vs the independently typed defaults
 # --------------------------------------------------------------------------

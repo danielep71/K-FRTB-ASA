@@ -87,7 +87,7 @@ Public Sub RunSBM()
     LoadCurvature
     ComputeComponent COMP_CURV
 
-    FormatDataRows GetSheet(SH_OUT_BUCKETS), LAYOUT_FIRST_DATA_ROW, mOutRow, 8, 5, "#,##0", False
+    FormatBucketOutput
     WriteRiskClassOutput
 End Sub
 
@@ -811,6 +811,17 @@ Private Sub ResetBucketOutput()
     mOutRow = LAYOUT_HEADER_ROW
 End Sub
 
+' Bucket codes are text (EUR) or numbers (16): one alignment for the column (#206).
+Private Sub FormatBucketOutput()
+    Dim ws As Object
+    Set ws = GetSheet(SH_OUT_BUCKETS)
+    FormatDataRows ws, LAYOUT_FIRST_DATA_ROW, mOutRow, 8, 5, "#,##0", False
+    If mOutRow < LAYOUT_FIRST_DATA_ROW Then Exit Sub
+    On Error Resume Next
+    ws.Range(TableCell(ws, LAYOUT_FIRST_DATA_ROW, 4), TableCell(ws, mOutRow, 4)).HorizontalAlignment = -4108
+    On Error GoTo 0
+End Sub
+
 Private Sub WriteBucketRow(ByVal rc As String, ByVal comp As Long, ByVal scen As Long, ByVal bucket As String, _
                            ByVal kb As Double, ByVal sb As Double, ByVal nRF As Long, ByVal note As String)
     Dim ws As Object
@@ -847,4 +858,7 @@ Private Sub WriteRiskClassOutput()
         Next c
     Next i
     FormatDataRows ws, LAYOUT_FIRST_DATA_ROW, r, 6, 4, "#,##0", False
+    On Error Resume Next
+    ws.Range(TableCell(ws, LAYOUT_FIRST_DATA_ROW, 6), TableCell(ws, r, 6)).HorizontalAlignment = -4108   'Y/N flags (#206)
+    On Error GoTo 0
 End Sub

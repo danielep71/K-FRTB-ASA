@@ -7,6 +7,32 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- Security settings now match the template baseline (#334):
+  - **`SECURITY.md`:** states best-effort targets for a private report:
+    acknowledgement within 5 business days, a first assessment within 10,
+    and a status update at least every 14 days. They are not a service
+    level.
+  - **CodeQL:** a versioned workflow replaces GitHub's default setup. It
+    analyzes Actions, JavaScript/TypeScript and Python with the
+    `security-extended` suite, so the label scripts are analyzed too and
+    the configuration can be rebuilt from a commit.
+
+- Repository automation now matches the template baseline (#330):
+  - **PR milestones:** the workflow reads each PR back after removing its
+    milestone, fails if one remains, and lists the removals in the job
+    summary.
+  - **Labels:** label reconciliation declares `pull-requests: read`. A
+    dry run lists the deletions still used by an issue or PR, and both the
+    dry run and the refusal name up to ten of those issues and PRs.
+  - **Dependabot:** version updates wait 14 days after a release, and the
+    integrity gate requires it.
+
+- The unattended check of November 15, 2026 on `308cbc6` passed 24 of 24 in
+  desktop Excel, with the formatting review of every sheet and its fixes
+  (#206). Its record is `docs/evidence/2026-11-15-excel-check-308cbc6.md`. The 22 sheet
+  screenshots are in `docs/assets/screenshots/`, four of them in the README,
+  and the status documents name the run.
+
 - The unattended Excel check makes Microsoft Print to PDF the default
   printer for the run and restores the operator's default printer at the
   end, also when the run fails, so Excel does not wait on a slow printer
@@ -372,6 +398,47 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- Two tools now match the template baseline (#332):
+  - **Issue triage:** the audit reports a dependency section that is empty
+    or holds only `_No response_`.
+  - **Traffic history:** each daily metric and each day's snapshot record the
+    newest collection that observed them, besides the one that last changed
+    them. A collection replayed out of order no longer replaces values a
+    later collection observed. Earlier files are read with the new columns
+    blank and upgraded on the next merge.
+
+- `M_Setup` compiles in desktop Excel again. #326 declared two module
+  constants after the first procedures, which Excel rejects ("Only comments
+  may appear after End Sub") and LibreOffice accepts. They now stand in the
+  module constants. `tools/vba_lint.py` reports any module-level code after
+  a procedure (#327).
+
+- The sheet review in desktop Excel (#206) found these faults, now fixed:
+  - **Fonts and alignment:** a run or **Clear outputs** left the rewritten
+    output cells in Arial at the bottom of the cell, the template's Normal
+    style. Every cell is again Aptos and vertically centered.
+  - **Headers:** output tables have the same navy header as the other
+    sheets.
+  - **Input formats:** amounts showed a trailing decimal separator in Excel
+    (`5.000.000,`). They now show two decimals, and tenors and maturities
+    in years one to three.
+  - **Wrapped descriptions:** the bucket descriptions of `P_CSR` and `P_EQ`
+    lost their second line in Excel. Their rows now get the height of the
+    lines they need, counted the same way on every host.
+  - **Results and outputs:** the "Capital requirement" rule spans its table;
+    the binding scenario is right-aligned with the amounts, and its SBM
+    total is navy rather than red. The flags of `Out_RiskClass` and the
+    buckets of `Out_Buckets` are centered, and the bucket table of
+    `Out_DRC` is centered vertically before a run.
+  - **Divisor:** `SPECIFIED_DIVISOR` shows four decimals.
+
+- The unattended Excel check no longer reports a wrapped Trust Center
+  message as missing: it matches the message in the log whatever line
+  breaks the console put inside it. A sheet picture whose paste came out
+  empty is copied again, up to four times, and is reported as not taken if
+  it stays blank, so a blank picture is never counted. The check of
+  November 15, 2026 on `7aaa47e` showed both faults (#324).
+
 - `tools\Build-Workbook.ps1` turns Excel alerts off again after the
   workbook's macros have run and before it saves. The macros turn alerts
   back on when they finish, so the `-Template` save as `.xlsx` waited on a
@@ -516,6 +583,27 @@ Unreleased describe integrated work, not a published version.
   code changed (#59).
 
 ### Added
+
+- A synchronization pull request needs no new automated review when its head
+  is the integration merge commit, its diff against the release branch is
+  empty, and the integration's final-head review covered the same tree. Its
+  record names that review; the required check still runs. A synchronization
+  that changes any file is reviewed as usual (#321).
+
+- `Repository integrity` and `Prototype checks` run on pull requests into any
+  branch, so a pull request stacked on another task branch is checked before
+  it merges into it. Pushes still run `Repository integrity` only on `main`
+  and `release/**`. `tools/check_repository.py` now fails when a workflow's
+  branch filter leaves out `main`, the default branch the filters name. It
+  also fails when the integrity triggers change or its job gets a condition
+  (#320).
+
+- The unattended Excel check helps the review of the sheets (#206, #316).
+  After a sample run, `TEST_Acceptance` checks that no cell holds a date,
+  in Excel and in LibreOffice, and, in Excel only, that no cell displays
+  `####` and that every sheet has its gridlines off and the tab color of its
+  group. `Check-FRTB-Excel.ps1` then takes a picture of every sheet, after
+  Clear outputs and after a sample run, into the folder `sheets` of its zip.
 
 - `docs/FRTB-SA_methodology_guide.pdf`, a 78-page methodology guide to the
   standardized approach as the workbook implements it (#311). It follows the
