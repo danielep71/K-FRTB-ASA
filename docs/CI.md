@@ -224,16 +224,18 @@ version updates. The temporary maintenance successor was approved in
 [#51](https://github.com/danielep71/K-FRTB-ASA/issues/51#issuecomment-6254417218)
 on October 18, 2026, and the entries moved to `release/v0.2.0` with the
 integration branch on October 27 (#118); the configuration was activated
-on main through #120.
+on main through #120. They moved to `release/v0.3.0` when milestone 2 closed
+on November 16, 2026 (#342); version updates follow once the configuration
+reaches main.
 PRs have no milestone under the issue-only policy (#104).
 The setup branch `release/v0.0.1` receives no version-update
 PRs; it was deleted after the closeout (#62):
 
 | Ecosystem and manifest location | Version-update PR target |
 | --- | --- |
-| GitHub Actions, `/` | `release/v0.2.0` |
-| pip, `/.github` (`requirements.txt`: PyYAML configuration parser; `requirements-quality.txt`: Ruff, mypy and stubs) | `release/v0.2.0` |
-| pip, `/tests` (`requirements.txt`: prototype NumPy, openpyxl, pytest) | `release/v0.2.0` |
+| GitHub Actions, `/` | `release/v0.3.0` |
+| pip, `/.github` (`requirements.txt`: PyYAML configuration parser; `requirements-quality.txt`: Ruff, mypy and stubs) | `release/v0.3.0` |
+| pip, `/tests` (`requirements.txt`: prototype NumPy, openpyxl, pytest) | `release/v0.3.0` |
 
 The two previous Actions entries are consolidated into one. Both pip
 manifest locations remain covered; no dependency is copied into the historical

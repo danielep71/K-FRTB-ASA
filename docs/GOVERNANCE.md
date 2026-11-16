@@ -13,31 +13,29 @@ This document owns branch, issue, review, and milestone procedures.
 
 ## Branches
 
-The active integration branch is **`release/v0.2.0`** for the ASA prototype
-and repository maintenance, milestone 2. I approved it on
-October 27, 2026, after the milestone renumbering, and it was created from
+The active integration branch is **`release/v0.3.0`**, for milestone 3,
+v0.3.0 — Regulatory baseline and certification scope, and for repository
+maintenance. Its work includes the review, for the certified scope, of the
+methodology readings I decided under #29 on October 27, 2026. I approved the
+branch on October 28, 2026, and it was created from
+`69e3df35781fc2e8a13bb523059d596d9da08150`, then the head of both main and
+`release/v0.2.0` (#132). It took over repository maintenance and the
+Dependabot version updates when milestone 2 closed on November 16, 2026
+(#342).
+
+**`release/v0.2.0`** was the integration branch for the ASA prototype and
+repository maintenance, milestone 2. I approved it on October 27, 2026,
+after the milestone renumbering, and it was created from
 `0eb819b92e6f627099ceb1400c15ebb4404e385b`, then the head of both main and
-`release/v0.1.0` (#117).
-
-**`release/v0.3.0`** is the integration branch for milestone 3, v0.3.0 —
-Regulatory baseline and certification scope. Its work includes the review,
-for the certified scope, of the methodology readings I decided under #29 on
-October 27, 2026. I approved the branch on October 28, 2026, and it was
-created from `69e3df35781fc2e8a13bb523059d596d9da08150`, then the head of
-both main and `release/v0.2.0` (#132). It runs alongside `release/v0.2.0`,
-which keeps the prototype closeout and repository maintenance; bring
-`release/v0.2.0` or main into it with a merge commit when it needs their
-changes.
-
-**`release/v0.1.0`** is superseded: no PR targets it. It was approved for the
+`release/v0.1.0` (#117). **`release/v0.1.0`** preceded it: approved for the
 prototype on October 17, 2026 and created from main at
 `d150d3822d5d50f69aabfca153bf6d302e80f2e4` (the integration of #18);
 maintenance joined it on October 18
 ([decision in #51](https://github.com/danielep71/K-FRTB-ASA/issues/51#issuecomment-6254417218)).
-Its whole history is in `release/v0.2.0` and on main. It is deleted under the
-[release-branch lifecycle](#release-branch-lifecycle) once milestone 2 is
-closed. Dependabot version updates target `release/v0.2.0` since #118,
-activated on main through #120.
+Milestone 2 closed on November 16, 2026 (#32), and both branches are fully
+integrated into main (#340). They are obsolete: no PR targets them, and they
+are deleted under the [release-branch lifecycle](#release-branch-lifecycle)
+(#342).
 
 The setup milestone, v0.1.0 — Repo setup (first named v0.0.1), is closed. The integration branch
 **`release/v0.0.1`** was deleted on October 18, 2026 (#62). Its closeout head
@@ -47,15 +45,13 @@ setup baseline. Do not recreate or target the branch.
 
 | Branch | Purpose and allowed changes |
 | --- | --- |
-| `release/v0.2.0` | Active integration branch for the ASA prototype and repository maintenance, milestone 2 |
-| `release/v0.3.0` | Integration branch for milestone 3 work, approved October 28, 2026 (#132) |
-| `release/v0.1.0` | Superseded on October 27, 2026; receives no PRs; deleted under the lifecycle once milestone 2 is closed |
+| `release/v0.3.0` | Active integration branch for milestone 3 and repository maintenance, approved October 28, 2026 (#132, #342) |
+| `release/v0.2.0`, `release/v0.1.0` | Obsolete since milestone 2 closed on November 16, 2026; receive no PRs; deleted under the lifecycle (#342) |
 | `main` | Stable default branch; receives an integration branch only through a separate explicitly requested PR |
 | Short-lived task branches | Branch from the integration branch of the issue's milestone; use focused names with one of the prefixes `feat/`, `fix/`, `docs/`, `chore/` or `test/`, such as `fix/<issue>-<slug>` |
 
-Current prototype and maintenance task PRs target **`release/v0.2.0`**,
-including Dependabot version updates. Milestone 3 task PRs target
-**`release/v0.3.0`**. Any later milestone needs its own explicitly approved
+Milestone 3 and repository maintenance task PRs target **`release/v0.3.0`**,
+including Dependabot version updates. Any later milestone needs its own explicitly approved
 integration branch. Task PRs are squash-merged after applicable
 checks pass and review findings are resolved, all on the PR's final head:
 record that head's SHA, its CI result and each review's kind, result and
@@ -286,7 +282,7 @@ Issue #6 recorded initial default-branch activation of forms and the PR
 template; later changes follow the same activation procedure. [Conduct](../CODE_OF_CONDUCT.md) and [security](../SECURITY.md)
 policies define the reporting routes.
 Dependabot targets Actions, the CI parser and quality tools, and the prototype test packages at
-`release/v0.2.0` without PR milestones, as detailed in [Repository checks](CI.md).
+`release/v0.3.0` without PR milestones, as detailed in [Repository checks](CI.md).
 Issue #8 completed the setup closeout; its record is
 [Setup closeout](evidence/2026-10-18-setup-closeout.md).
 

@@ -152,15 +152,14 @@ need to **check** an FRTB-SA number:
 
 ## 1. Clone and check
 
-Prototype and repository maintenance integrate on **`release/v0.2.0`**,
-milestone 2, **v0.2.0 — ASA prototype**. The milestones were renumbered on
-October 27, 2026, and `release/v0.2.0` superseded `release/v0.1.0` the same
-day. The setup branch `release/v0.0.1` was deleted after the setup closeout
-(milestone 1, now **v0.1.0 — Repo setup**); its history is on main. See
-[branch governance](docs/GOVERNANCE.md).
+Work integrates on **`release/v0.3.0`**, milestone 3, **v0.3.0 —
+Regulatory baseline and certification scope**, which also takes repository
+maintenance since milestone 2, **v0.2.0 — ASA prototype**, closed on
+November 16, 2026 (#342). The earlier release branches are obsolete and their
+history is on main. See [branch governance](docs/GOVERNANCE.md).
 
 ```sh
-git clone --branch release/v0.2.0 https://github.com/danielep71/K-FRTB-ASA.git
+git clone --branch release/v0.3.0 https://github.com/danielep71/K-FRTB-ASA.git
 cd K-FRTB-ASA
 python3 tools/vba_lint.py
 ```

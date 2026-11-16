@@ -2,10 +2,11 @@
 
 ## Current stage
 
-Repository setup (v0.1.0 — Repo setup) is closed. The active workstream is the
-ASA prototype and repository maintenance on release/v0.2.0, milestone 2,
-v0.2.0 — ASA prototype (#117).
-Main and release/v0.2.0 contain the setup controls, Excel/VBA prototype,
+Repository setup (v0.1.0 — Repo setup) and the ASA prototype (v0.2.0 — ASA
+prototype) are closed. The active workstream is milestone 3, v0.3.0 —
+Regulatory baseline and certification scope, with repository maintenance, on
+release/v0.3.0 (#342).
+Main and release/v0.3.0 contain the setup controls, Excel/VBA prototype,
 committed macro-free template and independent Python reference.
 The setup branch release/v0.0.1 was deleted after the closeout; its history
 is on main. No functional release or regulatory certification has been
@@ -61,9 +62,10 @@ execution is a distinct compatibility runtime.
 Maintenance tooling uses Node built-ins and Python with a pinned CI parser;
 the prototype test environment has its own packages. These are documented in
 [Repository checks](CI.md) and do not select the long-term engine platform.
-[Governance](GOVERNANCE.md) assigns current prototype and maintenance work
-to release/v0.2.0, milestone 2 (v0.2.0); it superseded release/v0.1.0, and the setup
-branch release/v0.0.1 was deleted (#62). Source and evidence placement follow the
+[Governance](GOVERNANCE.md) assigns current work and repository maintenance
+to release/v0.3.0, milestone 3 (#342); release/v0.1.0 and release/v0.2.0 are
+obsolete since milestone 2 closed, and the setup branch release/v0.0.1 was
+deleted (#62). Source and evidence placement follow the
 [structure policy](REPOSITORY_STRUCTURE.md).
 
 ## Source and validation policy

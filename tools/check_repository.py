@@ -401,13 +401,13 @@ def validate_controls(root: Path) -> None:
     if updates["version"] != 2:
         raise ValueError("Dependabot requires version 2")
     expected = {
-        ("github-actions", "/", "release/v0.2.0"),
-        ("pip", "/.github", "release/v0.2.0"),
-        ("pip", "/tests", "release/v0.2.0"),
+        ("github-actions", "/", "release/v0.3.0"),
+        ("pip", "/.github", "release/v0.3.0"),
+        ("pip", "/tests", "release/v0.3.0"),
     }
     actual = [(item["package-ecosystem"], item["directory"], item["target-branch"]) for item in updates["updates"]]
     if set(actual) != expected or len(actual) != len(expected):
-        raise ValueError("Dependabot must cover Actions, CI parser and prototype packages once each on release/v0.2.0")
+        raise ValueError("Dependabot must cover Actions, CI parser and prototype packages once each on release/v0.3.0")
     for item in updates["updates"]:
         if "milestone" in item:
             raise ValueError("Dependabot PRs must have no milestone setting")

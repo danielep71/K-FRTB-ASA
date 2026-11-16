@@ -8,11 +8,12 @@ Potential vulnerabilities follow [SECURITY.md](SECURITY.md). The editorial
 rules and the rules for automated assistants are in [AGENTS.md](AGENTS.md).
 
 Repository setup (milestone 1, v0.1.0 — Repo setup) is closed, and its branch
-`release/v0.0.1` was deleted (#62); its history is on main. The Excel/VBA ASA
-prototype and repository maintenance use `release/v0.2.0`, milestone 2,
-v0.2.0 — ASA prototype (#117); `release/v0.1.0` is superseded.
+`release/v0.0.1` was deleted (#62); its history is on main. The ASA prototype
+(milestone 2, v0.2.0 — ASA prototype) closed on November 16, 2026 (#32).
+Milestone 3 work and repository maintenance use `release/v0.3.0` (#342);
+`release/v0.1.0` and `release/v0.2.0` are obsolete.
 Read [scope and decisions](docs/SCOPE.md)
-before functional changes. The prototype is on main and release/v0.2.0 with a
+before functional changes. The prototype is on main and release/v0.3.0 with a
 committed macro-free template; desktop Excel runs are recorded on `323260b`
 and, with the unattended check `tools\Check-FRTB-Excel.cmd` (#274), on
 `1badef1` and on `308cbc6`, which also covers the formatting of every sheet
@@ -38,9 +39,8 @@ information and metadata explicitly: issues have milestones; PRs do not.
 
 ## Make a focused change
 
-1. Fetch the repository and branch from `origin/release/v0.2.0` for current
-   prototype or maintenance work (milestone 2), or from
-   `origin/release/v0.3.0` for milestone 3 work (#132). Later milestones need
+1. Fetch the repository and branch from `origin/release/v0.3.0` for
+   milestone 3 or maintenance work (#132, #342). Later milestones need
    an explicitly approved integration branch. Confirm the PR base explicitly.
 2. Reproduce the problem where applicable and make a focused change.
 3. Follow the root editing, ignore, and attribute policies. Do not include
@@ -59,7 +59,7 @@ For example:
 
 ```sh
 git fetch origin
-git switch -c docs/117-release-branch origin/release/v0.2.0
+git switch -c docs/342-release-branch origin/release/v0.3.0
 ```
 
 Use an imperative commit subject describing the change. Add a body when useful

@@ -169,7 +169,7 @@ def test_the_acceptance_entry_point_is_the_excel_one():
 def test_the_launcher_passes_the_branch_and_reports_each_exit_code():
     launcher = LAUNCHER.read_text(encoding="ascii")
     assert '-File "%SCRIPT%" -Branch "%BRANCH%"' in launcher
-    assert 'if not defined BRANCH set "BRANCH=release/v0.2.0"' in launcher
+    assert 'if not defined BRANCH set "BRANCH=release/v0.3.0"' in launcher
     for code, word in (("0", "PASS"), ("1", "FINDINGS")):
         assert f'"%RC%"=="{code}" (' in launcher and f"echo {word}:" in launcher
     assert "echo NOT STARTED:" in launcher

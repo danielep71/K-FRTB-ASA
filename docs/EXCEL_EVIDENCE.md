@@ -137,8 +137,8 @@ below gives the same bundle by hand.
 ## 🤖 Unattended check
 
 `tools\Check-FRTB-Excel.cmd` runs every Excel check of a branch with one
-double-click: `release/v0.2.0` by default, or the branch given as its first
-argument (#274). It passed 21 of 21 on `1badef1`
+double-click: `release/v0.3.0` by default (#342), or the branch given as its
+first argument (#274). It passed 21 of 21 on `1badef1`
 ([record](evidence/2026-11-12-excel-check-1badef1.md)) and 24 of 24 on
 `308cbc6` ([record](evidence/2026-11-15-excel-check-308cbc6.md)). It needs what the
 recorded run needs. It asks at most two questions, at the start:
