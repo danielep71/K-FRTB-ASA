@@ -233,8 +233,12 @@ manifest locations remain covered; no dependency is copied into the historical
 setup branch. The integrity gate rejects duplicate entries, retired or wrong
 targets, lost ecosystem/directory coverage and any `milestone` setting.
 There is no npm package manifest: the label scripts use Node built-ins. No npm updater or
-other absent ecosystem is configured. Each entry runs weekly, limits open
-PRs to five, assigns `danielep71`, and sets exactly P3 plus type labels.
+other absent ecosystem is configured. Each entry runs weekly, waits 14 days
+after a release before proposing a version (`cooldown: default-days: 14`),
+limits open PRs to five, assigns `danielep71`, and sets exactly P3 plus type
+labels. The weekly schedule does not replace the cooldown, and the integrity
+gate rejects an entry without it (#330). Security updates are not delayed by
+the cooldown.
 I still verify all metadata during triage and put any owning issue in the
 appropriate milestone.
 
@@ -262,9 +266,14 @@ The workflow runs trusted inline Python without checkout, third-party actions,
 PR code, PR text interpolation or custom secrets. Its token has only
 `pull-requests: write` for PR metadata updates and listing; all other
 permissions are absent. Each mutation first reads the live issues endpoint and
-refuses to modify an object without a `pull_request` marker. An unset milestone
-is a no-op. Offline fixtures exercise pagination, actual issue refusal,
-idempotence and error propagation against the workflow's inline implementation.
+refuses to modify an object without a `pull_request` marker. After each
+removal it reads the PR back with an independent GET and fails if a milestone
+remains; the PATCH response alone is not taken as proof. The job summary lists
+each PR changed with the title of the removed milestone, as data: backslashes,
+pipes and line breaks are neutralized (#330). An unset milestone is a no-op.
+Offline fixtures exercise pagination, actual issue refusal, idempotence, the
+read-back, the summary and error propagation against the workflow's inline
+implementation.
 
 Default-branch activation is required. My October 27 instruction
 to apply this rule to past and future PRs is recorded in #104; focused policy

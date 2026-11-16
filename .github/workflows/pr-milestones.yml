@@ -44,20 +44,29 @@ jobs:
           from urllib.request import Request, urlopen
 
           def reconcile(request, repository, event):
+              # Returns (PR number, removed milestone title) for each PR changed.
+              removed = []
+
               def clear(number):
                   # Verify the live object before mutating the issues endpoint.
                   item = request("GET", f"/repos/{repository}/issues/{number}")
                   if "pull_request" not in item:
                       raise ValueError("Refusing to change an issue")
                   if item.get("milestone") is not None:
+                      title = str((item.get("milestone") or {}).get("title", ""))
                       result = request("PATCH", f"/repos/{repository}/issues/{number}", {"milestone": None})
                       if result.get("milestone") is not None:
                           raise ValueError(f"PR #{number} still has a milestone")
+                      # Read the new state back, independently of the PATCH response.
+                      after = request("GET", f"/repos/{repository}/issues/{number}")
+                      if after.get("milestone") is not None:
+                          raise ValueError(f"PR #{number} still has a milestone")
+                      removed.append((number, title))
                       print(f"Removed milestone from PR #{number}")
 
               if "pull_request" in event:
                   clear(int(event["number"]))
-                  return
+                  return removed
               # Traverse the full unfiltered PR collection so mutations cannot
               # shift pagination. This includes closed and merged PRs and bots.
               for page in range(1, 101):
@@ -69,8 +78,20 @@ jobs:
                           clear(int(item["number"]))
                   if len(items) < 100:
                       print("PR milestone reconciliation complete")
-                      return
+                      return removed
               raise ValueError("PR pagination exceeded 100 pages")
+
+          def summary(removed):
+              # Milestone titles are data: one table cell each, with backslashes,
+              # pipes and line breaks neutralized.
+              def cell(text):
+                  return " ".join(text.replace("\\", "\\\\").replace("|", "\\|").splitlines())
+              lines = ["# PR milestone reconciliation", ""]
+              if not removed:
+                  return "\n".join(lines + ["No PR had a milestone.", ""])
+              lines += ["| PR | Removed milestone |", "| --- | --- |"]
+              lines += [f"| #{number} | {cell(title)} |" for number, title in removed]
+              return "\n".join(lines + [""])
 
           def main():
               repository = os.environ["GITHUB_REPOSITORY"]
@@ -88,7 +109,10 @@ jobs:
                   with urlopen(req, timeout=30) as response:
                       return json.load(response)
 
-              reconcile(request, repository, event)
+              text = summary(reconcile(request, repository, event))
+              if os.environ.get("GITHUB_STEP_SUMMARY"):
+                  with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as handle:
+                      handle.write(text)
 
           if __name__ == "__main__":
               main()

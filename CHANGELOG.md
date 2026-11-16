@@ -7,6 +7,16 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- Repository automation now matches the template baseline (#330):
+  - **PR milestones:** the workflow reads each PR back after removing its
+    milestone, fails if one remains, and lists the removals in the job
+    summary.
+  - **Labels:** label reconciliation declares `pull-requests: read`. A
+    dry run lists the deletions still used by an issue or PR, and both the
+    dry run and the refusal name up to ten of those issues and PRs.
+  - **Dependabot:** version updates wait 14 days after a release, and the
+    integrity gate requires it.
+
 - The unattended check of November 15, 2026 on `308cbc6` passed 24 of 24 in
   desktop Excel, with the formatting review of every sheet and its fixes
   (#206). Its record is `docs/evidence/2026-11-15-excel-check-308cbc6.md`. The 22 sheet
