@@ -323,7 +323,8 @@ independent-validation policy.
 
 Setup work and the prototype are integrated on main. Repository setup
 closeout is #8 and the release procedure is in [Releasing](RELEASING.md);
-prototype evaluation/closeout is #32. Traffic history is collecting daily
+the prototype closeout is #32, with its
+[closeout record](docs/evidence/2026-11-16-prototype-closeout.md). Traffic history is collecting daily
 (#23).
 
 ## 🏷️ Project name

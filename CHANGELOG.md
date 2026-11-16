@@ -5,6 +5,17 @@ Unreleased describe integrated work, not a published version.
 
 ## [Unreleased]
 
+### Added
+
+- The v0.2.0 prototype closeout record
+  ([`docs/evidence/2026-11-16-prototype-closeout.md`](docs/evidence/2026-11-16-prototype-closeout.md),
+  #32). It binds the Excel evidence of `308cbc6` to main at `be73867`,
+  whose workbook sources and template are the same, and records a
+  fresh-checkout run and the hosted checks. It reconciles the milestone's 96
+  issues, updates the interim evaluation's risks, limits and scope, and
+  leaves the platform decision to v0.3.0. The milestone guide, roadmap,
+  governance, scope and documentation index link it.
+
 ### Changed
 
 - Security settings now match the template baseline (#334):

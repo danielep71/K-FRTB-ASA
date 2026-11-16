@@ -32,6 +32,7 @@ procedures. Keep root entry documents linked rather than copying them here.
 | First desktop Excel run, on `323260b` | [Excel run](evidence/2026-10-31-excel-run-323260b.md) |
 | Unattended Excel check, on `1badef1` | [Excel check](evidence/2026-11-12-excel-check-1badef1.md) |
 | Unattended Excel check with the sheet review, on `308cbc6` | [Excel check](evidence/2026-11-15-excel-check-308cbc6.md) |
+| Prototype closeout, with the issue reconciliation | [Closeout record](evidence/2026-11-16-prototype-closeout.md) |
 | Recorded changes | [Changelog](../CHANGELOG.md) |
 
 Durable evidence records live in [evidence](evidence/) and milestone guides in
