@@ -7,6 +7,16 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- Security settings now match the template baseline (#334):
+  - **`SECURITY.md`:** states best-effort targets for a private report:
+    acknowledgement within 5 business days, a first assessment within 10,
+    and a status update at least every 14 days. They are not a service
+    level.
+  - **CodeQL:** a versioned workflow replaces GitHub's default setup. It
+    analyzes Actions, JavaScript/TypeScript and Python with the
+    `security-extended` suite, so the label scripts are analyzed too and
+    the configuration can be rebuilt from a commit.
+
 - Repository automation now matches the template baseline (#330):
   - **PR milestones:** the workflow reads each PR back after removing its
     milestone, fails if one remains, and lists the removals in the job

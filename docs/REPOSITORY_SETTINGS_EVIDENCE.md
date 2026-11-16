@@ -128,6 +128,11 @@ only because the required check had not run.
 | Dependabot security update PRs | Off | Remain off; version-update targets do not govern security PRs; changing this is a new explicit settings decision (CI.md). Superseded by #191: on since October 31, 2026 ([settings](REPOSITORY_SETTINGS.md#security)) |
 
 [CodeQL setup evidence](https://github.com/danielep71/K-FRTB-ASA/actions/runs/39070451926).
+A readback on November 16, 2026 showed the same default setup: Actions and
+Python, default suite, weekly. Its language list offered no
+JavaScript/TypeScript. #334 replaces it with the versioned workflow
+`.github/workflows/codeql.yml` (Actions, JavaScript/TypeScript and Python,
+`security-extended`), and the default setup is disabled.
 The detected language at setup was **GitHub Actions**, not an FRTB calculation
 engine. CodeQL setup and scan results do not certify calculation correctness.
 No paid feature or agentic autofix was enabled.
