@@ -12,10 +12,10 @@ Unreleased describe integrated work, not a published version.
     acknowledgement within 5 business days, a first assessment within 10,
     and a status update at least every 14 days. They are not a service
     level.
-  - **CodeQL:** `docs/CI.md` records that the default setup analyzes
-    Actions and Python only. It does not offer JavaScript, so the two label
-    scripts stay outside CodeQL. I chose to keep the default setup rather
-    than add a versioned workflow.
+  - **CodeQL:** a versioned workflow replaces GitHub's default setup. It
+    analyzes Actions, JavaScript/TypeScript and Python with the
+    `security-extended` suite, so the label scripts are analyzed too and
+    the configuration can be rebuilt from a commit.
 
 - Repository automation now matches the template baseline (#330):
   - **PR milestones:** the workflow reads each PR back after removing its

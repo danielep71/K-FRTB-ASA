@@ -130,8 +130,9 @@ only because the required check had not run.
 [CodeQL setup evidence](https://github.com/danielep71/K-FRTB-ASA/actions/runs/39070451926).
 A readback on November 16, 2026 showed the same default setup: Actions and
 Python, default suite, weekly. Its language list offered no
-JavaScript/TypeScript, so the label scripts are not analyzed. I kept the
-default setup rather than add a versioned workflow (#334, docs/CI.md).
+JavaScript/TypeScript. #334 replaces it with the versioned workflow
+`.github/workflows/codeql.yml` (Actions, JavaScript/TypeScript and Python,
+`security-extended`), and the default setup is disabled.
 The detected language at setup was **GitHub Actions**, not an FRTB calculation
 engine. CodeQL setup and scan results do not certify calculation correctness.
 No paid feature or agentic autofix was enabled.
