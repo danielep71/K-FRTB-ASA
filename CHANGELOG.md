@@ -7,6 +7,18 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- An optional FRTB-SA ribbon tab (#353). `tools\Build-Workbook.ps1 -Ribbon`
+  adds `src/ribbon/customUI14.xml` to the saved workbook with
+  `tools\Add-RibbonTab.ps1`, because Excel's object model saves no custom UI
+  part. The tab has **Run FRTB-SA**, **Clear outputs**, **Run regression test**
+  and a toggle for the navigation bar, each with a screen tip; the three
+  commands are disabled while a run is busy. The callbacks in `M_Main` each call
+  one procedure, `M_Setup.SetNavigationVisible` shows and hides the bar, and
+  `docs/ribbon.md` is the contract, which `tests/test_ribbon.py` checks against
+  the part and the code. The sheet buttons stay and a build without `-Ribbon` has
+  no tab. Desktop Excel has not opened a workbook with the tab: the issue stays
+  open until it does.
+
 - A catalogue of the 52 regression items on `Test_Expected` (#352). Each row
   has four more columns after `Status`: `Area`, `Description`, `Source` and
   `Source status`. The source names the MAR paragraphs of
