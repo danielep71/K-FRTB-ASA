@@ -40,6 +40,7 @@ module = [
     "test_excel_evidence",
     "test_input_validation",
     "test_key_highlights",
+    "test_test_catalogue",
     "test_numeric_contract",
     "test_record_excel_run",
     "test_reference",

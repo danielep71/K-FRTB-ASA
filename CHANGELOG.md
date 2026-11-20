@@ -7,6 +7,19 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- A catalogue of the 52 regression items on `Test_Expected` (#352). Each row
+  has four more columns after `Status`: `Area`, `Description`, `Source` and
+  `Source status`. The source names the MAR paragraphs of
+  `docs/methodology.md` and the independent reference, and the status says that
+  the parameters were checked against the BIS text and that the reading is not
+  independently reviewed (#29). `tools/test_catalogue.py` describes an item,
+  `tools/update_expected.py` writes the rows with the expected values, and an
+  item it cannot describe raises, so none lacks a row; `tests/test_test_catalogue.py`
+  checks the template. The subtitle says that agreement with the reference does
+  not prove the reading of the regulation. The regression result line, the 52
+  values and the PASS or FAIL marker per item are unchanged. The sheet pictures
+  and the README gallery are refreshed with the next Excel run.
+
 - A repeated key is highlighted, and `Log` names the row and the reference of
   every finding (#350). A key that repeats in the first column of a Key |
   Value table, which the run ignores with a warning, shows in red: the rule is

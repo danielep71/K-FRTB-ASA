@@ -218,7 +218,7 @@ empty template's extent.
 | Blue | `Out_Buckets` | `Kb`, `Sb`, risk factor count and notes (`ALT_SB`, `UP`/`DOWN`, `OTHER`) per bucket |
 | Blue | `Out_DRC` | Net long/short per obligor; HBR and charge per bucket |
 | Blue | `Log` | Every rejected input row with the reason, warnings and run status; `Row` and `Reference` name the sheet row and its ID |
-| Green | `Test_Expected` | Expected sample results, actual values and PASS/FAIL per item |
+| Green | `Test_Expected` | Expected sample results, actual values and PASS/FAIL per item, with the area, description, source and source status of each |
 
 Input sheets are read from row 6 down to the first row whose `ID` and
 `Risk class` (second) columns are both blank. Invalid rows are skipped and
