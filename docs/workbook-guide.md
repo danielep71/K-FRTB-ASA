@@ -250,15 +250,28 @@ the Excel check `KEY_HIGHLIGHTS` reads back.
 ### 🧭 Navigation
 
 The workbook opens on `Home`, which lists every sheet once with its role and a
-link to it. On every sheet, column A (22 wide) holds a bar of links grouped
-under START, INPUTS, PARAMETERS, OUTPUTS and TESTS & REFERENCE; the current
-sheet is the dark entry and the others are links. The bar is made of shapes,
+link to it. On every sheet, column A (22 wide, black) holds a bar of dark
+entries grouped under INPUTS, PARAMETERS, OUTPUTS, TESTS & REFERENCE and START,
+which ends the bar. A strip at the left of each entry has the color of the
+sheet's tab; the current sheet is the blue entry with white bold text and an
+amber strip, and the others are links. An entry is `262626` with `D9D9D9` Aptos
+9 pt text, a section label is amber 7 pt bold and a strip is 2.25 pt wide. The
+bar is made of shapes,
 which the macro-free template cannot hold: `tools/Build-Workbook.ps1` adds it
 through `M_Setup.AddNavigationBars` after `FinishWorkbook`, and the template
 save drops it. A workbook you update with `tools\Sync-FRTB-VBA.ps1` keeps its
 bar, and one built before the bar existed has none until you run
 `AddNavigationBars`. The unattended Excel check `NAVIGATION` reads the markers,
 the links and the list on `Home` back in Excel.
+
+The command buttons follow the same pattern, in the title bar of the sheet they
+act on and in Aptos 11 pt: **Run FRTB-SA**, **Clear outputs** and **Run
+regression test** on `Control`; **Run FRTB-SA** and **Clear outputs** on
+`Results`; **Clear outputs** on `Out_Summary`, `Out_RiskClass`, `Out_Buckets`,
+`Out_DRC` and `Log`; **Run regression test** on `Test_Expected`. `Load sample
+data` and `Reset parameters` have no button, because each overwrites what you
+typed; run them from the macro list. `NAVIGATION` also counts the buttons of
+every sheet.
 
 ### ✅ Data validation
 

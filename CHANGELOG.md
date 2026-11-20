@@ -88,6 +88,15 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The navigation bar and the command buttons get a dark style (#347). Column A is black on every sheet; the bar is a stack of dark entries
+  (`262626`, `D9D9D9` Aptos 9 pt) under amber section labels, with a strip in the
+  sheet's tab color at the left of each entry, and the current sheet is a blue
+  entry with white bold text and an amber strip. START, with `Home`, ends the
+  bar. The buttons sit in the title bar in Aptos 11 pt, 19.5 pt high, and each
+  output sheet has **Clear outputs**; `Test_Expected` has **Run regression
+  test**. `NAVIGATION` counts the buttons. The workbook guide describes both; the
+  sheet pictures and the README gallery are refreshed with the next Excel run.
+
 - Table headers are 11 pt bold, and data rows stay at 10 pt (#351).
   `CORE_Config.HEADER_FONT_SIZE` sets the header size for the input and
   parameter tables, the output tables and the placeholder headers that

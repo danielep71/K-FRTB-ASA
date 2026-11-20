@@ -247,6 +247,7 @@ Private Sub ApplyFrame(ByVal ws As Object, ByVal title As String, ByVal subtitle
     ws.Cells.Font.Size = 10
     ws.Cells.VerticalAlignment = -4108                       'xlCenter
     ws.Columns(1).ColumnWidth = LAYOUT_NAV_WIDTH
+    ws.Columns(1).Interior.Color = COLOR_BRAND_BAR           'the navigation bar sits on black (#347)
     ws.Columns(2).ColumnWidth = 4
     With ws.Range(ws.Cells(1, 1), ws.Cells(1, lastCol))
         .Interior.Color = COLOR_BRAND_BAR
@@ -323,17 +324,21 @@ End Function
 ' outputs, gold inputs and parameters. Set again by FinishWorkbook because
 ' not every host keeps it in the saved template.
 Private Sub ApplyTabColor(ByVal ws As Object)
-    Dim color As Long
-    Select Case True
-        Case ws.Name = SH_README, ws.Name = SH_HOME: color = TAB_REFERENCE
-        Case ws.Name = SH_TEST: color = TAB_TEST
-        Case ws.Name = SH_RESULTS, ws.Name = SH_LOG, Left$(ws.Name, 4) = "Out_": color = TAB_OUTPUT
-        Case Else: color = TAB_INPUT
-    End Select
     On Error Resume Next
-    ws.Tab.Color = color
+    ws.Tab.Color = RoleColor(ws.Name)
     On Error GoTo 0
 End Sub
+
+
+' The tab color of a sheet's role.
+Private Function RoleColor(ByVal sheetName As String) As Long
+    Select Case True
+        Case sheetName = SH_README, sheetName = SH_HOME: RoleColor = TAB_REFERENCE
+        Case sheetName = SH_TEST: RoleColor = TAB_TEST
+        Case sheetName = SH_RESULTS, sheetName = SH_LOG, Left$(sheetName, 4) = "Out_": RoleColor = TAB_OUTPUT
+        Case Else: RoleColor = TAB_INPUT
+    End Select
+End Function
 
 
 ' Writes values from column C. Text is stored as text, so that a reference
@@ -497,20 +502,62 @@ End Function
 
 
 ' Button in the subtitle row, slot-th (0-based) from the left edge of anchorCol.
-Private Sub AddButton(ByVal ws As Object, ByVal anchorCol As Long, ByVal slot As Long, _
-                      ByVal caption As String, ByVal macro As String)
-    Dim btn As Object
-    Set btn = Nothing
+' The command buttons of a sheet, as one row in its title bar, right-aligned to the bar and
+' never over the title: Aptos 11 pt, 19.5 pt high (#347).
+Private Sub AddButtonRow(ByVal ws As Object)
+    Dim buttons As Variant, i As Long, n As Long, total As Double, x As Double, barRight As Double
+    Dim titleEnd As Double, c As Long, btn As Object, widths() As Double
+    buttons = SheetButtons(ws.Name)
+    RemoveButtons ws
+    If IsEmpty(buttons) Then Exit Sub
     On Error Resume Next
-    With ws.Cells(LAYOUT_SUBTITLE_ROW, anchorCol)
-        Set btn = ws.Buttons.Add(.Left + 2 + slot * 130, .Top + 3, 124, 24)
-    End With
-    If Not btn Is Nothing Then
-        btn.Caption = caption
-        btn.OnAction = macro
-    End If
+    n = UBound(buttons) - LBound(buttons) + 1
+    ReDim widths(0 To n - 1)
+    For i = 0 To n - 1
+        widths(i) = 24 + 6.4 * Len(CStr(buttons(LBound(buttons) + i)(0)))
+        total = total + widths(i) + IIf(i < n - 1, 6, 0)
+    Next i
+    For c = 60 To 1 Step -1                                  'the right end of the title bar
+        If ws.Cells(2, c).Interior.Color = COLOR_TITLE_BAR Then
+            barRight = ws.Cells(2, c).Left + ws.Cells(2, c).Width
+            Exit For
+        End If
+    Next c
+    titleEnd = ws.Cells(2, 2).Left + 11 * Len(CStr(ws.Cells(2, 2).Value)) + 18
+    x = barRight - total - 8
+    If x < titleEnd Then x = titleEnd
+    For i = 0 To n - 1
+        Set btn = Nothing
+        Set btn = ws.Buttons.Add(x, ws.Cells(2, 1).Top + 3.5, widths(i), 19.5)
+        If Not btn Is Nothing Then
+            btn.Caption = CStr(buttons(LBound(buttons) + i)(0))
+            btn.OnAction = CStr(buttons(LBound(buttons) + i)(1))
+            btn.Placement = 3                                'xlFreeFloating
+            btn.Font.Name = FONT_NAME
+            btn.Font.Size = 11
+        End If
+        x = x + widths(i) + 6
+    Next i
     On Error GoTo 0
 End Sub
+
+
+' The buttons of a sheet, as Array(caption, macro) each, or Empty: the run and its
+' companions on Control and Results, Clear outputs on every output sheet, and the
+' regression test on its own sheet.
+Public Function SheetButtons(ByVal sheetName As String) As Variant
+    Dim runItem As Variant, clearItem As Variant, testItem As Variant
+    runItem = Array("Run FRTB-SA", "RunFRTB")
+    clearItem = Array("Clear outputs", "ClearOutputs")
+    testItem = Array("Run regression test", "Test_RunRegression")
+    Select Case True
+        Case sheetName = SH_CONTROL: SheetButtons = Array(runItem, clearItem, testItem)
+        Case sheetName = SH_RESULTS: SheetButtons = Array(runItem, clearItem)
+        Case sheetName = SH_LOG, Left$(sheetName, 4) = "Out_": SheetButtons = Array(clearItem)
+        Case sheetName = SH_TEST: SheetButtons = Array(testItem)
+        Case Else: SheetButtons = Empty
+    End Select
+End Function
 
 
 Private Sub RemoveButtons(ByVal ws As Object)
@@ -738,47 +785,63 @@ End Sub
 
 
 Private Sub AddNavigationBar(ByVal ws As Object)
-    Dim i As Long, entry As Variant, section As String, shp As Object
-    Dim x As Double, y As Double, w As Double, isCurrent As Boolean
+    Dim k As Long, i As Long, entry As Variant, section As String, shp As Object, mark As Object
+    Dim x As Double, y As Double, w As Double, isCurrent As Boolean, role As Long
     On Error Resume Next
     RemoveNavigation ws
-    x = ws.Cells(1, 1).Left + 4
-    w = ws.Columns(1).Width - 8
+    x = ws.Cells(1, 1).Left + 6
+    w = ws.Columns(1).Width - 12
     y = ws.Cells(LAYOUT_FIRST_DATA_ROW + 1, 1).Top           'below every frozen row
-    For i = 1 To NAV_COUNT
+    For k = 2 To NAV_COUNT + 1                               'Home, the first entry, comes last: the bar ends on START
+        i = IIf(k > NAV_COUNT, 1, k)
         entry = NavEntry(i)
         If CStr(entry(0)) <> section Then
             section = CStr(entry(0))
-            If i > 1 Then y = y + 6
-            Set shp = ws.Shapes.AddTextbox(1, x, y, w, 16)
+            If k > 2 Then y = y + 6
+            Set shp = ws.Shapes.AddTextbox(1, x, y, w, 12.75)
             shp.Name = "NavSection_" & Replace(section, " ", "_")
             shp.Placement = 3                                'xlFreeFloating
             shp.Fill.Visible = 0
             shp.Line.Visible = 0
+            shp.TextFrame.MarginLeft = 3
+            shp.TextFrame.MarginTop = 0
+            shp.TextFrame.MarginBottom = 1.5
+            shp.TextFrame.VerticalAlignment = -4107          'xlBottom
             shp.TextFrame.Characters.Text = section
-            shp.TextFrame.Characters.Font.Size = 8
+            shp.TextFrame.Characters.Font.Name = FONT_NAME
+            shp.TextFrame.Characters.Font.Size = 7
             shp.TextFrame.Characters.Font.Bold = True
-            shp.TextFrame.Characters.Font.Color = COLOR_SUBTITLE
-            y = y + 16
+            shp.TextFrame.Characters.Font.Color = COLOR_BRAND_TEXT
+            y = y + 13
         End If
         isCurrent = (CStr(entry(1)) = ws.Name)
-        Set shp = ws.Shapes.AddShape(1, x, y, w, 20)         'msoShapeRectangle
+        Set shp = ws.Shapes.AddShape(1, x, y, w, 15.75)      'msoShapeRectangle
         shp.Name = IIf(isCurrent, "Nav_Current", "Nav_" & CStr(entry(1)))
         shp.Placement = 3
-        shp.Fill.ForeColor.RGB = IIf(isCurrent, COLOR_INPUT_HEADER, COLOR_TOTAL_FILL)
+        shp.Fill.ForeColor.RGB = IIf(isCurrent, COLOR_TITLE_BAR, COLOR_NAV_ENTRY)
         shp.Line.Visible = 0
+        shp.TextFrame.MarginLeft = 9
+        shp.TextFrame.MarginTop = 0
+        shp.TextFrame.MarginBottom = 0
         shp.TextFrame.Characters.Text = CStr(entry(1))
         shp.TextFrame.Characters.Font.Name = FONT_NAME
         shp.TextFrame.Characters.Font.Size = 9
         shp.TextFrame.Characters.Font.Bold = isCurrent
-        shp.TextFrame.Characters.Font.Color = IIf(isCurrent, COLOR_WHITE, COLOR_INPUT_HEADER)
+        shp.TextFrame.Characters.Font.Color = IIf(isCurrent, COLOR_WHITE, COLOR_NAV_TEXT)
         shp.TextFrame.HorizontalAlignment = -4131            'xlLeft
         shp.TextFrame.VerticalAlignment = -4108              'xlCenter
         If Not isCurrent Then
             ws.Hyperlinks.Add shp, "", "'" & CStr(entry(1)) & "'!A1", "Go to " & CStr(entry(1))
         End If
-        y = y + 22
-    Next i
+        'A strip of the sheet's role color at the entry's left edge; amber on the current sheet
+        role = IIf(CStr(entry(1)) = SH_HOME Or CStr(entry(1)) = SH_README, RGB(143, 170, 220), RoleColor(CStr(entry(1))))
+        Set mark = ws.Shapes.AddShape(1, x, y, 2.25, 15.75)
+        mark.Name = "Nav_" & CStr(entry(1)) & "_Mark"
+        mark.Placement = 3
+        mark.Fill.ForeColor.RGB = IIf(isCurrent, COLOR_BRAND_TEXT, role)
+        mark.Line.Visible = 0
+        y = y + 17
+    Next k
     On Error GoTo 0
 End Sub
 
@@ -812,15 +875,11 @@ End Sub
 
 ' Removes and recreates the buttons of Control and Results.
 Private Sub AddWorkbookButtons()
-    Dim ws As Object
-    Set ws = GetSheet(SH_CONTROL)
-    RemoveButtons ws
-    AddButton ws, LAYOUT_FIRST_COL + 2, 0, "Run FRTB-SA", "RunFRTB"
-    AddButton ws, LAYOUT_FIRST_COL + 2, 1, "Clear outputs", "ClearOutputs"
-    AddButton ws, LAYOUT_FIRST_COL + 2, 2, "Run regression test", "Test_RunRegression"
-    Set ws = GetSheet(SH_RESULTS)
-    RemoveButtons ws
-    AddButton ws, LAYOUT_FIRST_COL + 5, 0, "Run FRTB-SA", "RunFRTB"
+    Dim names As Variant, i As Long
+    names = ManagedSheets()
+    For i = LBound(names) To UBound(names)
+        If SheetExists(CStr(names(i))) Then AddButtonRow GetSheet(CStr(names(i)))
+    Next i
 End Sub
 
 

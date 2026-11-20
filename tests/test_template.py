@@ -338,3 +338,11 @@ def test_a_workbook_with_every_cell_locked_gets_its_input_cells_unlocked(tmp_pat
                 if cell.protection.locked == filled:
                     wrong.append((ws.title, cell.coordinate))
     assert wrong == []
+
+
+def test_every_sheet_has_a_black_navigation_column():
+    """Column A holds the navigation bar on a black column (#347)."""
+    wb = openpyxl.load_workbook(build_template.TEMPLATE)
+    for ws in wb:
+        fill = ws.column_dimensions["A"].fill
+        assert fill.fill_type == "solid" and fill.fgColor.rgb == "FF000000", ws.title

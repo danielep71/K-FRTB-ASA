@@ -536,7 +536,7 @@ End Function
 ' link to each of the other sheets, which Load sample data and Reset
 ' parameters leave in place; and Home lists every sheet once.
 Private Function CheckNavigation(ByRef detail As String) As String
-    Dim names As Variant, i As Long, j As Long, ws As Object, problems As String, n As Long
+    Dim names As Variant, i As Long, j As Long, ws As Object, problems As String, n As Long, buttons As Variant
     If Not mInExcel Then
         detail = "Excel only: the bar of shapes and links that Excel builds"
         CheckNavigation = "SKIPPED"
@@ -561,7 +561,17 @@ Private Function CheckNavigation(ByRef detail As String) As String
             problems = problems & "Home does not list " & names(i) & " once; "
         End If
     Next i
-    detail = IIf(problems = "", n & " sheets, each with a marker and " & (n - 1) & " links, all listed on Home", problems)
+    For i = LBound(names) To UBound(names)
+        Set ws = GetSheet(CStr(names(i)))
+        buttons = SheetButtons(ws.Name)
+        If IsEmpty(buttons) Then                             'IIf would evaluate UBound of Empty too
+            j = 0
+        Else
+            j = UBound(buttons) - LBound(buttons) + 1
+        End If
+        If ws.Buttons.Count <> j Then problems = problems & ws.Name & " has " & ws.Buttons.Count & " buttons, not " & j & "; "
+    Next i
+    detail = IIf(problems = "", n & " sheets, each with a marker and " & (n - 1) & " links, all listed on Home; the buttons as set", problems)
     CheckNavigation = IIf(problems = "", "PASS", "FAIL")
 End Function
 
