@@ -14,15 +14,20 @@ Attribute VB_Name = "M_Main"
 '   headers and a note, as in a new workbook.
 '   LastRunStatus: "OK" or the error of the last run.
 '   OutSummaryValue: a value of Out_Summary by item name.
+'   Ribbon_OnLoad, Ribbon_Run, Ribbon_Clear, Ribbon_Test, Ribbon_IsIdle,
+'   Ribbon_ToggleNav, Ribbon_NavShown: the callbacks of the FRTB-SA ribbon tab
+'   (src/ribbon/customUI14.xml, docs/ribbon.md). Each calls one procedure and holds no logic.
 '
 ' DEPENDENCIES
 '   CORE_Params, CORE_SBM, CORE_DRC, CORE_RRAO for the calculation;
 '   CORE_Util and CORE_Config for sheets, layout, palette and the log.
+'   M_Setup for the navigation toggle of the ribbon (SetNavigationVisible).
 '
 ' STATE OWNERSHIP
 '   Each run captures screen updating and calculation mode, changes them
 '   for the run and restores the captured values on success and failure.
-'   Owns the status of the last run (mLastStatus).
+'   Owns the status of the last run (mLastStatus), whether a run is busy (mBusy)
+'   and the ribbon object the busy state invalidates (mRibbon).
 '
 ' ERROR POLICY
 '   A run error is logged, stored in LastRunStatus, noted on Results and
@@ -55,6 +60,8 @@ Private Const XL_CALCULATION_MANUAL As Long = -4135           'xlCalculationManu
 '                               MODULE STATE
 '------------------------------------------------------------------------------
 Private mLastStatus As String                                'OK or the error of the last run
+Private mBusy As Boolean                                     'True while a run is in progress; the ribbon disables its commands
+Private mRibbon As Object                                    'IRibbonUI of the FRTB-SA tab, set by Ribbon_OnLoad
 
 '------------------------------------------------------------------------------
 '                              BUTTON MACROS
@@ -75,6 +82,15 @@ End Sub
 
 Public Sub RunFRTB_Silent()
     ExecuteRun
+End Sub
+
+
+' Marks a run as busy or idle and has the ribbon read its enabled states again.
+Private Sub SetBusy(ByVal busy As Boolean)
+    mBusy = busy
+    On Error Resume Next
+    If Not mRibbon Is Nothing Then mRibbon.Invalidate
+    On Error GoTo 0
 End Sub
 
 
@@ -119,6 +135,43 @@ Private Sub ClearResultSheets(ByVal resultsNote As String, ByVal isAlert As Bool
 End Sub
 
 '------------------------------------------------------------------------------
+'                           RIBBON CALLBACKS (#353)
+'------------------------------------------------------------------------------
+Public Sub Ribbon_OnLoad(ByVal ribbon As Object)
+    Set mRibbon = ribbon
+End Sub
+
+
+Public Sub Ribbon_Run(ByVal control As Object)
+    RunFRTB
+End Sub
+
+
+Public Sub Ribbon_Clear(ByVal control As Object)
+    ClearOutputs
+End Sub
+
+
+Public Sub Ribbon_Test(ByVal control As Object)
+    Application.Run "Test_RunRegression"
+End Sub
+
+
+Public Sub Ribbon_IsIdle(ByVal control As Object, ByRef returnedVal As Variant)
+    returnedVal = Not mBusy
+End Sub
+
+
+Public Sub Ribbon_ToggleNav(ByVal control As Object, ByVal pressed As Boolean)
+    SetNavigationVisible pressed
+End Sub
+
+
+Public Sub Ribbon_NavShown(ByVal control As Object, ByRef returnedVal As Variant)
+    returnedVal = NavigationVisible()
+End Sub
+
+'------------------------------------------------------------------------------
 '                                  RUN
 '------------------------------------------------------------------------------
 Private Function ExecuteRun() As Boolean
@@ -130,6 +183,7 @@ Private Function ExecuteRun() As Boolean
     Dim errDescription As String
 
     On Error GoTo Failed
+    SetBusy True
     CaptureSettings savedScreen, savedCalculation, captured
     BeginWrite                                               'the sheets are protected (#349)
     opened = True
@@ -154,6 +208,7 @@ CleanUp:
     End If
     If opened Then EndWrite
     If captured Then RestoreSettings savedScreen, savedCalculation
+    SetBusy False
     On Error GoTo 0
     ExecuteRun = (errNumber = 0)
     Exit Function

@@ -273,6 +273,16 @@ data` and `Reset parameters` have no button, because each overwrites what you
 typed; run them from the macro list. `NAVIGATION` also counts the buttons of
 every sheet.
 
+### 🎀 Ribbon tab
+
+`tools\Build-Workbook.ps1 -Ribbon` adds an **FRTB-SA** tab to the workbook it
+saves, with **Run FRTB-SA**, **Clear outputs**, **Run regression test** and a
+toggle for the navigation bar, each with a screen tip. The three commands are
+disabled while a run is busy. The sheet buttons stay, so the workbook works
+where a policy removes custom UI. [The contract](ribbon.md) lists every control,
+callback and state, and `tests/test_ribbon.py` checks that the part, the
+contract and `M_Main` agree. Without `-Ribbon` the workbook has no tab.
+
 ### ✅ Data validation
 
 The template carries data validation rules (#348) that check what you type

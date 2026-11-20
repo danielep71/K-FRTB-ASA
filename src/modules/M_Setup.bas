@@ -22,6 +22,8 @@ Attribute VB_Name = "M_Setup"
 '   protected without a password (#349); FinishWorkbook protects them last.
 '   ResetParameters: rewrite the P_* sheets with the defaults.
 '   LoadSampleData: rewrite the In_* sheets with the sample portfolio.
+'   SetNavigationVisible, NavigationVisible: show, hide and read the navigation
+'   bar, for the ribbon's toggle.
 '   OpenWriteWindow, CloseWriteWindow: lift and restore the protection for a
 '   caller outside the workbook, such as the build script.
 '
@@ -756,6 +758,35 @@ End Function
 ' shapes, which the template does not hold: Excel adds them at build time
 ' (tools/Build-Workbook.ps1 runs this after FinishWorkbook) and a sheet shows
 ' its own entry as the marker. Excel only.
+' Shows or hides the navigation bar of every sheet; the ribbon's toggle calls it (#353).
+Public Sub SetNavigationVisible(ByVal shown As Boolean)
+    Dim names As Variant, i As Long, k As Long, ws As Object
+    BeginWrite                                               'a shape is locked on a protected sheet
+    On Error Resume Next
+    names = ManagedSheets()
+    For i = LBound(names) To UBound(names)
+        If SheetExists(CStr(names(i))) Then
+            Set ws = GetSheet(CStr(names(i)))
+            For k = 1 To ws.Shapes.Count
+                If Left$(ws.Shapes(k).Name, 3) = "Nav" Then ws.Shapes(k).Visible = shown
+            Next k
+        End If
+    Next i
+    On Error GoTo 0
+    EndWrite
+End Sub
+
+
+' True while the bar is shown: read from the marker of Home, so a saved workbook with the
+' bar hidden opens with the toggle released.
+Public Function NavigationVisible() As Boolean
+    NavigationVisible = True
+    On Error Resume Next
+    NavigationVisible = GetSheet(SH_HOME).Shapes("Nav_Current").Visible
+    On Error GoTo 0
+End Function
+
+
 ' For the build script, which deletes the shapes of a template: a write window
 ' lifts the protection until CloseWriteWindow restores it (#349).
 Public Sub OpenWriteWindow()
