@@ -113,12 +113,19 @@ def test_every_sheet_leaves_room_for_the_navigation_bar():
         assert ws["A2"].fill.fgColor.rgb == "FF265A99", ws.title
 
 
+def header_pixels(text):
+    """Width of a bold 11 pt header: 9.4 px for a capital, 7 for an underscore, 7.5 for the rest.
+    Calibrated on the Excel pictures of 27eb55a and 9390788, where capitals such as RHO_NAME
+    and SectorGroup broke mid-word although a flat 7.5 px a character said they fit."""
+    return sum(9.4 if ch.isupper() else 7.0 if ch == "_" else 7.5 for ch in text)
+
+
 def header_lines(text, width_px):
-    """Greedy word wrap of a header at 7.5 px a character, with 8 px of padding."""
+    """Greedy word wrap of a header, with 8 px of padding."""
     lines, current = [], ""
     for word in text.split():
         trial = f"{current} {word}" if current else word
-        if not current or len(trial) * 7.5 <= width_px - 8:
+        if not current or header_pixels(trial) <= width_px - 8:
             current = trial
         else:
             lines.append(current)
@@ -129,7 +136,7 @@ def header_lines(text, width_px):
 def test_headers_fit_their_cells():
     """An 11 pt header wraps in at most two lines, none wider than its cell, and a second
     line leaves room for the filter arrow. The model is an estimate calibrated on the
-    Excel pictures of 27eb55a, where it flags exactly the headers that came out cut (#351)."""
+    Excel pictures of 27eb55a and 9390788, where it flags exactly the headers that came out cut (#351)."""
     wb = openpyxl.load_workbook(build_template.TEMPLATE)
     problems = []
     for ws in wb:
@@ -147,9 +154,9 @@ def test_headers_fit_their_cells():
                     continue
                 pixels = widths.get(cell.column or 0, 8.43) * 7 + 5
                 lines = header_lines(str(cell.value), pixels)
-                if len(lines) > 2 or any(len(line) * 7.5 > pixels - 8 for line in lines):
+                if len(lines) > 2 or any(header_pixels(line) > pixels - 8 for line in lines):
                     problems.append((ws.title, cell.coordinate, cell.value, lines))
-                elif filtered and len(lines) == 2 and len(lines[1]) * 7.5 > pixels - 36:
+                elif filtered and len(lines) == 2 and header_pixels(lines[1]) > pixels - 36:
                     problems.append((ws.title, cell.coordinate, cell.value, "second line under the filter arrow"))
     assert problems == []
 

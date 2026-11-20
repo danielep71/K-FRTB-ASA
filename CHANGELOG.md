@@ -60,7 +60,12 @@ Unreleased describe integrated work, not a published version.
   ccy" ran under the filter arrow, and "Reference" broke mid-word. Those
   columns of `In_Vega` and `In_Curvature`, column H of `Out_RiskClass` and
   column E of `P_CSR`, `P_EQ` and `P_COM` are wider, and a test estimates the
-  wrap of every header.
+  wrap of every header. The Excel check of `9390788` showed two more capitals
+  that broke mid-word, "SectorGroup" on `P_CSR` and "RHO_NAME" on `P_EQ`,
+  because the estimate counted every character as 7.5 px. It now counts a
+  capital as 9.4 px and an underscore as 7, flags exactly those two, and both
+  columns are wider. The navigation bar's last section heading, which Excel cut
+  to "TESTS AND", reads "TESTS & REFERENCE".
 
 - `release/v0.3.0` is the only active integration branch, for milestone 3
   and repository maintenance, since milestone 2 closed on November 16, 2026
