@@ -349,6 +349,9 @@ def test_the_quick_profile_builds_the_development_workbook_and_runs_the_acceptan
 
 def test_the_quick_profile_asks_nothing_about_the_trust_center_and_is_not_recorded_as_evidence():
     flat = script_text().replace("\r\n", "\n")
+    # With the VBA project access off it stops instead of asking to turn it on
+    access = flat.split("if ($access.Value -ne 1) {", 1)[1].split("Read-YesNo", 1)[0]
+    assert "if ($Quick) {" in access and "Stop-NotStarted" in access
     assert "elseif (-not $runTrustCheck -and -not $Quick) {" in flat
     assert "if (-not $Quick) { Write-Host \"Recorded evidence:" in flat
     assert '"$short-quick"' in flat

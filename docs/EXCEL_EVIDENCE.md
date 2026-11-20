@@ -162,9 +162,10 @@ development build with the regression test and then the acceptance checks
 above, which takes a few minutes instead of about ten. It leaves out the
 production build, the round trips, the pictures, the builds from source and as a
 template, the Trust Center check and the synchronization, and the summary lists
-them as one `NOT_RUN_IN_QUICK` line. It asks nothing about the Trust Center,
-its bundle is `excel-check-SHORTSHA-quick-TIME`, and it is **not evidence**: it
-writes no recorded run, so record a full run before an integration into `main`
+them as one `NOT_RUN_IN_QUICK` line. It asks nothing: with the VBA project
+access off it stops with exit code 2 instead of offering to turn it on, and it
+skips the Trust Center check. Its bundle is `excel-check-SHORTSHA-quick-TIME`,
+and it is **not evidence**: it writes no recorded run, so record a full run before an integration into `main`
 or a release. Use it after a change to the sheets, to see the acceptance checks
 and the regression result sooner.
 

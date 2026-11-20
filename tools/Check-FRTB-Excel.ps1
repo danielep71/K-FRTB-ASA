@@ -70,6 +70,7 @@
     the acceptance checks. It leaves out the production build, the round
     trips, the pictures, the build from source and as a template, the Trust
     Center check and the synchronization, which the summary lists as NOT_RUN.
+    It asks nothing: with the VBA project access off it stops with exit code 2.
     It is for a change to the workbook's sheets, not evidence: record a full
     run before an integration.
 
@@ -459,6 +460,9 @@ $access = Get-VbaAccess $excelVersion
 $trustChange = ''
 if ($access.Value -ne 1) {
     if ($access.Policy) { Stop-NotStarted 'a group policy turns the VBA project access off.' }
+    if ($Quick) {
+        Stop-NotStarted 'Trust access to the VBA project object model is off (File > Options > Trust Center > Trust Center Settings > Macro Settings). The quick profile asks nothing: turn it on, or run the full check once, which offers to.'
+    }
     if (-not (Read-YesNo "Trust access to the VBA project object model is off. Turn it on for your Windows user?")) {
         Stop-NotStarted 'Trust access to the VBA project object model is off (File > Options > Trust Center > Trust Center Settings > Macro Settings).'
     }
