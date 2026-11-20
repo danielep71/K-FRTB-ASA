@@ -47,7 +47,9 @@ Unreleased describe integrated work, not a published version.
   Value table, which the run ignores with a warning, shows in red: the rule is
   conditional formatting on the ten tables that `CORE_Params` reads that way,
   written into the template by `tools/key_highlights.py` and applied by
-  `M_Setup` when Excel builds or resets a sheet. `Log` gains `Row` and
+  `M_Setup` when Excel builds or resets a sheet, with the formula in the
+  language of the Excel that runs it (the unattended check showed the rule
+  missing after **Reset parameters** on an Italian Excel). `Log` gains `Row` and
   `Reference` columns after `Message`: the sheet row and the ID of a rejected
   input row, the obligor of an obligor finding and the key of a repeated key.
   `LogMessage` takes them as optional arguments and derives them from a source
