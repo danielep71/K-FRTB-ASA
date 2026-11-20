@@ -17,7 +17,7 @@ Unreleased describe integrated work, not a published version.
   input row, the obligor of an obligor finding and the key of a repeated key.
   `LogMessage` takes them as optional arguments and derives them from a source
   such as "In_Delta row 7", so no message changes. The Excel check gains
-  `KEY_HIGHLIGHTS`. The levels were already shown in colour, and I decided
+  `KEY_HIGHLIGHTS`. The levels were already shown in color, and I decided
   against a line on `Results` that says whether it matches the inputs. The
   sheet pictures and the README gallery are refreshed with the next Excel run.
 
