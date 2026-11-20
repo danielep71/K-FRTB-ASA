@@ -7,6 +7,12 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- The record of the Excel check of November 20, 2026 on `27eb55a`
+  ([`docs/evidence/2026-11-20-excel-check-27eb55a.md`](docs/evidence/2026-11-20-excel-check-27eb55a.md),
+  #348, #351): 25 of 25 PASS, with the new `DATA_VALIDATION` check. Its pictures
+  showed four 11 pt headers that did not fit; #356 fixes them. The README, the
+  workbook guide, the scope, the roadmap and the documentation index name the run.
+
 - Data validation on `Control`, the five input sheets and the parameter
   sheets (#348). A drop-down offers the risk classes, the switches and
   flags, and the keys of the `P_DRC` and `P_RRAO` tables; formula rules

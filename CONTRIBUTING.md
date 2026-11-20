@@ -16,8 +16,8 @@ Read [scope and decisions](docs/SCOPE.md)
 before functional changes. The prototype is on main and release/v0.3.0 with a
 committed macro-free template; desktop Excel runs are recorded on `323260b`
 and, with the unattended check `tools\Check-FRTB-Excel.cmd` (#274), on
-`1badef1` and on `308cbc6`, which also covers the formatting of every sheet
-(#206).
+`1badef1`, on `308cbc6`, which also covers the formatting of every sheet
+(#206), and on `27eb55a`, which also covers the data validation (#348).
 Versions and tags follow [Releasing](RELEASING.md).
 
 ## Start with an issue
