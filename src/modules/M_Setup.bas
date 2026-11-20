@@ -638,8 +638,8 @@ Private Function NavEntry(ByVal i As Long) As Variant
         Case 19: NavEntry = Array("OUTPUTS", SH_OUT_BUCKETS, "Outputs", "Kb and Sb per bucket.")
         Case 20: NavEntry = Array("OUTPUTS", SH_OUT_DRC, "Outputs", "Net jump-to-default per obligor, and the charge per bucket.")
         Case 21: NavEntry = Array("OUTPUTS", SH_LOG, "Outputs", "Every rejected input row with the reason, warnings and the run status.")
-        Case 22: NavEntry = Array("TESTS AND REFERENCE", SH_TEST, "Tests", "Expected values of the sample portfolio, actual values and PASS or FAIL per item.")
-        Case Else: NavEntry = Array("TESTS AND REFERENCE", SH_README, "Reference", "How to use the workbook, and the input conventions.")
+        Case 22: NavEntry = Array("TESTS & REFERENCE", SH_TEST, "Tests", "Expected values of the sample portfolio, actual values and PASS or FAIL per item.")
+        Case Else: NavEntry = Array("TESTS & REFERENCE", SH_README, "Reference", "How to use the workbook, and the input conventions.")
     End Select
 End Function
 
@@ -922,7 +922,7 @@ End Sub
 Private Sub WriteParamCsr()
     Dim ws As Object, r As Long, i As Long, j As Long, groups As Variant, m As Variant, headers As Variant
     Set ws = ParamSheet(SH_P_CSR, "Credit spread risk, non-securitization: buckets, risk weights and correlations.", 15)
-    SetWidths ws, Array(22, 40, 12, 12, 9, 9, 9, 9, 9, 9, 9, 9)
+    SetWidths ws, Array(22, 40, 12, 15, 9, 9, 9, 9, 9, 9, 9, 9)
     r = PutTable(ws, LAYOUT_HEADER_ROW, "CSR_BUCKETS", "Buckets and delta risk weights (MAR21.51, MAR21.53 Table 4)", _
         Array("Bucket", "Description", "Quality", "SectorGroup", "Type", "RW"))
     PutRow ws, r, Array(1, "Sovereigns incl. central banks, MDBs", "IG", 1, "NAME", 0.005)
@@ -983,7 +983,7 @@ End Sub
 Private Sub WriteParamEquity()
     Dim ws As Object, r As Long, b As Long, c As Long, g As Double
     Set ws = ParamSheet(SH_P_EQ, "Equity risk: buckets, spot and repo risk weights, correlations.", 16)
-    SetWidths ws, Array(18, 40, 12, 10, 10, 10, 9, 9, 9, 9, 9, 9, 9, 9)
+    SetWidths ws, Array(18, 40, 12, 10, 10, 13, 9, 9, 9, 9, 9, 9, 9, 9)
     r = PutTable(ws, LAYOUT_HEADER_ROW, "EQ_BUCKETS", "Buckets and delta risk weights (MAR21.72, MAR21.77 Table 10)", _
         Array("Bucket", "Description", "Type", "RW_SPOT", "RW_REPO", "RHO_NAME"))
     PutRow ws, r, Array(1, "Large cap, EM: consumer goods/services, transportation, admin, health care, utilities", "NAME", 0.55, 0.0055, 0.15)

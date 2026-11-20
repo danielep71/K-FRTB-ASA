@@ -228,7 +228,7 @@ logged on `Log`; check the error count on `Results` after every run.
 
 The workbook opens on `Home`, which lists every sheet once with its role and a
 link to it. On every sheet, column A (22 wide) holds a bar of links grouped
-under START, INPUTS, PARAMETERS, OUTPUTS and TESTS AND REFERENCE; the current
+under START, INPUTS, PARAMETERS, OUTPUTS and TESTS & REFERENCE; the current
 sheet is the dark entry and the others are links. The bar is made of shapes,
 which the macro-free template cannot hold: `tools/Build-Workbook.ps1` adds it
 through `M_Setup.AddNavigationBars` after `FinishWorkbook`, and the template
