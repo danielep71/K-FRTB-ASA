@@ -1,0 +1,68 @@
+name: Excel check
+run-name: Excel check (${{ inputs.profile || 'quick' }}) — ${{ github.ref_name }} @ ${{ github.sha }}
+
+# Runs the unattended Excel check (tools/Check-FRTB-Excel.ps1) on the owner's
+# own Windows host, through a self-hosted runner with the labels self-hosted,
+# windows and excel. A push to main or a release branch runs the quick profile;
+# a manual run can ask for the full profile. The runner executes the code of
+# the commit, so the workflow never runs for a pull request, and only for the
+# owner's pushes. It uploads no artifact: the bundle stays on the host, because
+# it records the computer name and local paths. See docs/EXCEL_EVIDENCE.md.
+on:
+  push:
+    branches: [main, "release/**"]
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "quick (a few minutes) or full (about ten, and the one to record)"
+        type: choice
+        options: [quick, full]
+        default: quick
+
+permissions:
+  contents: read
+
+# One Excel at a time: a second run waits for the first
+concurrency:
+  group: excel-check
+  cancel-in-progress: false
+
+jobs:
+  excel:
+    name: Excel check (${{ inputs.profile || 'quick' }})
+    if: github.repository == 'danielep71/K-FRTB-ASA' && github.actor == github.repository_owner
+    runs-on: [self-hosted, windows, excel]
+    timeout-minutes: 45
+    steps:
+      - name: Check out the commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Run the check
+        shell: powershell
+        env:
+          PROFILE: ${{ inputs.profile || 'quick' }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          $extra = @()
+          if ($env:PROFILE -ne 'full') { $extra += '-Quick' }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools\Check-FRTB-Excel.ps1 `
+              -Branch $env:BRANCH -Commit $env:GITHUB_SHA -NoPrompt @extra
+          exit $LASTEXITCODE
+
+      - name: Show the summary
+        if: always()
+        shell: powershell
+        run: |
+          $short = $env:GITHUB_SHA.Substring(0, 7)
+          $folder = Get-ChildItem -Path test-results -Directory -Filter "excel-check-$short*" -ErrorAction SilentlyContinue |
+              Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if ($folder -and (Test-Path -LiteralPath (Join-Path $folder.FullName 'summary.txt'))) {
+              Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '```text'
+              Get-Content -LiteralPath (Join-Path $folder.FullName 'summary.txt') | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+              Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '```'
+          } else {
+              Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value 'The check wrote no summary: see the log of the previous step.'
+          }
