@@ -595,6 +595,7 @@ Public Sub WriteTableHeader(ByVal ws As Object, ByVal r As Long, ByVal headers A
     On Error Resume Next
     With ws.Range(TableCell(ws, r, 1), TableCell(ws, r, k))
         .Font.Bold = True
+        .Font.Size = HEADER_FONT_SIZE
         .Font.Color = COLOR_WHITE
         .Interior.Color = headerColor
         .VerticalAlignment = -4108                           'xlCenter
@@ -718,6 +719,7 @@ Public Sub WriteOutputPlaceholder(ByVal ws As Object, _
         On Error Resume Next
         With ws.Range("J5:P5")
             .Font.Bold = True
+            .Font.Size = HEADER_FONT_SIZE
             .Font.Color = COLOR_WHITE
             .Interior.Color = COLOR_OUTPUT_HEADER
             .WrapText = True

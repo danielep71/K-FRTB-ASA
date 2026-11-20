@@ -18,6 +18,14 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- Table headers are 11 pt bold, as in the shared toolkit's workbook; data
+  stays at 10 pt (#351). `CORE_Config.HEADER_FONT_SIZE` sets it for the input
+  and parameter tables, the output tables and the placeholder headers that
+  **Clear outputs** rewrites. `P_DRC` columns D and E are 12 wide so that the
+  header "Description" fits. I kept three settings of the toolkit's workbook
+  as they were: the 10 pt body, the 30 pt subtitle row and the 100% zoom
+  (`tests/test_template.py` pins them).
+
 - `release/v0.3.0` is the only active integration branch, for milestone 3
   and repository maintenance, since milestone 2 closed on November 16, 2026
   (#342):

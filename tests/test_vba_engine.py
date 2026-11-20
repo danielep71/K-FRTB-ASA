@@ -142,6 +142,7 @@ def test_rewritten_outputs_keep_the_workbook_style(lo_default_run):
     for name in ("Results", "Out_Summary", "Out_RiskClass", "Out_Buckets", "Out_DRC", "Log"):
         ws = lo_default_run[name]
         assert ws["C5"].fill.fgColor.rgb == "FF1F3864", name
+        assert ws["C5"].font.sz == 11, name                       # headers are 11 pt (#351)
         for row in ws.iter_rows(min_row=5, max_row=min(ws.max_row, 40), min_col=FIRST_COL, max_col=FIRST_COL + 5):
             for cell in row:
                 if cell.value not in (None, ""):
