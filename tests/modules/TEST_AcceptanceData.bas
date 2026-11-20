@@ -159,7 +159,7 @@ End Function
 
 Public Function AcceptancePanes() As Collection
     Dim c As New Collection
-    c.Add Array("README", 3, 0)
+    c.Add Array("Home", 3, 0)
     c.Add Array("Control", 6, 0)
     c.Add Array("Results", 5, 0)
     c.Add Array("In_Delta", 5, 3)
@@ -181,6 +181,7 @@ Public Function AcceptancePanes() As Collection
     c.Add Array("P_DRC", 6, 0)
     c.Add Array("P_RRAO", 6, 0)
     c.Add Array("Test_Expected", 6, 0)
+    c.Add Array("README", 3, 0)
     Set AcceptancePanes = c
 End Function
 

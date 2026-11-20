@@ -129,9 +129,9 @@ def test_in_workbook_regression_test_passes(lo_default_run):
 
 def test_workbook_layout(lo_default_run):
     expected = [
-        "README", "Control", "Results", "In_Delta", "In_Vega", "In_Curvature", "In_DRC", "In_RRAO",
+        "Home", "Control", "Results", "In_Delta", "In_Vega", "In_Curvature", "In_DRC", "In_RRAO",
         "Out_Summary", "Out_RiskClass", "Out_Buckets", "Out_DRC", "Log", "P_General", "P_GIRR", "P_CSR",
-        "P_EQ", "P_COM", "P_FX", "P_DRC", "P_RRAO", "Test_Expected",
+        "P_EQ", "P_COM", "P_FX", "P_DRC", "P_RRAO", "Test_Expected", "README",
     ]
     assert lo_default_run.sheetnames == expected
 

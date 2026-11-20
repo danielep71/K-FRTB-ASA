@@ -9,8 +9,8 @@ Attribute VB_Name = "TEST_Acceptance"
 '   of sub-types MAR21 does not define (#245, #276), the frozen panes, the
 '   autofilters, the width of the Control descriptions (#203), the values
 '   Excel displays, the absence of dates and the view of every sheet (#206,
-'   #316), the data validation of the input and parameter sheets (#348), and
-'   the invalid-row variant (#28).
+'   #316), the data validation of the input and parameter sheets (#348), the
+'   navigation bar and the Home sheet (#347), and the invalid-row variant (#28).
 '
 ' PUBLIC SURFACE
 '   Test_RunAcceptanceInExcel_Silent: run every check and write one line per
@@ -19,8 +19,8 @@ Attribute VB_Name = "TEST_Acceptance"
 '   tools/Check-FRTB-Excel.ps1 runs it in desktop Excel.
 '   Test_RunAcceptance_Silent: the same, with the checks only Excel can make
 '   (the window panes, the autofilters, the column widths, the displayed
-'   values, the sheet view and the data validation) SKIPPED; the LibreOffice
-'   tests run it.
+'   values, the sheet view, the data validation and the navigation bar)
+'   SKIPPED; the LibreOffice tests run it.
 '
 ' DEPENDENCIES
 '   CORE_Config, CORE_Util, M_Main, M_Setup (ManagedSheets), TEST_AcceptanceData.
@@ -95,6 +95,7 @@ Private Sub RunAll(ByVal inExcel As Boolean)
     RunCheck "NO_DATES"
     RunCheck "SHEET_VIEW"
     RunCheck "DATA_VALIDATION"
+    RunCheck "NAVIGATION"
     RunCheck "INVALID_ROW_VARIANT"                           'last: it adds input rows
     WriteReport
 End Sub
@@ -116,6 +117,7 @@ Private Sub RunCheck(ByVal checkName As String)
         Case "NO_DATES": result = CheckNoDates(detail)
         Case "SHEET_VIEW": result = CheckSheetView(detail)
         Case "DATA_VALIDATION": result = CheckDataValidation(detail)
+        Case "NAVIGATION": result = CheckNavigation(detail)
         Case "INVALID_ROW_VARIANT": result = CheckVariant(detail)
     End Select
     mReport.Add Array(checkName, result, detail)
@@ -373,7 +375,7 @@ Private Function CheckControlDescriptions(ByRef detail As String) As String
 End Function
 
 
-' After a sample run, no cell of the 22 sheets shows "####": every column is
+' After a sample run, no cell of any sheet shows "####": every column is
 ' wide enough for the values Excel displays (#206).
 Private Function CheckDisplayedValues(ByRef detail As String) As String
     Dim names As Variant, i As Long, ws As Object, cell As Object, found As Long, cellCount As Long
@@ -406,7 +408,7 @@ Private Function CheckDisplayedValues(ByRef detail As String) As String
 End Function
 
 
-' After a sample run, no cell of the 22 sheets holds a date: MAR references,
+' After a sample run, no cell of any sheet holds a date: MAR references,
 ' codes and tenors stay text or numbers (#206).
 Private Function CheckNoDates(ByRef detail As String) As String
     Dim names As Variant, i As Long, ws As Object, cell As Object, found As Long, cellCount As Long
@@ -452,7 +454,7 @@ Private Function CheckSheetView(ByRef detail As String) As String
             problems = problems & ws.Name & " tab color " & ws.Tab.Color & ", not " & ExpectedTabColor(ws.Name) & "; "
         End If
     Next i
-    GetSheet(SH_README).Activate
+    GetSheet(SH_HOME).Activate
     detail = IIf(problems = "", (UBound(names) - LBound(names) + 1) & _
                  " sheets without gridlines, each with the tab color of its role", problems)
     CheckSheetView = IIf(problems = "", "PASS", "FAIL")
@@ -499,6 +501,50 @@ Private Function ReadValidation(ByVal sheetName As String, ByVal address As Stri
         title = v.ErrorTitle
     End If
     ReadValidation = (Err.Number = 0)
+    Err.Clear
+    On Error GoTo 0
+End Function
+
+
+' Every sheet carries the navigation bar of #347: a marker for itself and a
+' link to each of the other sheets, which Load sample data and Reset
+' parameters leave in place; and Home lists every sheet once.
+Private Function CheckNavigation(ByRef detail As String) As String
+    Dim names As Variant, i As Long, j As Long, ws As Object, problems As String, n As Long
+    If Not mInExcel Then
+        detail = "Excel only: the bar of shapes and links that Excel builds"
+        CheckNavigation = "SKIPPED"
+        Exit Function
+    End If
+    names = ManagedSheets()
+    n = UBound(names) - LBound(names) + 1
+    For i = LBound(names) To UBound(names)
+        Set ws = GetSheet(CStr(names(i)))
+        If ws.Hyperlinks.Count <> n - 1 Then
+            problems = problems & ws.Name & " has " & ws.Hyperlinks.Count & " links, not " & (n - 1) & "; "
+        End If
+        If Not ShapeExists(ws, "Nav_Current") Then problems = problems & ws.Name & " has no marker; "
+        For j = LBound(names) To UBound(names)
+            If CStr(names(j)) <> ws.Name Then
+                If Not ShapeExists(ws, "Nav_" & CStr(names(j))) Then
+                    problems = problems & ws.Name & " has no link to " & names(j) & "; "
+                End If
+            End If
+        Next j
+        If Application.WorksheetFunction.CountIf(GetSheet(SH_HOME).Range("C:C"), CStr(names(i))) <> 1 Then
+            problems = problems & "Home does not list " & names(i) & " once; "
+        End If
+    Next i
+    detail = IIf(problems = "", n & " sheets, each with a marker and " & (n - 1) & " links, all listed on Home", problems)
+    CheckNavigation = IIf(problems = "", "PASS", "FAIL")
+End Function
+
+
+Private Function ShapeExists(ByVal ws As Object, ByVal shapeName As String) As Boolean
+    Dim s As Object
+    On Error Resume Next
+    Set s = ws.Shapes(shapeName)
+    ShapeExists = (Err.Number = 0)
     Err.Clear
     On Error GoTo 0
 End Function
@@ -682,7 +728,7 @@ End Function
 ' The tab color M_Setup gives a sheet of this name.
 Private Function ExpectedTabColor(ByVal sheetName As String) As Long
     Select Case True
-        Case sheetName = SH_README: ExpectedTabColor = TAB_REFERENCE
+        Case sheetName = SH_README, sheetName = SH_HOME: ExpectedTabColor = TAB_REFERENCE
         Case sheetName = SH_TEST: ExpectedTabColor = TAB_TEST
         Case sheetName = SH_RESULTS, sheetName = SH_LOG, Left$(sheetName, 4) = "Out_": ExpectedTabColor = TAB_OUTPUT
         Case Else: ExpectedTabColor = TAB_INPUT

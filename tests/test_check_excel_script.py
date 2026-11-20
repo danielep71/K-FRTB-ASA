@@ -181,7 +181,7 @@ def test_the_build_turns_alerts_off_again_before_it_saves():
     # template save, which nobody can answer (#302)
     build = (ROOT / "tools" / "Build-Workbook.ps1").read_text(encoding="ascii")
     last_macro = max(build.index("'BuildWorkbook')"), build.index("'FinishWorkbook')"),
-                     build.index("'Test_RunRegression_Silent')"))
+                     build.index("'AddNavigationBars')"), build.index("'Test_RunRegression_Silent')"))
     again = build.index("$excel.DisplayAlerts = $false", last_macro)
     assert again < build.index("$workbook.SaveAs($OutputPath, 51)")
     assert again < build.index("$workbook.SaveAs($OutputPath, 52)")
