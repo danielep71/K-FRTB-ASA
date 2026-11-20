@@ -36,7 +36,13 @@ Unreleased describe integrated work, not a published version.
   parameter tables, the output tables and the placeholder headers that
   **Clear outputs** rewrites. `P_DRC` columns D and E are 12 wide so that the
   header "Description" fits. Subtitle rows stay 30 pt high and sheets stay at
-  100% zoom; `tests/test_template.py` pins all of these.
+  100% zoom; `tests/test_template.py` pins all of these. The Excel check of
+  `27eb55a` showed that 11 pt headers were cut: the second line of "Option
+  maturity (years)", "Underlying maturity (years)" and "References reporting
+  ccy" ran under the filter arrow, and "Reference" broke mid-word. Those
+  columns of `In_Vega` and `In_Curvature`, column H of `Out_RiskClass` and
+  column E of `P_CSR`, `P_EQ` and `P_COM` are wider, and a test estimates the
+  wrap of every header.
 
 - `release/v0.3.0` is the only active integration branch, for milestone 3
   and repository maintenance, since milestone 2 closed on November 16, 2026
