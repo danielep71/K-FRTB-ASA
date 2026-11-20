@@ -231,9 +231,9 @@ link to it. On every sheet, column A (22 wide, black) holds a bar of dark
 entries grouped under INPUTS, PARAMETERS, OUTPUTS, TESTS & REFERENCE and START,
 which ends the bar. A strip at the left of each entry has the color of the
 sheet's tab; the current sheet is the blue entry with white bold text and an
-amber strip, and the others are links. The style is the shared toolkit's:
-a 262626 entry with D9D9D9 Aptos text, amber section labels and a 2.25 pt
-strip. The bar is made of shapes,
+amber strip, and the others are links. An entry is `262626` with `D9D9D9` Aptos
+9 pt text, a section label is amber 7 pt bold and a strip is 2.25 pt wide. The
+bar is made of shapes,
 which the macro-free template cannot hold: `tools/Build-Workbook.ps1` adds it
 through `M_Setup.AddNavigationBars` after `FinishWorkbook`, and the template
 save drops it. A workbook you update with `tools\Sync-FRTB-VBA.ps1` keeps its

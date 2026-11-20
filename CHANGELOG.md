@@ -74,8 +74,7 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
-- The navigation bar and the command buttons take the shared toolkit's look
-  (#347). Column A is black on every sheet; the bar is a stack of dark entries
+- The navigation bar and the command buttons get a dark style (#347). Column A is black on every sheet; the bar is a stack of dark entries
   (`262626`, `D9D9D9` Aptos 9 pt) under amber section labels, with a strip in the
   sheet's tab color at the left of each entry, and the current sheet is a blue
   entry with white bold text and an amber strip. START, with `Home`, ends the

@@ -562,7 +562,11 @@ Private Function CheckNavigation(ByRef detail As String) As String
     For i = LBound(names) To UBound(names)
         Set ws = GetSheet(CStr(names(i)))
         buttons = SheetButtons(ws.Name)
-        j = IIf(IsEmpty(buttons), 0, UBound(buttons) - LBound(buttons) + 1)
+        If IsEmpty(buttons) Then                             'IIf would evaluate UBound of Empty too
+            j = 0
+        Else
+            j = UBound(buttons) - LBound(buttons) + 1
+        End If
         If ws.Buttons.Count <> j Then problems = problems & ws.Name & " has " & ws.Buttons.Count & " buttons, not " & j & "; "
     Next i
     detail = IIf(problems = "", n & " sheets, each with a marker and " & (n - 1) & " links, all listed on Home; the buttons as set", problems)

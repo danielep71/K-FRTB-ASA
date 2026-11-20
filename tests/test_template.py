@@ -341,7 +341,7 @@ def test_a_workbook_with_every_cell_locked_gets_its_input_cells_unlocked(tmp_pat
 
 
 def test_every_sheet_has_a_black_navigation_column():
-    """Column A holds the navigation bar on a black column, as in the shared toolkit (#347)."""
+    """Column A holds the navigation bar on a black column (#347)."""
     wb = openpyxl.load_workbook(build_template.TEMPLATE)
     for ws in wb:
         fill = ws.column_dimensions["A"].fill

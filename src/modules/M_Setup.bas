@@ -484,7 +484,7 @@ End Function
 
 ' Button in the subtitle row, slot-th (0-based) from the left edge of anchorCol.
 ' The command buttons of a sheet, as one row in its title bar, right-aligned to the bar and
-' never over the title: Aptos 11 pt, 19.5 pt high, which are the toolkit's buttons (#347).
+' never over the title: Aptos 11 pt, 19.5 pt high (#347).
 Private Sub AddButtonRow(ByVal ws As Object)
     Dim buttons As Variant, i As Long, n As Long, total As Double, x As Double, barRight As Double
     Dim titleEnd As Double, c As Long, btn As Object, widths() As Double
