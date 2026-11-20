@@ -65,6 +65,14 @@
 .PARAMETER TrustCenterCheck
     Run the Trust Center error check without asking.
 
+.PARAMETER Quick
+    The quick profile: one development build with the regression test, then
+    the acceptance checks. It leaves out the production build, the round
+    trips, the pictures, the build from source and as a template, the Trust
+    Center check and the synchronization, which the summary lists as NOT_RUN.
+    It is for a change to the workbook's sheets, not evidence: record a full
+    run before an integration.
+
 .PARAMETER NoPrompt
     Ask nothing: the VBA project access must already be on, and the Trust
     Center error check runs only with -TrustCenterCheck.
@@ -81,6 +89,7 @@ param(
     [string]$Commit,
     [int]$TimeoutMinutes = 60,
     [switch]$TrustCenterCheck,
+    [switch]$Quick,
     [switch]$NoPrompt
 )
 
@@ -426,11 +435,13 @@ if ($LASTEXITCODE -ne 0 -or -not $sha) { Stop-NotStarted "$target is not a commi
 if ($LASTEXITCODE -ne 0) { Stop-NotStarted "git switch --detach $sha failed." }
 $short = $sha.Substring(0, 7)
 
-$script:bundle = Join-Path $repoRoot ("test-results\excel-check-$short-" + (Get-Date -Format 'yyyyMMdd-HHmmss'))
+$profileName = if ($Quick) { "$short-quick" } else { $short }
+$script:bundle = Join-Path $repoRoot ("test-results\excel-check-$profileName-" + (Get-Date -Format 'yyyyMMdd-HHmmss'))
 [void](New-Item -ItemType Directory -Path $script:bundle -Force)
 $script:logPath = Join-Path $script:bundle 'check.log'
 Write-Log "CANDIDATE=$sha"
 Write-Log "BRANCH=$Branch"
+Write-Log "PROFILE=$(if ($Quick) { 'quick' } else { 'full' })"
 Write-Log "START=$(Get-Timestamp)"
 
 # The Excel version tells which registry key holds the VBA project access.
@@ -459,7 +470,7 @@ $runTrustCheck = [bool]$TrustCenterCheck
 if ($access.Policy) {
     # Only the user's setting can be turned off; the policy would keep the access on
     Write-Log 'TRUST_CHECK=not run: a group policy sets the VBA project access'
-} elseif (-not $runTrustCheck) {
+} elseif (-not $runTrustCheck -and -not $Quick) {
     $runTrustCheck = Read-YesNo 'Also check the build''s Trust Center error path? It turns the VBA project access off for one build and back on.'
 }
 Write-Host ''
@@ -509,18 +520,27 @@ try {
 
     # -------------------------------------------------------- 1. recorded run
     Assert-TimeLeft
-    Write-Host '== Recorded run (builds, compiles, regression, round trips)'
-    $recordArgs = @('-File', 'tools\Record-FRTB-ExcelRun.ps1')
-    if ($trustChange) { $recordArgs += @('-TrustChange', $trustChange) }
-    $code = Invoke-Tool 'record.log' $recordArgs
-    $recordBundle = Join-Path $repoRoot "test-results\excel-run-$short"
-    if ($code -eq 0) {
-        Add-Result 'RECORDED_RUN' 'PASS' "bundle test-results\excel-run-$short validated"
+    if ($Quick) {
+        Assert-TimeLeft
+        Write-Host '== Development build with the regression test (quick profile)'
+        $code = Invoke-Tool 'build-development.log' @('-File', 'tools\Build-Workbook.ps1', '-RunTests',
+                                                     '-OutputPath', $development, '-Force')
+        Add-Result 'BUILD_DEVELOPMENT' $(if ($code -eq 0) { 'PASS' } else { 'FAIL' }) "exit code $code; regression through -RunTests"
+        if (-not (Test-Path -LiteralPath $development)) { throw 'the development build left no workbook in dist\' }
     } else {
-        Add-Result 'RECORDED_RUN' 'FAIL' "exit code $code; see record.log and $recordBundle"
-    }
-    if (-not (Test-Path -LiteralPath $development) -or -not (Test-Path -LiteralPath $production)) {
-        throw 'the recorded run did not leave both workbooks in dist\'
+        Write-Host '== Recorded run (builds, compiles, regression, round trips)'
+        $recordArgs = @('-File', 'tools\Record-FRTB-ExcelRun.ps1')
+        if ($trustChange) { $recordArgs += @('-TrustChange', $trustChange) }
+        $code = Invoke-Tool 'record.log' $recordArgs
+        $recordBundle = Join-Path $repoRoot "test-results\excel-run-$short"
+        if ($code -eq 0) {
+            Add-Result 'RECORDED_RUN' 'PASS' "bundle test-results\excel-run-$short validated"
+        } else {
+            Add-Result 'RECORDED_RUN' 'FAIL' "exit code $code; see record.log and $recordBundle"
+        }
+        if (-not (Test-Path -LiteralPath $development) -or -not (Test-Path -LiteralPath $production)) {
+            throw 'the recorded run did not leave both workbooks in dist\'
+        }
     }
 
     # ------------------------------------------------------ 2. acceptance
@@ -553,6 +573,11 @@ try {
         Close-Excel $excel $workbook
     }
 
+    # The full profile only: the pictures, the builds, the Trust Center check and the synchronization
+    if ($Quick) {
+        Add-Result 'NOT_RUN_IN_QUICK' 'NOT_RUN' 'production build, round trips, pictures, builds from source and as a template, Trust Center check, synchronization'
+    }
+    if (-not $Quick) {
     # Pictures of the states #85 and #203 are about, for the record
     Assert-TimeLeft
     Write-Host '== Pictures'
@@ -760,6 +785,7 @@ try {
         Add-Result "LAUNCHER_$($launcher.Name)" $(if ($process.ExitCode -eq 0 -and $succeeded) { 'PASS' } else { 'FAIL' }) `
                    "exit code $($process.ExitCode)"
     }
+    } # end of the full profile
 } catch {
     Add-Result 'RUN' 'FAIL' "stopped: $($_.Exception.Message)"
 } finally {
@@ -779,7 +805,7 @@ Write-Log "FINISH=$(Get-Timestamp)"
 $failed = @($script:results | Where-Object { $_.Result -eq 'FAIL' })
 $verdict = if ($failed.Count -eq 0) { 'RESULT=PASS' } else { "RESULT=FAIL ($($failed.Count) failed)" }
 $summary = New-Object System.Collections.Generic.List[string]
-$summary.Add("K-FRTB-ASA Excel check, $Branch at $sha")
+$summary.Add("K-FRTB-ASA Excel check$(if ($Quick) { ' (quick profile, not evidence)' }), $Branch at $sha")
 $summary.Add("Excel $excelVersion; $(Get-Timestamp)")
 foreach ($item in $script:results) { $summary.Add(('{0,-28} {1,-8} {2}' -f $item.Name, $item.Result, $item.Detail)) }
 $summary.Add($verdict)
@@ -793,6 +819,6 @@ Write-Host ''
 $summary | ForEach-Object { Write-Host $_ }
 Write-Host ''
 Write-Host "Bundle: $zip (the summary is on the clipboard)"
-Write-Host "Recorded evidence: test-results\excel-run-$short and test-results\excel-run-$short-validation"
+if (-not $Quick) { Write-Host "Recorded evidence: test-results\excel-run-$short and test-results\excel-run-$short-validation" }
 try { Start-Process explorer.exe -ArgumentList "/select,`"$zip`"" } catch { }
 if ($failed.Count -eq 0) { exit 0 } else { exit 1 }

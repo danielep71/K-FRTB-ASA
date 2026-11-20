@@ -7,6 +7,16 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- A quick profile of the unattended Excel check (#274).
+  `tools\Check-FRTB-Excel-Quick.cmd`, or `tools\Check-FRTB-Excel.ps1 -Quick`, runs
+  one development build with the regression test and the acceptance checks,
+  and leaves out the production build, the round trips, the pictures, the
+  builds from source and as a template, the Trust Center check and the
+  synchronization, which the summary lists as `NOT_RUN_IN_QUICK`. It asks
+  nothing, writes no recorded run and is not evidence; the full check stays the
+  one to record. Tests check the script's text, and the PowerShell parse test
+  runs in CI.
+
 - A catalogue of the 52 regression items on `Test_Expected` (#352). Each row
   has four more columns after `Status`: `Area`, `Description`, `Source` and
   `Source status`. The source names the MAR paragraphs of

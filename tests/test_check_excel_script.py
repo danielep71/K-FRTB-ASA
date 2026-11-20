@@ -327,3 +327,35 @@ def test_compare_templates_prints_the_result(tmp_path, capsys):
     assert compare_templates.main([str(TEMPLATE), str(TEMPLATE)]) == 0
     assert "no differences" in capsys.readouterr().out
     assert compare_templates.main([str(TEMPLATE), str(tmp_path / "missing.xlsx")]) == 2
+
+
+QUICK_LAUNCHER = ROOT / "tools" / "Check-FRTB-Excel-Quick.cmd"
+
+
+def test_the_quick_profile_builds_the_development_workbook_and_runs_the_acceptance_checks_only():
+    text = script_text()
+    assert "[switch]$Quick" in text and "quick profile, not evidence" in text
+    quick = text.replace("\r\n", "\n").split("    if ($Quick) {\n        Assert-TimeLeft\n        Write-Host '== Development build", 1)[1].split("    } else {", 1)[0]
+    assert "Build-Workbook.ps1" in quick and "'-RunTests'" in quick and "Record-FRTB-ExcelRun" not in quick
+    flat = text.replace("\r\n", "\n")
+    # The acceptance checks run in both profiles; everything after them but the summary is the full profile's
+    assert flat.index("TEST_Acceptance.Test_RunAcceptanceInExcel_Silent") < flat.index("    if (-not $Quick) {")
+    block = flat.split("    if (-not $Quick) {", 1)[1].split("    } # end of the full profile", 1)[0]
+    for stage in ("== Sheet pictures", "== Build from source with the regression test", "== Template built by Excel",
+                  "== Trust Center error path", "== Synchronization: $mode", "LAUNCHER_"):
+        assert stage in block, stage
+    assert "NOT_RUN_IN_QUICK" in flat
+
+
+def test_the_quick_profile_asks_nothing_about_the_trust_center_and_is_not_recorded_as_evidence():
+    flat = script_text().replace("\r\n", "\n")
+    assert "elseif (-not $runTrustCheck -and -not $Quick) {" in flat
+    assert "if (-not $Quick) { Write-Host \"Recorded evidence:" in flat
+    assert '"$short-quick"' in flat
+
+
+def test_the_quick_launcher_passes_the_branch_and_the_switch_and_reports_each_exit_code():
+    text = QUICK_LAUNCHER.read_text(encoding="ascii")
+    assert '-File "%SCRIPT%" -Branch "%BRANCH%" -Quick' in text
+    for line in ('if not defined BRANCH set "BRANCH=release/v0.3.0"', 'if "%RC%"=="0"', 'if "%RC%"=="1"', "exit /b %RC%"):
+        assert line in text
