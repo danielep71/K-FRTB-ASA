@@ -290,7 +290,9 @@ Workbook**; no password is asked. The commands (**Run FRTB-SA**, **Clear
 outputs**, **Run regression test**, **Load sample data**, **Reset
 parameters**, the build and the sync) lift the protection while they write and
 put it back afterwards, also when they fail, so a protected workbook runs
-without unprotecting anything. If you protect a sheet or the workbook with a
+without unprotecting anything. A workbook made before the protection, or updated by the sync,
+has every cell locked: its first command unlocks the cells in the input fill
+on `Control`, the input sheets and the `P_*` sheets and then protects it. If you protect a sheet or the workbook with a
 password of your own, a command stops with a message that names the sheets:
 remove the password and run again.
 

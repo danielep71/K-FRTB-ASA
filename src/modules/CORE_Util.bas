@@ -856,7 +856,10 @@ Private Sub SetProtection(ByVal turnOn As Boolean)
             On Error Resume Next
             Err.Clear
             If ws.ProtectContents Then ws.Unprotect ""       'an empty password never prompts
-            If turnOn And Err.Number = 0 Then ProtectSheet ws
+            If turnOn And Err.Number = 0 Then
+                UnlockInputCells ws
+                ProtectSheet ws
+            End If
             If Err.Number <> 0 Then
                 blocked = blocked & IIf(blocked = "", "", ", ") & ws.Name
             ElseIf Not turnOn Then
@@ -880,6 +883,26 @@ Private Sub SetProtection(ByVal turnOn As Boolean)
         Err.Raise vbObjectError + ERR_APP, "CORE_Util", message & _
             "Remove it (Review > Unprotect Sheet or Protect Workbook) and run again: the workbook itself needs no password."
     End If
+End Sub
+
+
+' A workbook that the sync updated keeps its own cell formats, and one made before
+' the protection has every cell locked: on the sheets that hold input cells, unlock the
+' cells in the input fill once, before the first protection. A sheet with an unlocked
+' cell already is left alone, so a built workbook pays one property read.
+Private Sub UnlockInputCells(ByVal ws As Object)
+    Dim cell As Object, state As Variant, lastRow As Long, lastCol As Long
+    If Not (ws.Name = SH_CONTROL Or Left$(ws.Name, 3) = "In_" Or Left$(ws.Name, 2) = "P_") Then Exit Sub
+    state = ws.UsedRange.Locked
+    If VarType(state) <> vbBoolean Then Exit Sub             'Null: some cells are unlocked already
+    If Not state Then Exit Sub
+    lastRow = ws.UsedRange.Row + ws.UsedRange.Rows.Count - 1
+    lastCol = ws.UsedRange.Column + ws.UsedRange.Columns.Count - 1
+    'The pre-formatted input rows are empty, which a host may leave out of the used range
+    If Left$(ws.Name, 3) = "In_" And lastRow < LAYOUT_FIRST_DATA_ROW + INPUT_ROWS - 1 Then lastRow = LAYOUT_FIRST_DATA_ROW + INPUT_ROWS - 1
+    For Each cell In ws.Range(ws.Cells(1, 1), ws.Cells(lastRow, lastCol)).Cells
+        If cell.Interior.Color = COLOR_INPUT_CELL Then cell.Locked = False
+    Next cell
 End Sub
 
 

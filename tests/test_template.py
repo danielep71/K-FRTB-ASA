@@ -6,6 +6,7 @@ import re
 import zipfile
 
 import openpyxl
+from openpyxl.styles import Protection
 
 import build_template
 import lo_runner
@@ -310,3 +311,30 @@ def test_template_protects_sheets_and_structure_without_a_password():
     assert unlocked["Control"] == 5 and unlocked["In_Delta"] > 0
     assert all(unlocked[name] == 0 for name in ("Home", "Results", "Log", "Test_Expected", "README")
                + tuple(n for n in unlocked if n.startswith("Out_")))
+
+
+def test_a_workbook_with_every_cell_locked_gets_its_input_cells_unlocked(tmp_path):
+    """A workbook made before the protection, or updated by the sync, has every cell locked and
+    no protection; the first command unlocks the cells in the input fill and protects it (#349)."""
+    require_libreoffice()
+    old = openpyxl.load_workbook(build_template.TEMPLATE)
+    for ws in old:
+        ws.protection.sheet = False
+        for row in ws.iter_rows():
+            for cell in row:
+                cell.protection = Protection(locked=True)
+    old.security = None
+    source = tmp_path / "old.xlsx"
+    old.save(source)
+    out = tmp_path / "migrated.xlsx"
+    assert lo_runner.run(out, ["M_Main.ClearOutputs"], input_book=source) == []
+    migrated = openpyxl.load_workbook(out)
+    wrong = []
+    for ws in migrated:
+        assert ws.protection.sheet, ws.title
+        for row in ws.iter_rows():
+            for cell in row:
+                filled = bool(cell.fill.fill_type and cell.fill.fgColor.rgb == "FFFFF2CC")
+                if cell.protection.locked == filled:
+                    wrong.append((ws.title, cell.coordinate))
+    assert wrong == []

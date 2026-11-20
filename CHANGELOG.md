@@ -15,7 +15,9 @@ Unreleased describe integrated work, not a published version.
   The commands lift the protection while they write and restore it, also
   after an error, through `BeginWrite` and `EndWrite` in `CORE_Util`; a
   password of the user's own stops a command with a message that names the
-  sheets. `ManagedSheets` moves from `M_Setup` to `CORE_Config` so that the
+  sheets. A workbook made before the protection, or updated by the sync, has
+  every cell locked: its first command unlocks the cells in the input fill
+  before it protects the sheets. `ManagedSheets` moves from `M_Setup` to `CORE_Config` so that the
   core modules can use it. `tests/test_template.py` asserts the locked and
   unlocked cells and the actions, and the Excel check gains `PROTECTION`. The
   workbook guide says that there is no password and how to remove the

@@ -69,6 +69,7 @@ Public Const LAYOUT_FIRST_COL As Long = 3                    'Column C
 Public Const LAYOUT_NAV_WIDTH As Long = 22                   'Column A: the navigation bar sits here (#347)
 Public Const LAYOUT_SUBTITLE_ROW As Long = 3
 Public Const LAYOUT_HEADER_ROW As Long = 5                   'Table header on input and output sheets
+Public Const INPUT_ROWS As Long = 200                         'Pre-formatted input rows per input sheet
 Public Const LAYOUT_FIRST_DATA_ROW As Long = 6               'First data row below the header
 
 ' Palette (Excel BGR color values; hex RGB in the comments)

@@ -57,7 +57,6 @@ Option Explicit
 '------------------------------------------------------------------------------
 '                              MODULE CONSTANTS
 '------------------------------------------------------------------------------
-Private Const INPUT_ROWS As Long = 200                       'Pre-formatted input rows per input sheet
 Private Const NAV_COUNT As Long = 23                         'Entries of NavEntry: every managed sheet once (#347)
 ' Input number formats. A format such as #,##0.#### ends a whole number with
 ' the decimal separator in Excel ("5.000.000,"), so amounts show two decimals

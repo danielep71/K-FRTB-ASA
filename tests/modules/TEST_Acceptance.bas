@@ -222,6 +222,21 @@ End Function
 ' A comma is rejected whatever the regional settings; a typed number is not
 ' text and is accepted (docs/workbook-guide.md).
 Private Function CheckNumericText(ByRef detail As String) As String
+    Dim result As String, errNumber As Long, errSource As String, errDescription As String
+    BeginWrite                                               'a cell format is locked on a protected sheet (#349)
+    On Error Resume Next
+    result = CheckNumericTextInWindow(detail)
+    errNumber = Err.Number
+    errSource = Err.Source
+    errDescription = Err.Description
+    On Error GoTo 0
+    EndWrite
+    If errNumber <> 0 Then Err.Raise errNumber, errSource, errDescription
+    CheckNumericText = result
+End Function
+
+
+Private Function CheckNumericTextInWindow(ByRef detail As String) As String
     Dim ws As Object, target As Object, savedValue As Variant, savedFormat As String
     Dim cases As Variant, i As Long, rejected As Boolean, problems As String, source As String
     Dim errNumber As Long, errDescription As String
@@ -250,7 +265,7 @@ Private Function CheckNumericText(ByRef detail As String) As String
     target.Value = savedValue
     On Error GoTo 0
     detail = IIf(problems = "", "rejected as text: '0,5', '1.000,5', '1,5'; accepted: '0.5', '-1.25e2' and the number 0.5", problems)
-    CheckNumericText = IIf(problems = "", "PASS", "FAIL")
+    CheckNumericTextInWindow = IIf(problems = "", "PASS", "FAIL")
     Exit Function
 
 Restore:
@@ -616,6 +631,21 @@ End Function
 ' The discretions on and invalid rows on every input sheet: every invalid row
 ' is logged and the results equal the reference for the same inputs (#28).
 Private Function CheckVariant(ByRef detail As String) As String
+    Dim result As String, errNumber As Long, errSource As String, errDescription As String
+    BeginWrite                                               'a cell format is locked on a protected sheet (#349)
+    On Error Resume Next
+    result = CheckVariantInWindow(detail)
+    errNumber = Err.Number
+    errSource = Err.Source
+    errDescription = Err.Description
+    On Error GoTo 0
+    EndWrite
+    If errNumber <> 0 Then Err.Raise errNumber, errSource, errDescription
+    CheckVariant = result
+End Function
+
+
+Private Function CheckVariantInWindow(ByRef detail As String) As String
     Dim item As Variant, ws As Object, rowData As Variant, r As Long, k As Long
     For Each item In AcceptanceDiscretions()
         SetControlValue CStr(item), True
@@ -630,7 +660,7 @@ Private Function CheckVariant(ByRef detail As String) As String
     Next rowData
     RunFRTB_Silent
     detail = CompareSummary(AcceptanceVariantExpected(), ACCEPTANCE_VARIANT_ERRORS, ACCEPTANCE_VARIANT_WARNINGS)
-    CheckVariant = IIf(detail = "", "PASS", "FAIL")
+    CheckVariantInWindow = IIf(detail = "", "PASS", "FAIL")
     If detail = "" Then
         detail = "total " & Format(OutSummaryValue("TOTAL"), "0.00") & ", " & LogErrorCount() & " errors and " & _
                  LogWarningCount() & " warning, as the reference"
