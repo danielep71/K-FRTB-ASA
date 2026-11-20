@@ -36,6 +36,14 @@ Unreleased describe integrated work, not a published version.
   shape-free. The Excel check gains `NAVIGATION`. The sheet pictures and the
   README gallery are refreshed with the next Excel run.
 
+- The record of the unattended Excel check of November 20, 2026 on `a7fa207`
+  ([`docs/evidence/2026-11-20-excel-check-a7fa207.md`](docs/evidence/2026-11-20-excel-check-a7fa207.md),
+  #347, #349, #351): 27 of 27 PASS, with the new `NAVIGATION` and `PROTECTION`
+  checks. Its pictures show every 11 pt header fitting and the navigation bar
+  on every sheet; the 23 pictures replace the four of the README gallery and
+  are added as `docs/assets/screenshots/check-a7fa207-<sheet>.png`. The README, the
+  workbook guide, the scope, the roadmap and the documentation index name the run.
+
 - The record of the Excel check of November 20, 2026 on `27eb55a`
   ([`docs/evidence/2026-11-20-excel-check-27eb55a.md`](docs/evidence/2026-11-20-excel-check-27eb55a.md),
   #348, #351): 25 of 25 PASS, with the new `DATA_VALIDATION` check. Its pictures

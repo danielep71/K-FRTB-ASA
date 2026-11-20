@@ -33,6 +33,7 @@ procedures. Keep root entry documents linked rather than copying them here.
 | Unattended Excel check, on `1badef1` | [Excel check](evidence/2026-11-12-excel-check-1badef1.md) |
 | Unattended Excel check with the sheet review, on `308cbc6` | [Excel check](evidence/2026-11-15-excel-check-308cbc6.md) |
 | Unattended Excel check with the data validation, on `27eb55a` | [Excel check](evidence/2026-11-20-excel-check-27eb55a.md) |
+| Unattended Excel check with the start sheet, the navigation bar and the protection, on `a7fa207` | [Excel check](evidence/2026-11-20-excel-check-a7fa207.md) |
 | Prototype closeout, with the issue reconciliation | [Closeout record](evidence/2026-11-16-prototype-closeout.md) |
 | Recorded changes | [Changelog](../CHANGELOG.md) |
 

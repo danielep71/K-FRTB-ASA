@@ -52,5 +52,12 @@ The files named `check-308cbc6-<sheet>.png` show each of the 22 sheets after
 a run of the sample portfolio, with the fixes of the formatting review
 (#206). They come from the unattended check of November 15, 2026, on
 `308cbc6`, on the same host ([record](../evidence/2026-11-15-excel-check-308cbc6.md)). Each
-shows at most the first 60 rows and 26 columns of its sheet. The README of
+shows at most the first 60 rows and 26 columns of its sheet; the record links
+them all.
+
+The files named `check-a7fa207-<sheet>.png` show each of the 23 sheets after a
+run of the sample portfolio, with the start sheet, the navigation bar, the
+protection and the header widths of #347, #349, #351 and #359. They come from
+the unattended check of November 20, 2026, on `a7fa207`, on the same host
+([record](../evidence/2026-11-20-excel-check-a7fa207.md)), and the README of
 the repository shows four of them.
