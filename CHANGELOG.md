@@ -11,9 +11,10 @@ Unreleased describe integrated work, not a published version.
   (`.github/workflows/excel-check.yml`). A push to `main` or to a `release/**`
   branch runs the quick profile, and a manual run can ask for the full one; the
   job shows `summary.txt` and uploads nothing, because the bundle records the
-  computer name and local paths. The runner runs the code of the commit on the
-  owner's computer, so the workflow has no `pull_request` trigger, runs only for
-  the owner's pushes, uses no secret and reads the repository only.
+  computer name and local paths, and the checkout keeps it between runs. The
+  runner runs the code of the commit on my computer, so the workflow has no
+  `pull_request` trigger, runs only for my pushes, uses no secret and reads the
+  repository only.
   `.github/actionlint.yaml` declares the label `excel`, and
   `docs/EXCEL_EVIDENCE.md` says how to register the runner and what it exposes.
 

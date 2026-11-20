@@ -1,13 +1,14 @@
 name: Excel check
 run-name: Excel check (${{ inputs.profile || 'quick' }}) — ${{ github.ref_name }} @ ${{ github.sha }}
 
-# Runs the unattended Excel check (tools/Check-FRTB-Excel.ps1) on the owner's
-# own Windows host, through a self-hosted runner with the labels self-hosted,
+# Runs the unattended Excel check (tools/Check-FRTB-Excel.ps1) on my own
+# Windows host, through a self-hosted runner with the labels self-hosted,
 # windows and excel. A push to main or a release branch runs the quick profile;
 # a manual run can ask for the full profile. The runner executes the code of
-# the commit, so the workflow never runs for a pull request, and only for the
-# owner's pushes. It uploads no artifact: the bundle stays on the host, because
-# it records the computer name and local paths. See docs/EXCEL_EVIDENCE.md.
+# the commit, so the workflow never runs for a pull request, and only for my
+# pushes. It uploads no artifact: the bundle stays on the host, because it
+# records the computer name and local paths, and the checkout keeps it between
+# runs (clean: false). See docs/EXCEL_EVIDENCE.md.
 on:
   push:
     branches: [main, "release/**"]
@@ -39,6 +40,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+          clean: false  # keep test-results, the only copy of the bundles
 
       - name: Run the check
         shell: powershell

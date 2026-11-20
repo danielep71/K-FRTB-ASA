@@ -157,39 +157,39 @@ head), `-TimeoutMinutes` (the watchdog limit, 60 by default),
 
 ### Run it from GitHub: a self-hosted runner
 
-The workflow `.github/workflows/excel-check.yml` runs the check on your own
-Windows host through a self-hosted runner. A push to `main` or to a
-`release/**` branch runs the quick profile; **Actions > Excel check > Run
-workflow** runs the quick or the full profile on the branch you pick. Runs queue
-one at a time, because there is one Excel. The job's summary shows
-`summary.txt`.
+The workflow `.github/workflows/excel-check.yml` runs the check on my Windows
+host through a self-hosted runner. A push to `main` or to a `release/**` branch
+runs the quick profile; **Actions > Excel check > Run workflow** runs the quick
+or the full profile on the branch I pick. Runs queue one at a time, because
+there is one Excel. The job's summary shows `summary.txt`.
 
-Set the runner up once, on the host that has desktop Excel:
+I set the runner up once, on the host that has desktop Excel:
 1. In the repository, **Settings > Actions > Runners > New self-hosted runner**,
-   Windows, and follow the commands it shows. Give it the extra label `excel`,
-   so that it has `self-hosted`, `windows` and `excel`.
-2. Start it with `run.cmd`, in your signed-in Windows session. Do not install it
-   as a service: Excel's automation needs the desktop of a signed-in user, which
-   a service does not have.
-3. Keep the VBA project access on (**File > Options > Trust Center > Trust
+   Windows, and I follow the commands it shows. I give it the extra label
+   `excel`, so that it has `self-hosted`, `windows` and `excel`.
+2. I start it with `run.cmd`, in my signed-in Windows session, and I do not
+   install it as a service: Excel's automation needs the desktop of a signed-in
+   user, which a service does not have.
+3. I keep the VBA project access on (**File > Options > Trust Center > Trust
    Center Settings > Macro Settings**), because a runner cannot answer the
    question the script asks; with the access off the run stops with exit code 2.
    Git and Python must be on the `PATH` of that session.
-4. Under **Settings > Actions > General**, set the approval for workflows from
+4. Under **Settings > Actions > General**, I set the approval for workflows from
    outside collaborators to **Require approval for all outside collaborators**.
 
 What this exposes, and how the workflow limits it: a self-hosted runner runs the
-code of the commit it checks out, on your computer, and this repository is
+code of the commit it checks out, on my computer, and this repository is
 public. The workflow therefore has no `pull_request` trigger, runs only when the
-repository is `danielep71/K-FRTB-ASA` and the pusher is its owner, holds no
-secret, and has the permission `contents: read`. It uploads no artifact, because
-the bundle records the computer name and local paths: the bundle stays under
-`test-results` in the runner's work folder, where you can send it to me. Never
-add a `pull_request` or `pull_request_target` trigger to it, and never register
-this runner for another repository.
+repository is `danielep71/K-FRTB-ASA` and I am the pusher, holds no secret, and
+has the permission `contents: read`. It uploads no artifact, because the bundle
+records the computer name and local paths: the bundle stays under `test-results`
+in the runner's work folder, which the checkout step leaves alone (`clean:
+false`), and I send it from there. I never add a `pull_request` or
+`pull_request_target` trigger to it, and I never register this runner for
+another repository.
 
-The quick profile is not evidence. To record a run, start the full profile from
-the Actions tab, or run the check by hand as above, and send me the bundle.
+The quick profile is not evidence. To record a run, I start the full profile
+from the Actions tab, or run the check by hand as above, and send the bundle.
 
 ### Quick profile
 

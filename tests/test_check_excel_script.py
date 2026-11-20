@@ -367,9 +367,10 @@ def test_the_quick_launcher_passes_the_branch_and_the_switch_and_reports_each_ex
 WORKFLOW = ROOT / ".github" / "workflows" / "excel-check.yml"
 
 
-def test_the_self_hosted_workflow_runs_only_for_the_owners_pushes_and_publishes_nothing():
-    """The runner executes the commit's code on the owner's computer: no pull request trigger,
-    only the owner's pushes, no secret, read-only permission and no artifact (the bundle names the computer)."""
+def test_the_self_hosted_workflow_runs_only_for_my_pushes_and_publishes_nothing():
+    """The runner executes the commit's code on my computer: no pull request trigger, only my
+    pushes, no secret, read-only permission, no artifact (the bundle names the computer) and a
+    checkout that keeps the bundles."""
     import yaml
 
     document = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
@@ -384,6 +385,7 @@ def test_the_self_hosted_workflow_runs_only_for_the_owners_pushes_and_publishes_
     assert "secrets." not in text and "upload-artifact" not in text
     assert "pull_request" not in text.replace("never runs for a pull request", "")
     assert "-NoPrompt" in text and "-Commit $env:GITHUB_SHA" in text
+    assert job["steps"][0]["with"]["clean"] is False  # the default git clean would delete test-results
     # The untrusted branch name reaches the script through an environment variable, not the command line text
     assert "${{ github.ref_name }}" not in job["steps"][1]["run"]
     assert (ROOT / ".github" / "actionlint.yaml").read_text(encoding="utf-8").count("excel") >= 1

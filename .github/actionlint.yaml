@@ -1,4 +1,4 @@
-# The label of the self-hosted runner on the owner's Windows host with desktop
+# The label of the self-hosted runner on my Windows host with desktop
 # Excel, which .github/workflows/excel-check.yml uses (docs/EXCEL_EVIDENCE.md).
 self-hosted-runner:
   labels:
