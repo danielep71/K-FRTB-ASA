@@ -40,6 +40,7 @@ Public Const APP_VERSION As String = "0.2.0-prototype"
 
 ' Sheet names
 Public Const SH_README As String = "README"
+Public Const SH_HOME As String = "Home"
 Public Const SH_CONTROL As String = "Control"
 Public Const SH_RESULTS As String = "Results"
 Public Const SH_IN_DELTA As String = "In_Delta"
@@ -65,6 +66,7 @@ Public Const SH_TEST As String = "Test_Expected"
 ' Sheet layout shared by every sheet: brand bar (row 1), title bar (row 2),
 ' subtitle (row 3), spacer (row 4); tables start in column C.
 Public Const LAYOUT_FIRST_COL As Long = 3                    'Column C
+Public Const LAYOUT_NAV_WIDTH As Long = 22                   'Column A: the navigation bar sits here (#347)
 Public Const LAYOUT_SUBTITLE_ROW As Long = 3
 Public Const LAYOUT_HEADER_ROW As Long = 5                   'Table header on input and output sheets
 Public Const LAYOUT_FIRST_DATA_ROW As Long = 6               'First data row below the header

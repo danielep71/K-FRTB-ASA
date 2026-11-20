@@ -79,7 +79,7 @@ docs/          methodology, workbook guide, validation, assets
 | `src/modules/CORE_DRC` | Default risk charge for non-securitizations |
 | `src/modules/CORE_RRAO` | Residual risk add-on |
 | `src/modules/M_Main` | `RunFRTB`, `RunFRTB_Silent`, `ClearOutputs`; Results and Out_Summary |
-| `src/modules/M_Setup` | `BuildWorkbook`, `FinishWorkbook`, `ResetParameters`, `LoadSampleData` |
+| `src/modules/M_Setup` | `BuildWorkbook`, `FinishWorkbook`, `AddNavigationBars`, `ResetParameters`, `LoadSampleData` |
 | `src/modules/M_Dev` | `Dev_ExportModules`: export the modules back to their folders |
 | `tests/modules/TEST_Regression` | `Test_RunRegression`, `Test_RunRegression_Silent` |
 | `tests/modules/TEST_Numeric` | `Test_NumericContracts_Silent`: numeric validation and conversion contracts |
@@ -105,7 +105,8 @@ modules.
 
    The script opens a copy of `src\workbook\FRTB_Template.xlsx`, imports
    `src\modules` and `tests\modules`, runs `FinishWorkbook` (sheet buttons
-   and reapplication of saved view settings), the calculation and the regression test, and saves
+   and reapplication of saved view settings) and `AddNavigationBars` (the bar
+   of links on every sheet), the calculation and the regression test, and saves
    `dist\K-FRTB-ASA.xlsm`. `-FromSource` builds every sheet from the modules
    (`BuildWorkbook`) instead of the template; `-Production` leaves out the
    test modules; `-Template` saves a source-built, macro-free template as
@@ -120,7 +121,7 @@ modules.
 
 Manual alternative: open a copy of `src\workbook\FRTB_Template.xlsx`, open
 the VBA editor (Alt+F11), use **File > Import File** for every `.bas` file of
-`src\modules` and `tests\modules`, run `FinishWorkbook` (Alt+F8), then save
+`src\modules` and `tests\modules`, run `FinishWorkbook` and `AddNavigationBars` (Alt+F8), then save
 as `.xlsm`.
 
 <a id="updating-an-existing-workbook"></a>
@@ -204,7 +205,8 @@ empty template's extent.
 
 | Tab | Sheet | Content |
 | --- | --- | --- |
-| Navy | `README` | How to use, input conventions, sheet map |
+| Navy | `Home` | The start sheet, where the workbook opens: what it does, the steps of a run and every sheet with its role and a link |
+| Navy | `README` | How to use and the input conventions; the last sheet |
 | Gold | `Control` | Run settings (`[SETTINGS]`) and the buttons Run FRTB-SA, Clear outputs and Run regression test (development builds only: `-Production` leaves out `TEST_Regression`) |
 | Gold | `In_Delta`, `In_Vega`, `In_Curvature` | Sensitivity inputs (see [methodology](methodology.md#-inputs)) |
 | Gold | `In_DRC` | Positions: obligor, bucket (`CORP`, `SOV`, `LGM`), credit quality, seniority, notional, market value, maturity, optional LGD |
@@ -221,6 +223,19 @@ empty template's extent.
 Input sheets are read from row 6 down to the first row whose `ID` and
 `Risk class` (second) columns are both blank. Invalid rows are skipped and
 logged on `Log`; check the error count on `Results` after every run.
+
+### 🧭 Navigation
+
+The workbook opens on `Home`, which lists every sheet once with its role and a
+link to it. On every sheet, column A (22 wide) holds a bar of links grouped
+under START, INPUTS, PARAMETERS, OUTPUTS and TESTS AND REFERENCE; the current
+sheet is the dark entry and the others are links. The bar is made of shapes,
+which the macro-free template cannot hold: `tools/Build-Workbook.ps1` adds it
+through `M_Setup.AddNavigationBars` after `FinishWorkbook`, and the template
+save drops it. A workbook you update with `tools\Sync-FRTB-VBA.ps1` keeps its
+bar, and one built before the bar existed has none until you run
+`AddNavigationBars`. The unattended Excel check `NAVIGATION` reads the markers,
+the links and the list on `Home` back in Excel.
 
 ### ✅ Data validation
 

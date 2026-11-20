@@ -7,6 +7,18 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- A start sheet and a navigation bar on every sheet (#347). `Home` is the
+  first sheet and the one the workbook opens on: it says what the workbook
+  does, gives the steps of a run and lists every sheet once, with its role and
+  a link. `README` moves to the end and refers to `Home` for the sheet map.
+  Column A of every sheet is 22 wide, the brand and title bars start in it,
+  and `M_Setup.AddNavigationBars` adds a bar of links in it after
+  `FinishWorkbook`: the current sheet is the marker and the other 22 are
+  links, under five section headings. The bar is made of shapes, so only
+  `tools/Build-Workbook.ps1` in Excel adds it and the template stays
+  shape-free. The Excel check gains `NAVIGATION`. The sheet pictures and the
+  README gallery are refreshed with the next Excel run.
+
 - The record of the Excel check of November 20, 2026 on `27eb55a`
   ([`docs/evidence/2026-11-20-excel-check-27eb55a.md`](docs/evidence/2026-11-20-excel-check-27eb55a.md),
   #348, #351): 25 of 25 PASS, with the new `DATA_VALIDATION` check. Its pictures

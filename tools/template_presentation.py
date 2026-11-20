@@ -108,7 +108,7 @@ def normalize(path: Path) -> None:
         if props is None:
             props = ET.Element(_tag("sheetPr"))
             root.insert(0, props)
-        role = "TAB_REFERENCE" if name == "README" else "TAB_TEST" if name == "Test_Expected" else "TAB_OUTPUT" if name in ("Results", "Log") or name.startswith("Out_") else "TAB_INPUT"
+        role = "TAB_REFERENCE" if name in ("README", "Home") else "TAB_TEST" if name == "Test_Expected" else "TAB_OUTPUT" if name in ("Results", "Log") or name.startswith("Out_") else "TAB_INPUT"
         color = props.find(_tag("tabColor"))
         if color is None:
             color = ET.Element(_tag("tabColor"))
@@ -117,7 +117,7 @@ def normalize(path: Path) -> None:
         color.set("rgb", palette[role])
         _child(props, "pageSetUpPr", fitToPage="1")
 
-        frozen_rows = 3 if name == "README" else 6 if name in ("Control", "Test_Expected") or name.startswith("P_") else 5
+        frozen_rows = 3 if name in ("README", "Home") else 6 if name in ("Control", "Test_Expected") or name.startswith("P_") else 5
         # The wide input, output and Log tables keep their key columns in
         # view; the narrow tables of the other sheets freeze rows only.
         frozen_cols = 3 if name.startswith(("In_", "Out_")) or name == "Log" else 0

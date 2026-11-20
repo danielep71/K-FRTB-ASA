@@ -34,11 +34,11 @@ def test_template_saved_presentation():
     wb = openpyxl.load_workbook(build_template.TEMPLATE)
     for ws in wb:
         assert ws.sheet_view.showGridLines is False, ws.title
-        expected_tab = "FF1F3864" if ws.title == "README" else "FF548235" if ws.title == "Test_Expected" else "FF2E75B6" if ws.title in ("Results", "Log") or ws.title.startswith("Out_") else "FFBF9000"
+        expected_tab = "FF1F3864" if ws.title in ("README", "Home") else "FF548235" if ws.title == "Test_Expected" else "FF2E75B6" if ws.title in ("Results", "Log") or ws.title.startswith("Out_") else "FFBF9000"
         assert ws.sheet_properties.tabColor is not None, ws.title
         assert ws.sheet_properties.tabColor.rgb == expected_tab, ws.title
         wide = ws.title.startswith(("In_", "Out_")) or ws.title == "Log"
-        expected_freeze = ("A4" if ws.title == "README" else "D6" if wide else "A6" if ws.title == "Results"
+        expected_freeze = ("A4" if ws.title in ("README", "Home") else "D6" if wide else "A6" if ws.title == "Results"
                            else "A7")
         assert ws.freeze_panes == expected_freeze, ws.title
         assert ws.page_setup.orientation == "landscape", ws.title
@@ -86,6 +86,31 @@ def test_template_type_sizes():
     # the cells below a header stay at 10 pt
     assert wb["In_Delta"]["C6"].font.sz == 10
     assert wb["P_GIRR"]["D7"].font.sz == 10
+
+
+def test_home_lists_every_sheet_once_and_links_to_it():
+    """The start sheet is the first sheet and lists every sheet once, as a link to cell A1 (#347)."""
+    wb = openpyxl.load_workbook(build_template.TEMPLATE)
+    values = openpyxl.load_workbook(build_template.TEMPLATE, data_only=True)
+    assert wb.sheetnames[0] == "Home" and wb.sheetnames[-1] == "README"
+    ws = wb["Home"]
+    listed = []
+    for row in range(1, ws.max_row + 1):
+        formula = ws.cell(row, 3).value
+        if isinstance(formula, str) and formula.startswith("=HYPERLINK("):
+            name = str(values["Home"].cell(row, 3).value)
+            assert formula == f'=HYPERLINK("#\'{name}\'!A1","{name}")', (row, formula)
+            listed.append(name)
+    assert sorted(listed) == sorted(wb.sheetnames) and len(listed) == len(set(listed))
+
+
+def test_every_sheet_leaves_room_for_the_navigation_bar():
+    """Column A is 22 wide and the brand and title bars start in it (#347)."""
+    wb = openpyxl.load_workbook(build_template.TEMPLATE)
+    for ws in wb:
+        assert round(ws.column_dimensions["A"].width) == 23, ws.title      # 22 plus Excel's padding
+        assert ws["A1"].fill.fgColor.rgb == "FF000000", ws.title
+        assert ws["A2"].fill.fgColor.rgb == "FF265A99", ws.title
 
 
 def header_lines(text, width_px):

@@ -5,8 +5,9 @@
 .DESCRIPTION
     Starts Excel through COM and opens a copy of the macro-free template
     src\workbook\FRTB_Template.xlsx, imports the modules of src\modules and
-    (unless -Production) tests\modules, runs M_Setup.FinishWorkbook to add the
-    sheet buttons and reapply saved view settings, and saves the result as a
+    (unless -Production) tests\modules, runs M_Setup.FinishWorkbook and
+    M_Setup.AddNavigationBars to add the sheet buttons, reapply saved view
+    settings and add the navigation bars, and saves the result as a
     macro-enabled workbook. With -RunTests it also runs the calculation and
     the in-workbook regression test and fails when the test does not pass.
 
@@ -137,6 +138,9 @@ try {
         [void]$excel.Run($prefix + 'FinishWorkbook')
         Write-Host 'Buttons added and saved view settings reapplied'
     }
+    # The navigation bars are shapes, which only Excel adds; the template save below drops them
+    [void]$excel.Run($prefix + 'AddNavigationBars')
+    Write-Host 'Navigation bars added'
 
     if ($RunTests) {
         [void]$excel.Run($prefix + 'RunFRTB_Silent')

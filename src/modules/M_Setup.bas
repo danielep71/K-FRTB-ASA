@@ -15,6 +15,8 @@ Attribute VB_Name = "M_Setup"
 '   FinishWorkbook.
 '   FinishWorkbook: add the sheet buttons and window settings to a workbook
 '   opened from the template.
+'   AddNavigationBars: add the bar of links in column A of every sheet; Excel
+'   only, because the bar is made of shapes (#347).
 '   ResetParameters: rewrite the P_* sheets with the defaults.
 '   LoadSampleData: rewrite the In_* sheets with the sample portfolio.
 '   ManagedSheets: the sheet names in workbook order.
@@ -52,6 +54,7 @@ Option Explicit
 '                              MODULE CONSTANTS
 '------------------------------------------------------------------------------
 Private Const INPUT_ROWS As Long = 200                       'Pre-formatted input rows per input sheet
+Private Const NAV_COUNT As Long = 23                         'Entries of NavEntry: every managed sheet once (#347)
 ' Input number formats. A format such as #,##0.#### ends a whole number with
 ' the decimal separator in Excel ("5.000.000,"), so amounts show two decimals
 ' and years one to three (#206). Declarations stay above the first procedure:
@@ -71,6 +74,7 @@ Public Sub BuildWorkbook()
     Next i
     RemoveDefaultSheets
 
+    BuildHome
     BuildReadme
     BuildControl
     BuildOutputSheets
@@ -95,7 +99,7 @@ Public Sub FinishWorkbook()
     AddWorkbookButtons
     ApplyWindowSettings
     On Error Resume Next
-    ThisWorkbook.Worksheets(SH_README).Activate
+    ThisWorkbook.Worksheets(SH_HOME).Activate
     On Error GoTo 0
     SetAlerts True
 End Sub
@@ -117,11 +121,11 @@ End Sub
 
 
 Public Function ManagedSheets() As Variant
-    ManagedSheets = Array(SH_README, SH_CONTROL, SH_RESULTS, _
+    ManagedSheets = Array(SH_HOME, SH_CONTROL, SH_RESULTS, _
                           SH_IN_DELTA, SH_IN_VEGA, SH_IN_CURV, SH_IN_DRC, SH_IN_RRAO, _
                           SH_OUT_SUMMARY, SH_OUT_CLASS, SH_OUT_BUCKETS, SH_OUT_DRC, SH_LOG, _
                           SH_P_GENERAL, SH_P_GIRR, SH_P_CSR, SH_P_EQ, SH_P_COM, SH_P_FX, _
-                          SH_P_DRC, SH_P_RRAO, SH_TEST)
+                          SH_P_DRC, SH_P_RRAO, SH_TEST, SH_README)
 End Function
 
 '------------------------------------------------------------------------------
@@ -201,14 +205,14 @@ Private Sub ApplyFrame(ByVal ws As Object, ByVal title As String, ByVal subtitle
     ws.Cells.Font.Name = FONT_NAME
     ws.Cells.Font.Size = 10
     ws.Cells.VerticalAlignment = -4108                       'xlCenter
-    ws.Columns(1).ColumnWidth = 4
+    ws.Columns(1).ColumnWidth = LAYOUT_NAV_WIDTH
     ws.Columns(2).ColumnWidth = 4
-    With ws.Range(ws.Cells(1, 2), ws.Cells(1, lastCol))
+    With ws.Range(ws.Cells(1, 1), ws.Cells(1, lastCol))
         .Interior.Color = COLOR_BRAND_BAR
         .Font.Color = COLOR_BRAND_TEXT
     End With
     ws.Cells(1, 2).Font.Size = 14
-    With ws.Range(ws.Cells(2, 2), ws.Cells(2, lastCol))
+    With ws.Range(ws.Cells(2, 1), ws.Cells(2, lastCol))
         .Interior.Color = COLOR_TITLE_BAR
         .Font.Color = COLOR_WHITE
     End With
@@ -235,7 +239,7 @@ Private Sub ApplyFrame(ByVal ws As Object, ByVal title As String, ByVal subtitle
         .BottomMargin = 36
         .CenterHeader = ""
         .CenterFooter = "&""Aptos,Regular""&9Page &P of &N"
-        If ws.Name = SH_README Then
+        If ws.Name = SH_README Or ws.Name = SH_HOME Then
             .PrintTitleRows = "$1:$3"
         ElseIf ws.Name = SH_CONTROL Or ws.Name = SH_TEST Or Left$(ws.Name, 2) = "P_" Then
             .PrintTitleRows = "$1:$6"
@@ -280,7 +284,7 @@ End Function
 Private Sub ApplyTabColor(ByVal ws As Object)
     Dim color As Long
     Select Case True
-        Case ws.Name = SH_README: color = TAB_REFERENCE
+        Case ws.Name = SH_README, ws.Name = SH_HOME: color = TAB_REFERENCE
         Case ws.Name = SH_TEST: color = TAB_TEST
         Case ws.Name = SH_RESULTS, ws.Name = SH_LOG, Left$(ws.Name, 4) = "Out_": color = TAB_OUTPUT
         Case Else: color = TAB_INPUT
@@ -521,9 +525,8 @@ Private Sub BuildReadme()
     r = r + 1
     WriteSectionHeading ws, r, "Sheet map", 2
     r = WriteGuideRows(ws, r + 1, Array( _
-        "Gold tabs", "Inputs and parameters: Control, In_*, P_*. Parameter codes in column C are read by the engine; only cream cells are meant to be changed.", _
-        "Blue tabs", "Outputs: Results, Out_Summary, Out_RiskClass, Out_Buckets (Kb, Sb and notes ALT_SB, UP/DOWN, OTHER), Out_DRC, Log.", _
-        "Green tab", "Test_Expected: in-workbook regression test of the sample portfolio."))
+        "Where is a sheet", "Home lists every sheet with its role and links to it. On every other sheet the bar in column A does the same.", _
+        "Tab colors", "Navy: Home and README. Gold: inputs and parameters (Control, In_*, P_*); parameter codes in column C are read by the engine, and only cream cells are meant to be changed. Blue: outputs (Results, Out_*, Log). Green: Test_Expected."))
 End Sub
 
 
@@ -556,6 +559,163 @@ Private Function WriteGuideRows(ByVal ws As Object, ByVal r As Long, ByVal pairs
     WriteGuideRows = r
 End Function
 
+
+'------------------------------------------------------------------------------
+'                      HOME AND THE NAVIGATION BAR (#347)
+'------------------------------------------------------------------------------
+' The start sheet: what the workbook does, the steps of a run and every sheet
+' with its role and a link to it.
+Private Sub BuildHome()
+    Dim ws As Object, r As Long, i As Long, first As Long, entry As Variant
+    Set ws = GetSheet(SH_HOME)
+    ApplyFrame ws, "Home", "Start here: what " & APP_NAME & " does, the steps of a run and where every sheet is.", 5
+    SetWidths ws, Array(26, 22, 118)
+
+    r = LAYOUT_HEADER_ROW
+    WriteSectionHeading ws, r, "What " & APP_NAME & " does", 3
+    WriteTableHeader ws, r + 1, Array("Topic", "Kind", "Description"), COLOR_INPUT_HEADER
+    r = r + 2
+    PutRow ws, r, Array("Calculates", "Capital", "The standardized approach capital requirement of the Basel Framework (MAR21-MAR23): SBM, the default risk charge and the RRAO.")
+    PutRow ws, r + 1, Array("Does not cover", "Out of scope", "CSR securitization, the correlation trading portfolio, securitization DRC, jurisdiction profiles and the pricing of sensitivities.")
+    PutRow ws, r + 2, Array("Status", "Prototype", "Results are not validated for regulatory use. The README sheet has the input conventions.")
+    FormatDataRows ws, r, r + 2, 3, 0, "", False
+
+    r = r + 4
+    WriteSectionHeading ws, r, "How to run", 3
+    WriteTableHeader ws, r + 1, Array("Step", "Where", "What to do"), COLOR_INPUT_HEADER
+    r = r + 2
+    PutRow ws, r, Array("1. Check the settings", "Control", "Reporting currency and the national discretions. Cream cells are inputs.")
+    PutRow ws, r + 1, Array("2. Enter the inputs", "In_* sheets", "Delta, vega and curvature sensitivities, DRC positions and RRAO notional, one row each, in the reporting currency.")
+    PutRow ws, r + 2, Array("3. Run", "Control", "Click Run FRTB-SA. The output sheets and the Log are rewritten on every run.")
+    PutRow ws, r + 3, Array("4. Read the results", "Results, Log", "Results shows the capital; the Log lists every rejected row with its reason.")
+    PutRow ws, r + 4, Array("Macros", "Excel", "The commands need macros enabled: open the .xlsm and click Enable Content.")
+    FormatDataRows ws, r, r + 4, 3, 0, "", False
+
+    r = r + 6
+    WriteSectionHeading ws, r, "Sheets", 3
+    WriteTableHeader ws, r + 1, Array("Sheet", "Role", "Contents"), COLOR_INPUT_HEADER
+    first = r + 2
+    For i = 1 To NAV_COUNT
+        entry = NavEntry(i)
+        PutRow ws, first + i - 1, Array(entry(1), entry(2), entry(3))
+    Next i
+    FormatDataRows ws, first, first + NAV_COUNT - 1, 3, 0, "", False
+    On Error Resume Next
+    For i = 1 To NAV_COUNT
+        entry = NavEntry(i)
+        With TableCell(ws, first + i - 1, 1)
+            .Formula = "=HYPERLINK(""#'" & entry(1) & "'!A1"",""" & entry(1) & """)"
+            .Font.Color = COLOR_INPUT_HEADER
+            .Font.Underline = 2                              'xlUnderlineStyleSingle
+        End With
+    Next i
+    On Error GoTo 0
+End Sub
+
+
+' The sheets in navigation order, one entry each: Array(section heading,
+' sheet, role, contents). Home lists them and the bars link to them.
+Private Function NavEntry(ByVal i As Long) As Variant
+    Select Case i
+        Case 1: NavEntry = Array("START", SH_HOME, "Start", "This sheet: what the workbook does, how to run it and where every sheet is.")
+        Case 2: NavEntry = Array("INPUTS", SH_CONTROL, "Inputs", "Run settings and the buttons Run FRTB-SA, Clear outputs and Run regression test.")
+        Case 3: NavEntry = Array("INPUTS", SH_IN_DELTA, "Inputs", "Delta sensitivities in the reporting currency, one row per risk factor and tenor.")
+        Case 4: NavEntry = Array("INPUTS", SH_IN_VEGA, "Inputs", "Vega sensitivities per option maturity, and GIRR underlying maturity.")
+        Case 5: NavEntry = Array("INPUTS", SH_IN_CURV, "Inputs", "Curvature CVR up and CVR down per risk factor.")
+        Case 6: NavEntry = Array("INPUTS", SH_IN_DRC, "Inputs", "Positions for the default risk charge: notional, market value, maturity and seniority.")
+        Case 7: NavEntry = Array("INPUTS", SH_IN_RRAO, "Inputs", "Gross notional of instruments with residual risks, by category.")
+        Case 8: NavEntry = Array("PARAMETERS", SH_P_GENERAL, "Parameters", "Correlation scenarios, vega parameters and regulatory vertices.")
+        Case 9: NavEntry = Array("PARAMETERS", SH_P_GIRR, "Parameters", "General interest rate risk: delta risk weights and correlations.")
+        Case 10: NavEntry = Array("PARAMETERS", SH_P_CSR, "Parameters", "Credit spread risk, non-securitization: buckets, risk weights and correlations.")
+        Case 11: NavEntry = Array("PARAMETERS", SH_P_EQ, "Parameters", "Equity risk: buckets, risk weights and correlations.")
+        Case 12: NavEntry = Array("PARAMETERS", SH_P_COM, "Parameters", "Commodity risk: buckets, risk weights and correlations.")
+        Case 13: NavEntry = Array("PARAMETERS", SH_P_FX, "Parameters", "Foreign exchange risk: risk weights and specified pairs.")
+        Case 14: NavEntry = Array("PARAMETERS", SH_P_DRC, "Parameters", "Default risk charge: risk weights, LGD, maturity scaling and buckets.")
+        Case 15: NavEntry = Array("PARAMETERS", SH_P_RRAO, "Parameters", "Residual risk add-on risk weights.")
+        Case 16: NavEntry = Array("OUTPUTS", SH_RESULTS, "Outputs", "Capital by risk class, component and correlation scenario, with the total.")
+        Case 17: NavEntry = Array("OUTPUTS", SH_OUT_SUMMARY, "Outputs", "Key results of the last run, read by the regression test and automation.")
+        Case 18: NavEntry = Array("OUTPUTS", SH_OUT_CLASS, "Outputs", "Capital per risk class, component and scenario.")
+        Case 19: NavEntry = Array("OUTPUTS", SH_OUT_BUCKETS, "Outputs", "Kb and Sb per bucket.")
+        Case 20: NavEntry = Array("OUTPUTS", SH_OUT_DRC, "Outputs", "Net jump-to-default per obligor, and the charge per bucket.")
+        Case 21: NavEntry = Array("OUTPUTS", SH_LOG, "Outputs", "Every rejected input row with the reason, warnings and the run status.")
+        Case 22: NavEntry = Array("TESTS AND REFERENCE", SH_TEST, "Tests", "Expected values of the sample portfolio, actual values and PASS or FAIL per item.")
+        Case Else: NavEntry = Array("TESTS AND REFERENCE", SH_README, "Reference", "How to use the workbook, and the input conventions.")
+    End Select
+End Function
+
+
+' Adds the bar of links in column A of every sheet. The bar is made of
+' shapes, which the template does not hold: Excel adds them at build time
+' (tools/Build-Workbook.ps1 runs this after FinishWorkbook) and a sheet shows
+' its own entry as the marker. Excel only.
+Public Sub AddNavigationBars()
+    Dim names As Variant, i As Long
+    SetAlerts False
+    names = ManagedSheets()
+    For i = LBound(names) To UBound(names)
+        If SheetExists(CStr(names(i))) Then AddNavigationBar GetSheet(CStr(names(i)))
+    Next i
+    On Error Resume Next
+    ThisWorkbook.Worksheets(SH_HOME).Activate
+    On Error GoTo 0
+    SetAlerts True
+End Sub
+
+
+Private Sub AddNavigationBar(ByVal ws As Object)
+    Dim i As Long, entry As Variant, section As String, shp As Object
+    Dim x As Double, y As Double, w As Double, isCurrent As Boolean
+    On Error Resume Next
+    RemoveNavigation ws
+    x = ws.Cells(1, 1).Left + 4
+    w = ws.Columns(1).Width - 8
+    y = ws.Cells(LAYOUT_FIRST_DATA_ROW + 1, 1).Top           'below every frozen row
+    For i = 1 To NAV_COUNT
+        entry = NavEntry(i)
+        If CStr(entry(0)) <> section Then
+            section = CStr(entry(0))
+            If i > 1 Then y = y + 6
+            Set shp = ws.Shapes.AddTextbox(1, x, y, w, 16)
+            shp.Name = "NavSection_" & Replace(section, " ", "_")
+            shp.Placement = 3                                'xlFreeFloating
+            shp.Fill.Visible = 0
+            shp.Line.Visible = 0
+            shp.TextFrame.Characters.Text = section
+            shp.TextFrame.Characters.Font.Size = 8
+            shp.TextFrame.Characters.Font.Bold = True
+            shp.TextFrame.Characters.Font.Color = COLOR_SUBTITLE
+            y = y + 16
+        End If
+        isCurrent = (CStr(entry(1)) = ws.Name)
+        Set shp = ws.Shapes.AddShape(1, x, y, w, 20)         'msoShapeRectangle
+        shp.Name = IIf(isCurrent, "Nav_Current", "Nav_" & CStr(entry(1)))
+        shp.Placement = 3
+        shp.Fill.ForeColor.RGB = IIf(isCurrent, COLOR_INPUT_HEADER, COLOR_TOTAL_FILL)
+        shp.Line.Visible = 0
+        shp.TextFrame.Characters.Text = CStr(entry(1))
+        shp.TextFrame.Characters.Font.Name = FONT_NAME
+        shp.TextFrame.Characters.Font.Size = 9
+        shp.TextFrame.Characters.Font.Bold = isCurrent
+        shp.TextFrame.Characters.Font.Color = IIf(isCurrent, COLOR_WHITE, COLOR_INPUT_HEADER)
+        shp.TextFrame.HorizontalAlignment = -4131            'xlLeft
+        shp.TextFrame.VerticalAlignment = -4108              'xlCenter
+        If Not isCurrent Then
+            ws.Hyperlinks.Add shp, "", "'" & CStr(entry(1)) & "'!A1", "Go to " & CStr(entry(1))
+        End If
+        y = y + 22
+    Next i
+    On Error GoTo 0
+End Sub
+
+
+Private Sub RemoveNavigation(ByVal ws As Object)
+    Dim i As Long
+    On Error Resume Next
+    For i = ws.Shapes.Count To 1 Step -1
+        If Left$(ws.Shapes(i).Name, 3) = "Nav" Then ws.Shapes(i).Delete
+    Next i
+    On Error GoTo 0
+End Sub
 
 Private Sub BuildControl()
     Dim ws As Object, r As Long
