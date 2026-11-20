@@ -9,7 +9,8 @@ Attribute VB_Name = "TEST_Acceptance"
 '   of sub-types MAR21 does not define (#245, #276), the frozen panes, the
 '   autofilters, the width of the Control descriptions (#203), the values
 '   Excel displays, the absence of dates and the view of every sheet (#206,
-'   #316), and the invalid-row variant (#28).
+'   #316), the data validation of the input and parameter sheets (#348), and
+'   the invalid-row variant (#28).
 '
 ' PUBLIC SURFACE
 '   Test_RunAcceptanceInExcel_Silent: run every check and write one line per
@@ -18,7 +19,8 @@ Attribute VB_Name = "TEST_Acceptance"
 '   tools/Check-FRTB-Excel.ps1 runs it in desktop Excel.
 '   Test_RunAcceptance_Silent: the same, with the checks only Excel can make
 '   (the window panes, the autofilters, the column widths, the displayed
-'   values and the sheet view) SKIPPED; the LibreOffice tests run it.
+'   values, the sheet view and the data validation) SKIPPED; the LibreOffice
+'   tests run it.
 '
 ' DEPENDENCIES
 '   CORE_Config, CORE_Util, M_Main, M_Setup (ManagedSheets), TEST_AcceptanceData.
@@ -92,6 +94,7 @@ Private Sub RunAll(ByVal inExcel As Boolean)
     RunCheck "DISPLAYED_VALUES"
     RunCheck "NO_DATES"
     RunCheck "SHEET_VIEW"
+    RunCheck "DATA_VALIDATION"
     RunCheck "INVALID_ROW_VARIANT"                           'last: it adds input rows
     WriteReport
 End Sub
@@ -112,6 +115,7 @@ Private Sub RunCheck(ByVal checkName As String)
         Case "DISPLAYED_VALUES": result = CheckDisplayedValues(detail)
         Case "NO_DATES": result = CheckNoDates(detail)
         Case "SHEET_VIEW": result = CheckSheetView(detail)
+        Case "DATA_VALIDATION": result = CheckDataValidation(detail)
         Case "INVALID_ROW_VARIANT": result = CheckVariant(detail)
     End Select
     mReport.Add Array(checkName, result, detail)
@@ -452,6 +456,47 @@ Private Function CheckSheetView(ByRef detail As String) As String
     detail = IIf(problems = "", (UBound(names) - LBound(names) + 1) & _
                  " sheets without gridlines, each with the tab color of its role", problems)
     CheckSheetView = IIf(problems = "", "PASS", "FAIL")
+End Function
+
+
+' Every data validation rule of the template is on its sheet, with the same
+' type, alert style and error title (#348). The formulas are not compared:
+' Excel returns them in the language of the host.
+Private Function CheckDataValidation(ByRef detail As String) As String
+    Dim item As Variant, problems As String, n As Long, kind As Long, alert As Long, title As String
+    If Not mInExcel Then
+        detail = "Excel only: the validation rules as Excel reads them"
+        CheckDataValidation = "SKIPPED"
+        Exit Function
+    End If
+    For Each item In AcceptanceValidation()
+        n = n + 1
+        If Not ReadValidation(CStr(item(0)), CStr(item(1)), kind, alert, title) Then
+            problems = problems & item(0) & "!" & item(1) & " has no rule; "
+        ElseIf kind <> item(2) Or alert <> item(3) Or title <> item(4) Then
+            problems = problems & item(0) & "!" & item(1) & " has type " & kind & ", alert " & alert & _
+                       " and title '" & title & "'; "
+        End If
+    Next item
+    detail = IIf(problems = "", n & " rules on the input and parameter sheets, as in the template", problems)
+    CheckDataValidation = IIf(problems = "", "PASS", "FAIL")
+End Function
+
+
+' The rule of a cell: False when the cell has none.
+Private Function ReadValidation(ByVal sheetName As String, ByVal address As String, ByRef kind As Long, _
+                                ByRef alert As Long, ByRef title As String) As Boolean
+    Dim v As Object
+    On Error Resume Next
+    Set v = GetSheet(sheetName).Range(address).Validation
+    kind = v.Type
+    If Err.Number = 0 Then
+        alert = v.AlertStyle
+        title = v.ErrorTitle
+    End If
+    ReadValidation = (Err.Number = 0)
+    Err.Clear
+    On Error GoTo 0
 End Function
 
 

@@ -6,8 +6,9 @@ buttons and without personal document properties. Builds start from it and
 import the modules of src/modules (and tests/modules); M_Setup.FinishWorkbook
 then adds the buttons and reapplies the saved view settings.
 
-The build runs headless in LibreOffice Calc. tools/Build-Workbook.ps1
--Template produces the same content through Excel.
+The build runs headless in LibreOffice Calc, and tools/input_validation.py then
+writes the data validation rules into the sheets. tools/Build-Workbook.ps1
+-Template produces the same content through Excel, without the rules.
 
 Usage:
     python3 tools/build_template.py          # rewrite the template
@@ -31,6 +32,7 @@ from openpyxl.styles.colors import Color
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "tools"))
 
+import input_validation  # noqa: E402
 import lo_runner  # noqa: E402
 import template_presentation  # noqa: E402
 
@@ -57,6 +59,7 @@ def build(output: Path) -> None:
     if errors:
         raise RuntimeError("; ".join(errors))
     template_presentation.normalize(output)
+    input_validation.apply(output)
 
 
 def _color(c: Color | None) -> str | None:
@@ -192,7 +195,7 @@ def package_problems(path: Path) -> list[str]:
 def check() -> list[str]:
     if not TEMPLATE.exists():
         return [f"{TEMPLATE} does not exist"]
-    problems = package_problems(TEMPLATE)
+    problems = package_problems(TEMPLATE) + input_validation.problems(TEMPLATE)
     with tempfile.TemporaryDirectory() as tmp:
         fresh = Path(tmp) / "fresh.xlsx"
         build(fresh)
