@@ -62,6 +62,32 @@ def test_template_saved_presentation():
         assert wb[name]["C6"].value == "No results yet: press Run FRTB-SA.", name
 
 
+def test_template_type_sizes():
+    """Table headers are 11 pt bold, data rows 10 pt, subtitles 30 pt high, zoom unset (#351)."""
+    wb = openpyxl.load_workbook(build_template.TEMPLATE)
+    headers = 0
+    for ws in wb:
+        assert ws.sheet_view.zoomScale in (None, 100), ws.title
+        assert ws.row_dimensions[3].height == 30, ws.title
+        for row in ws.iter_rows():
+            for cell in row:
+                if cell.value in (None, ""):
+                    continue
+                is_header = (cell.fill.fill_type and cell.fill.fgColor.rgb == "FF1F3864" and cell.font.b
+                             and cell.font.color is not None and cell.font.color.rgb == "FFFFFFFF")
+                if is_header:
+                    headers += 1
+                    assert cell.font.sz == 11, (ws.title, cell.coordinate, cell.font.sz)
+                elif cell.row > 5 and cell.font.sz is not None and cell.font.sz > 10:
+                    # the only larger text below the banner is a section heading: 14 pt navy
+                    assert cell.font.sz == 14 and cell.font.b and cell.font.color.rgb == "FF1F3864", \
+                        (ws.title, cell.coordinate, cell.font.sz)
+    assert headers > 100
+    # the cells below a header stay at 10 pt
+    assert wb["In_Delta"]["C6"].font.sz == 10
+    assert wb["P_GIRR"]["D7"].font.sz == 10
+
+
 def wrapped_lines(text: str, per_line: int) -> int:
     """M_Setup.WrappedLines: words, broken after a hyphen too."""
     lines, used, after_hyphen = 1, 0, False

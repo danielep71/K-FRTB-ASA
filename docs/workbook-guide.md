@@ -192,8 +192,8 @@ description row is as high as its lines need (#206). The palette is defined
 once in `CORE_Config`.
 
 The XLSX saves colored tabs, hidden gridlines and frozen panes before any
-macro runs. Data rows are 20.1 points high, table headers are 42 points high,
-and input tables use thin gray borders. The README uses dashed internal
+macro runs. Data rows are 20.1 points high and 10 pt, table headers are 42
+points high and 11 pt bold (#351), and input tables use thin gray borders. The README uses dashed internal
 separators. Display titles and column captions use readable words; engine
 sheet names, parameter codes and column positions remain unchanged.
 Initial output sheets show navy headers and a no-results message, without

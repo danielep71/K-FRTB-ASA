@@ -294,6 +294,7 @@ Private Sub WriteBucketHeader(ByVal ws As Object)
     On Error Resume Next
     With ws.Range(TableCell(ws, LAYOUT_HEADER_ROW, DRC_BUCKET_COL), TableCell(ws, LAYOUT_HEADER_ROW, DRC_BUCKET_COL + 6))
         .Font.Bold = True
+        .Font.Size = HEADER_FONT_SIZE
         .Font.Color = COLOR_WHITE
         .Interior.Color = COLOR_OUTPUT_HEADER
         .VerticalAlignment = -4108

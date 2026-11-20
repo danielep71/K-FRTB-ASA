@@ -929,7 +929,7 @@ End Sub
 Private Sub WriteParamDrc()
     Dim ws As Object, r As Long
     Set ws = ParamSheet(SH_P_DRC, "Default risk charge, non-securitization: risk weights, LGD, maturity scaling and buckets.", 7)
-    SetWidths ws, Array(16, 10, 10, 40)
+    SetWidths ws, Array(16, 12, 12, 40)                      'room for the 11 pt headers (#351)
     r = PutTable(ws, LAYOUT_HEADER_ROW, "DRC_RW", "Risk weights by credit quality (MAR22.24 Table 2)", Array("CreditQuality", "RW"))
     PutRow ws, r, Array("AAA", 0.005)
     PutRow ws, r + 1, Array("AA", 0.02)
