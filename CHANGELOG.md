@@ -7,6 +7,17 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- A workflow that runs the unattended Excel check on a self-hosted runner
+  (`.github/workflows/excel-check.yml`). A push to `main` or to a `release/**`
+  branch runs the quick profile, and a manual run can ask for the full one; the
+  job shows `summary.txt` and uploads nothing, because the bundle records the
+  computer name and local paths, and the checkout keeps it between runs. The
+  runner runs the code of the commit on my computer, so the workflow has no
+  `pull_request` trigger, runs only for my pushes, uses no secret and reads the
+  repository only.
+  `.github/actionlint.yaml` declares the label `excel`, and
+  `docs/EXCEL_EVIDENCE.md` says how to register the runner and what it exposes.
+
 - A quick profile of the unattended Excel check (#274).
   `tools\Check-FRTB-Excel-Quick.cmd`, or `tools\Check-FRTB-Excel.ps1 -Quick`, runs
   one development build with the regression test and the acceptance checks,
