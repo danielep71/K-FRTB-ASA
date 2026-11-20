@@ -603,7 +603,7 @@ Private Sub BuildOutputSheets()
 
     Set ws = GetSheet(SH_OUT_CLASS)
     ApplyFrame ws, "Out_RiskClass", "Capital per risk class, component and scenario; Alternative Sb used = Y when the alternative Sb of MAR21.4(5)(b) applied.", 9
-    SetWidths ws, Array(12, 13, 11, 16, 9, 11)
+    SetWidths ws, Array(12, 13, 11, 16, 9, 13)
     WriteOutputPlaceholder ws
 
     Set ws = GetSheet(SH_OUT_BUCKETS)
@@ -631,10 +631,10 @@ Private Sub BuildInputSheets()
         Array(10, 11, 9, 18, 13, 9, 16, 34), Array("", "", "", "", "", FMT_YEARS, FMT_AMOUNT, "")
     BuildInputSheet SH_IN_VEGA, "Vega x implied volatility per option maturity (and GIRR YIELD underlying maturity; GIRR INFLATION and XCCY: none), MAR21.25 and MAR21.8 FAQ4.", _
         Array("ID", "RiskClass", "Bucket", "Qualifier", "SubType", "OptionMaturity", "UnderlyingMaturity", "Sensitivity", "Comment"), _
-        Array(10, 11, 9, 18, 13, 15, 18, 16, 34), Array("", "", "", "", "", FMT_YEARS, FMT_YEARS, FMT_AMOUNT, "")
+        Array(10, 11, 9, 18, 13, 18, 22, 16, 34), Array("", "", "", "", "", FMT_YEARS, FMT_YEARS, FMT_AMOUNT, "")
     BuildInputSheet SH_IN_CURV, "Curvature risk CVR up and CVR down per risk factor, net across instruments, positive for a loss and before the FX divisor; shocks per MAR21.98-99 (MAR21.5).", _
         Array("ID", "RiskClass", "Bucket", "Qualifier", "SubType", "CVR_Up", "CVR_Down", "RefReportingCcy", "Comment"), _
-        Array(10, 11, 9, 18, 13, 14, 14, 16, 34), Array("", "", "", "", "", FMT_AMOUNT, FMT_AMOUNT, "", "")
+        Array(10, 11, 9, 18, 13, 14, 14, 20, 34), Array("", "", "", "", "", FMT_AMOUNT, FMT_AMOUNT, "", "")
     BuildInputSheet SH_IN_DRC, "Positions for the default risk charge: signed notional and market value, maturity in years, optional LGD override (MAR22).", _
         Array("ID", "Obligor", "Bucket", "CreditQuality", "Seniority", "Notional", "MarketValue", "Maturity", "LGD", "Comment"), _
         Array(10, 16, 9, 14, 13, 14, 14, 10, 8, 30), Array("", "", "", "", "", FMT_AMOUNT, FMT_AMOUNT, FMT_YEARS, FMT_YEARS, "")
@@ -762,7 +762,7 @@ End Sub
 Private Sub WriteParamCsr()
     Dim ws As Object, r As Long, i As Long, j As Long, groups As Variant, m As Variant, headers As Variant
     Set ws = ParamSheet(SH_P_CSR, "Credit spread risk, non-securitization: buckets, risk weights and correlations.", 15)
-    SetWidths ws, Array(22, 40, 9, 12, 9, 9, 9, 9, 9, 9, 9, 9)
+    SetWidths ws, Array(22, 40, 12, 12, 9, 9, 9, 9, 9, 9, 9, 9)
     r = PutTable(ws, LAYOUT_HEADER_ROW, "CSR_BUCKETS", "Buckets and delta risk weights (MAR21.51, MAR21.53 Table 4)", _
         Array("Bucket", "Description", "Quality", "SectorGroup", "Type", "RW"))
     PutRow ws, r, Array(1, "Sovereigns incl. central banks, MDBs", "IG", 1, "NAME", 0.005)
@@ -823,7 +823,7 @@ End Sub
 Private Sub WriteParamEquity()
     Dim ws As Object, r As Long, b As Long, c As Long, g As Double
     Set ws = ParamSheet(SH_P_EQ, "Equity risk: buckets, spot and repo risk weights, correlations.", 16)
-    SetWidths ws, Array(18, 40, 9, 10, 10, 10, 9, 9, 9, 9, 9, 9, 9, 9)
+    SetWidths ws, Array(18, 40, 12, 10, 10, 10, 9, 9, 9, 9, 9, 9, 9, 9)
     r = PutTable(ws, LAYOUT_HEADER_ROW, "EQ_BUCKETS", "Buckets and delta risk weights (MAR21.72, MAR21.77 Table 10)", _
         Array("Bucket", "Description", "Type", "RW_SPOT", "RW_REPO", "RHO_NAME"))
     PutRow ws, r, Array(1, "Large cap, EM: consumer goods/services, transportation, admin, health care, utilities", "NAME", 0.55, 0.0055, 0.15)
@@ -872,7 +872,7 @@ End Sub
 Private Sub WriteParamCommodity()
     Dim ws As Object, r As Long, b As Long, c As Long, g As Double
     Set ws = ParamSheet(SH_P_COM, "Commodity risk: buckets, risk weights and correlations.", 14)
-    SetWidths ws, Array(16, 45, 9, 10, 9, 9, 9, 9, 9, 9, 9, 9)
+    SetWidths ws, Array(16, 45, 12, 10, 9, 9, 9, 9, 9, 9, 9, 9)
     r = PutTable(ws, LAYOUT_HEADER_ROW, "COM_BUCKETS", "Buckets, risk weights and commodity correlation (MAR21.82-83)", _
         Array("Bucket", "Description", "RW", "RHO_CTY"))
     PutRow ws, r, Array(1, "Energy - solid combustibles", 0.3, 0.55)

@@ -88,6 +88,47 @@ def test_template_type_sizes():
     assert wb["P_GIRR"]["D7"].font.sz == 10
 
 
+def header_lines(text, width_px):
+    """Greedy word wrap of a header at 7.5 px a character, with 8 px of padding."""
+    lines, current = [], ""
+    for word in text.split():
+        trial = f"{current} {word}" if current else word
+        if not current or len(trial) * 7.5 <= width_px - 8:
+            current = trial
+        else:
+            lines.append(current)
+            current = word
+    return [*lines, current]
+
+
+def test_headers_fit_their_cells():
+    """An 11 pt header wraps in at most two lines, none wider than its cell, and a second
+    line leaves room for the filter arrow. The model is an estimate calibrated on the
+    Excel pictures of 27eb55a, where it flags exactly the headers that came out cut (#351)."""
+    wb = openpyxl.load_workbook(build_template.TEMPLATE)
+    problems = []
+    for ws in wb:
+        widths = {}
+        for dimension in ws.column_dimensions.values():
+            if dimension.width and dimension.min is not None and dimension.max is not None:
+                for column in range(dimension.min, dimension.max + 1):
+                    widths[column] = dimension.width
+        filtered = bool(ws.auto_filter.ref)
+        for row in ws.iter_rows():
+            for cell in row:
+                header = (cell.fill.fill_type and cell.fill.fgColor.rgb == "FF1F3864" and cell.font.b
+                          and cell.font.sz == 11 and cell.value not in (None, ""))
+                if not header:
+                    continue
+                pixels = widths.get(cell.column or 0, 8.43) * 7 + 5
+                lines = header_lines(str(cell.value), pixels)
+                if len(lines) > 2 or any(len(line) * 7.5 > pixels - 8 for line in lines):
+                    problems.append((ws.title, cell.coordinate, cell.value, lines))
+                elif filtered and len(lines) == 2 and len(lines[1]) * 7.5 > pixels - 36:
+                    problems.append((ws.title, cell.coordinate, cell.value, "second line under the filter arrow"))
+    assert problems == []
+
+
 def wrapped_lines(text: str, per_line: int) -> int:
     """M_Setup.WrappedLines: words, broken after a hyphen too."""
     lines, used, after_hyphen = 1, 0, False
