@@ -24,7 +24,9 @@ and the unattended check `tools\Check-FRTB-Excel.cmd` (#274) on `1badef1`,
 and on `308cbc6`, 24 of 24 PASS with the formatting review of every sheet
 (#206, [Excel check](docs/evidence/2026-11-15-excel-check-308cbc6.md)), and on
 `27eb55a`, 25 of 25 PASS with the data validation of the input and parameter
-sheets (#348, [Excel check](docs/evidence/2026-11-20-excel-check-27eb55a.md)). I decided its six
+sheets (#348, [Excel check](docs/evidence/2026-11-20-excel-check-27eb55a.md)), and on
+`a7fa207`, 27 of 27 PASS with the start sheet, the navigation bar and the
+protection of the sheets (#347, #349, [Excel check](docs/evidence/2026-11-20-excel-check-a7fa207.md)). I decided its six
 methodology interpretations (#29) on October 27, 2026, and they are
 implemented; they are not independently reviewed, and v0.3.0 reviews them for
 the certified scope under the [roadmap](docs/ROADMAP.md).

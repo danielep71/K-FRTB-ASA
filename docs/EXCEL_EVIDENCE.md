@@ -14,12 +14,13 @@ authoritative for:
 
 The [workbook guide](workbook-guide.md) owns building, updating and the round
 trip. [Validation](validation.md) owns what the other checks show. The remaining
-Excel review of the ASA prototype (v0.2.0) was #206. Four sessions are
+Excel review of the ASA prototype (v0.2.0) was #206. Five sessions are
 recorded: a run on `323260b`
 ([record](evidence/2026-10-31-excel-run-323260b.md)) and the unattended check
 on `1badef1` ([record](evidence/2026-11-12-excel-check-1badef1.md)), on
 `308cbc6` ([record](evidence/2026-11-15-excel-check-308cbc6.md)) and on
-`27eb55a` ([record](evidence/2026-11-20-excel-check-27eb55a.md)).
+`27eb55a` ([record](evidence/2026-11-20-excel-check-27eb55a.md)) and on
+`a7fa207` ([record](evidence/2026-11-20-excel-check-a7fa207.md)).
 
 > [!IMPORTANT]
 > The validator never runs Excel. It checks three things:
@@ -141,8 +142,9 @@ below gives the same bundle by hand.
 double-click: `release/v0.3.0` by default (#342), or the branch given as its
 first argument (#274). It passed 21 of 21 on `1badef1`
 ([record](evidence/2026-11-12-excel-check-1badef1.md)) and 24 of 24 on
-`308cbc6` ([record](evidence/2026-11-15-excel-check-308cbc6.md)) and 25 of 25 on
-`27eb55a` ([record](evidence/2026-11-20-excel-check-27eb55a.md)). It needs what the
+`308cbc6` ([record](evidence/2026-11-15-excel-check-308cbc6.md)), 25 of 25 on
+`27eb55a` ([record](evidence/2026-11-20-excel-check-27eb55a.md)) and 27 of 27 on
+`a7fa207` ([record](evidence/2026-11-20-excel-check-a7fa207.md)). It needs what the
 recorded run needs. It asks at most two questions, at the start:
 * whether to turn on the VBA project access, when it is off; if you agree,
   it stays on after the run, and the evidence records the change;
