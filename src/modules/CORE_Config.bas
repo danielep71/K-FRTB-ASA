@@ -92,7 +92,7 @@ Public Const TAB_INPUT As Long = 37055                       'BF9000 inputs and 
 Public Const TAB_OUTPUT As Long = 11957550                   '2E75B6 outputs
 Public Const TAB_TEST As Long = 3506772                      '548235 tests
 Public Const FONT_NAME As String = "Aptos"
-Public Const HEADER_FONT_SIZE As Long = 11                   'table headers, as in the shared toolkit (#351); data stays at 10
+Public Const HEADER_FONT_SIZE As Long = 11                   'table headers (#351); data rows stay at 10
 
 ' Risk classes implemented by the SBM engine (in reporting order)
 Public Const RC_GIRR As String = "GIRR"
