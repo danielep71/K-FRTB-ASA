@@ -40,6 +40,10 @@
     Leave out the test modules of tests\modules (the "Run regression test"
     button then has no macro). Cannot be combined with -RunTests.
 
+.PARAMETER Ribbon
+    After the save, add the FRTB-SA ribbon tab (src\ribbon\customUI14.xml) to the
+    workbook with tools\Add-RibbonTab.ps1. Cannot be combined with -Template.
+
 .PARAMETER Force
     Overwrite an existing output file.
 
@@ -53,6 +57,7 @@ param(
     [switch]$FromSource,
     [switch]$Production,
     [switch]$Template,
+    [switch]$Ribbon,
     [switch]$Force
 )
 
@@ -70,6 +75,9 @@ if ($Production -and $RunTests) {
 }
 if ($Template -and $RunTests) {
     throw '-Template saves the workbook before any run; do not combine it with -RunTests'
+}
+if ($Template -and $Ribbon) {
+    throw '-Template saves a macro-free template; the ribbon tab needs a macro-enabled workbook'
 }
 $buildFromSource = $FromSource -or $Template
 if (-not $buildFromSource -and -not (Test-Path $templatePath)) {
@@ -186,5 +194,9 @@ try {
     [System.GC]::Collect()
     [System.GC]::WaitForPendingFinalizers()
     Remove-Item -Recurse -Force $staging -ErrorAction SilentlyContinue
+}
+# Excel saves no custom UI part: add it to the closed file (#353)
+if ($Ribbon -and $exitCode -eq 0) {
+    & (Join-Path $PSScriptRoot 'Add-RibbonTab.ps1') -Workbook $OutputPath
 }
 exit $exitCode

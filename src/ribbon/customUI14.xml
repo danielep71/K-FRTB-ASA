@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="Ribbon_OnLoad">
+  <ribbon>
+    <tabs>
+      <tab id="tabFrtbSa" label="FRTB-SA">
+        <group id="grpRun" label="Run">
+          <button id="btnRun" label="Run FRTB-SA" size="large" imageMso="MacroPlay"
+                  onAction="Ribbon_Run" getEnabled="Ribbon_IsIdle"
+                  screentip="Run FRTB-SA"
+                  supertip="Calculates the capital from the input and parameter sheets and rewrites Results, the Out sheets and Log."/>
+          <button id="btnClear" label="Clear outputs" size="large" imageMso="Delete"
+                  onAction="Ribbon_Clear" getEnabled="Ribbon_IsIdle"
+                  screentip="Clear outputs"
+                  supertip="Empties Results, the Out sheets and Log, keeping their headers and a note."/>
+        </group>
+        <group id="grpTest" label="Test">
+          <button id="btnTest" label="Run regression test" size="large" imageMso="CheckMark"
+                  onAction="Ribbon_Test" getEnabled="Ribbon_IsIdle"
+                  screentip="Run regression test"
+                  supertip="Compares the results of the last run with the expected values of the sample portfolio on Test_Expected."/>
+        </group>
+        <group id="grpView" label="View">
+          <toggleButton id="tglNav" label="Navigation bar" size="large" imageMso="GroupShowDetail"
+                        onAction="Ribbon_ToggleNav" getPressed="Ribbon_NavShown"
+                        screentip="Navigation bar"
+                        supertip="Shows or hides the bar of links in column A of every sheet."/>
+        </group>
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>
