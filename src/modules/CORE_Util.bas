@@ -793,7 +793,12 @@ Public Sub LogMessage(ByVal level As String, ByVal source As String, ByVal messa
     TableCell(ws, mLogRow, 2).Value = source
     TableCell(ws, mLogRow, 3).Value = message
     If sheetRow > 0 Then TableCell(ws, mLogRow, 4).Value = sheetRow
-    If reference <> "" Then TableCell(ws, mLogRow, 5).Value = reference
+    If reference <> "" Then
+        On Error Resume Next
+        TableCell(ws, mLogRow, 5).NumberFormat = "@"                'an ID such as 00123 stays text
+        On Error GoTo 0
+        TableCell(ws, mLogRow, 5).Value = reference
+    End If
     FormatDataRows ws, mLogRow, mLogRow, 5, 0, "", False
     On Error Resume Next
     Select Case level
