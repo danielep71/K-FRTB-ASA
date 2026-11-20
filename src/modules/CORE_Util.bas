@@ -199,7 +199,7 @@ Public Function ReadKeyValues(ByVal sheetName As String, ByVal tag As String) As
         If Err.Number <> 0 Then
             Err.Clear
             On Error GoTo 0
-            LogMessage "WARN", sheetName, "Duplicate key ignored in [" & tag & "]: " & CStr(t(r, 1))
+            LogMessage "WARN", sheetName, "Duplicate key ignored in [" & tag & "]: " & CStr(t(r, 1)), , CStr(t(r, 1))
         End If
         On Error GoTo 0
     Next r
@@ -717,7 +717,7 @@ Public Sub WriteOutputPlaceholder(ByVal ws As Object, _
         Case SH_OUT_CLASS: headers = Array("RiskClass", "Component", "Scenario", "Capital", "Buckets", "AltSbUsed")
         Case SH_OUT_BUCKETS: headers = Array("RiskClass", "Component", "Scenario", "Bucket", "Kb", "Sb", "RiskFactors", "Note")
         Case SH_OUT_DRC: headers = Array("Obligor", "Bucket", "CreditQuality", "RW", "NetLong", "NetShort")
-        Case SH_LOG: headers = Array("Level", "Source", "Message")
+        Case SH_LOG: headers = Array("Level", "Source", "Message", "Row", "Reference")
         Case Else: Err.Raise vbObjectError + ERR_APP, "CORE_Util.WriteOutputPlaceholder", "Not an output sheet: " & ws.Name
     End Select
     WriteTableHeader ws, LAYOUT_HEADER_ROW, headers, COLOR_OUTPUT_HEADER
@@ -761,22 +761,40 @@ Public Sub ResetLog()
     Dim ws As Object
     Set ws = GetSheet(SH_LOG)
     ClearTableArea ws
-    WriteTableHeader ws, LAYOUT_HEADER_ROW, Array("Level", "Source", "Message"), COLOR_OUTPUT_HEADER
+    WriteTableHeader ws, LAYOUT_HEADER_ROW, Array("Level", "Source", "Message", "Row", "Reference"), COLOR_OUTPUT_HEADER
     mLogRow = LAYOUT_HEADER_ROW
     mErrorCount = 0
     mWarningCount = 0
 End Sub
 
 
-Public Sub LogMessage(ByVal level As String, ByVal source As String, ByVal message As String)
-    Dim ws As Object
+' findingRow and findingReference name the finding's row and its ID or key (#350).
+' They are Variants because LibreOffice does not give an omitted typed argument its
+' default. A caller that leaves them out gets the row of a source that ends in
+' " row N", such as "In_Delta row 7", and the ID in the first column of that row.
+Public Sub LogMessage(ByVal level As String, ByVal source As String, ByVal message As String, _
+                      Optional ByVal findingRow As Variant, Optional ByVal findingReference As Variant)
+    Dim ws As Object, at As Long, sheetRow As Long, reference As String
     If mLogRow < LAYOUT_HEADER_ROW Then mLogRow = LAYOUT_HEADER_ROW
+    If Not IsMissing(findingRow) Then sheetRow = CLng(findingRow)
+    If Not IsMissing(findingReference) Then reference = CStr(findingReference)
+    If sheetRow = 0 Then
+        at = InStr(source, " row ")
+        If at > 0 Then
+            If IsNumeric(Mid$(source, at + 5)) Then
+                sheetRow = CLng(Mid$(source, at + 5))
+                If reference = "" Then reference = RowReference(Left$(source, at - 1), sheetRow)
+            End If
+        End If
+    End If
     Set ws = GetSheet(SH_LOG)
     mLogRow = mLogRow + 1
     TableCell(ws, mLogRow, 1).Value = level
     TableCell(ws, mLogRow, 2).Value = source
     TableCell(ws, mLogRow, 3).Value = message
-    FormatDataRows ws, mLogRow, mLogRow, 3, 0, "", False
+    If sheetRow > 0 Then TableCell(ws, mLogRow, 4).Value = sheetRow
+    If reference <> "" Then TableCell(ws, mLogRow, 5).Value = reference
+    FormatDataRows ws, mLogRow, mLogRow, 5, 0, "", False
     On Error Resume Next
     Select Case level
         Case "ERROR"
@@ -790,6 +808,18 @@ Public Sub LogMessage(ByVal level As String, ByVal source As String, ByVal messa
     If level = "ERROR" Then mErrorCount = mErrorCount + 1
     If level = "WARN" Then mWarningCount = mWarningCount + 1
 End Sub
+
+
+' The ID in the first column of a row of an input sheet; blank when there is none.
+Private Function RowReference(ByVal sheetName As String, ByVal sheetRow As Long) As String
+    On Error Resume Next
+    If SheetExists(sheetName) Then
+        If Not IsBlank(TableCell(GetSheet(sheetName), sheetRow, 1).Value) Then
+            RowReference = Trim$(CStr(TableCell(GetSheet(sheetName), sheetRow, 1).Value))
+        End If
+    End If
+    On Error GoTo 0
+End Function
 
 
 Public Function LogErrorCount() As Long

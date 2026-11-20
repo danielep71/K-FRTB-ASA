@@ -7,6 +7,20 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- A repeated key is highlighted, and `Log` names the row and the reference of
+  every finding (#350). A key that repeats in the first column of a Key |
+  Value table, which the run ignores with a warning, shows in red: the rule is
+  conditional formatting on the ten tables that `CORE_Params` reads that way,
+  written into the template by `tools/key_highlights.py` and applied by
+  `M_Setup` when Excel builds or resets a sheet. `Log` gains `Row` and
+  `Reference` columns after `Message`: the sheet row and the ID of a rejected
+  input row, the obligor of an obligor finding and the key of a repeated key.
+  `LogMessage` takes them as optional arguments and derives them from a source
+  such as "In_Delta row 7", so no message changes. The Excel check gains
+  `KEY_HIGHLIGHTS`. The levels were already shown in colour, and I decided
+  against a line on `Results` that says whether it matches the inputs. The
+  sheet pictures and the README gallery are refreshed with the next Excel run.
+
 - Protection of the sheets and the workbook structure, without a password
   (#349). The cells in the input fill are unlocked and everything else is
   locked: headers, tags, outputs, `Log`, `Test_Expected`, `Home` and `README`.

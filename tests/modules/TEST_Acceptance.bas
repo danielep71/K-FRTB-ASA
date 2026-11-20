@@ -96,6 +96,7 @@ Private Sub RunAll(ByVal inExcel As Boolean)
     RunCheck "SHEET_VIEW"
     RunCheck "DATA_VALIDATION"
     RunCheck "NAVIGATION"
+    RunCheck "KEY_HIGHLIGHTS"
     RunCheck "PROTECTION"
     RunCheck "INVALID_ROW_VARIANT"                           'last: it adds input rows
     WriteReport
@@ -119,6 +120,7 @@ Private Sub RunCheck(ByVal checkName As String)
         Case "SHEET_VIEW": result = CheckSheetView(detail)
         Case "DATA_VALIDATION": result = CheckDataValidation(detail)
         Case "NAVIGATION": result = CheckNavigation(detail)
+        Case "KEY_HIGHLIGHTS": result = CheckKeyHighlights(detail)
         Case "PROTECTION": result = CheckProtection(detail)
         Case "INVALID_ROW_VARIANT": result = CheckVariant(detail)
     End Select
@@ -564,6 +566,43 @@ Private Function CheckNavigation(ByRef detail As String) As String
 End Function
 
 
+' A key that repeats in a Key | Value table is highlighted (#350): every table
+' of the template carries the rule, also after Reset parameters, which clears the
+' formats of its sheets and applies the rule again, and a repeated key shows the
+' red fill. The probe puts the first key of a table into its second row and
+' restores it.
+Private Function CheckKeyHighlights(ByRef detail As String) As String
+    Dim item As Variant, ws As Object, keys As Object, problems As String, n As Long
+    Dim second As Object, saved As Variant, shown As Boolean, probed As String
+    If Not mInExcel Then
+        detail = "Excel only: the conditional formats as Excel applies them"
+        CheckKeyHighlights = "SKIPPED"
+        Exit Function
+    End If
+    ResetParameters
+    For Each item In AcceptanceKeyTables()
+        Set ws = GetSheet(CStr(item(0)))
+        Set keys = ws.Range(TableCell(ws, CLng(item(1)), 1), TableCell(ws, CLng(item(2)), 1))
+        n = n + 1
+        If keys.FormatConditions.Count < 1 Then problems = problems & ws.Name & "!" & keys.Address(False, False) & " has no rule; "
+        If probed = "" And CLng(item(2)) > CLng(item(1)) Then
+            Set second = TableCell(ws, CLng(item(1)) + 1, 1)
+            BeginWrite                                       'a key is locked on a protected sheet
+            saved = second.Value
+            second.Value = TableCell(ws, CLng(item(1)), 1).Value
+            shown = (second.DisplayFormat.Interior.Color = COLOR_FAIL_FILL)
+            second.Value = saved
+            EndWrite
+            probed = ws.Name & "!" & second.Address(False, False)
+            If Not shown Then problems = problems & "a repeated key at " & probed & " is not highlighted; "
+        End If
+    Next item
+    detail = IIf(problems = "", n & " Key | Value tables carry the rule after Reset parameters; a repeated key at " & _
+                 probed & " shows the red fill", problems)
+    CheckKeyHighlights = IIf(problems = "", "PASS", "FAIL")
+End Function
+
+
 ' The sheets and the workbook structure are protected after every command
 ' that ran above, without a password: the input fill marks exactly the
 ' unlocked cells, the input sheets allow inserted rows, sorting and the
@@ -702,7 +741,7 @@ Private Function PlaceholderProblems(ByVal sheetName As String, ByVal note As St
         Case SH_OUT_CLASS: codes = Array("RiskClass", "Component", "Scenario", "Capital", "Buckets", "AltSbUsed")
         Case SH_OUT_BUCKETS: codes = Array("RiskClass", "Component", "Scenario", "Bucket", "Kb", "Sb", "RiskFactors", "Note")
         Case SH_OUT_DRC: codes = Array("Obligor", "Bucket", "CreditQuality", "RW", "NetLong", "NetShort")
-        Case SH_LOG: codes = Array("Level", "Source", "Message")
+        Case SH_LOG: codes = Array("Level", "Source", "Message", "Row", "Reference")
     End Select
     For i = LBound(codes) To UBound(codes)
         If CStr(TableCell(ws, LAYOUT_HEADER_ROW, i + 1).Value) <> CStr(HeaderCaption(codes(i))) Then
