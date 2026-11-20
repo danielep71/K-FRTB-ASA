@@ -1425,7 +1425,7 @@ Private Sub WriteExpectedResults()
     ws.Cells.Clear
     ApplyFrame ws, "Test_Expected", "Expected results of the sample portfolio with default parameters and settings. " & _
         "Run Run FRTB-SA, then Run regression test. Agreement with the reference does not prove the reading of the regulation.", 12
-    SetWidths ws, Array(28, 18, 18, 12, 10, 24, 62, 40, 70)
+    SetWidths ws, Array(28, 18, 18, 12, 10, 24, 62, 54, 70)
     r = PutTable(ws, LAYOUT_HEADER_ROW, "EXPECTED", "Expected values", _
         Array("Item", "Expected", "Actual", "AbsDiff", "Status", "Area", "Description", "Source", "Source status"))
     n = WriteExpectedRows(ws, r)
