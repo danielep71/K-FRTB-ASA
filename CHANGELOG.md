@@ -16,7 +16,9 @@ Unreleased describe integrated work, not a published version.
   `tools/build_template.py` writes them into the template. The unattended
   Excel check gains `DATA_VALIDATION`, which reads every rule back. A
   `-FromSource` build has no rules. The workbook guide lists the rules and
-  the columns that have none.
+  the columns that have none. **Load sample data** and **Reset parameters**
+  clear the contents and formats of the sheets they rewrite, not their
+  rules, and the Excel check runs both before it reads the rules back.
 
 - The v0.2.0 prototype closeout record
   ([`docs/evidence/2026-11-16-prototype-closeout.md`](docs/evidence/2026-11-16-prototype-closeout.md),

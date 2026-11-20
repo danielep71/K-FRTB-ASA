@@ -139,6 +139,15 @@ Private Sub SetAlerts(ByVal enabled As Boolean)
 End Sub
 
 
+' Empties a sheet that Load sample data or Reset parameters rewrites. Clear would
+' also remove the data validation of its input cells (#348), so contents and
+' formats are cleared and the validation stays.
+Private Sub ClearCells(ByVal ws As Object)
+    ws.Cells.ClearContents
+    ws.Cells.ClearFormats
+End Sub
+
+
 Private Sub EnsureSheet(ByVal sheetName As String)
     Dim ws As Object, wb As Object
     Set wb = ThisWorkbook
@@ -638,7 +647,7 @@ Private Sub BuildInputSheet(ByVal sheetName As String, ByVal subtitle As String,
                             ByVal widths As Variant, ByVal formats As Variant)
     Dim ws As Object, nCols As Long, k As Long
     Set ws = GetSheet(sheetName)
-    ws.Cells.Clear
+    ClearCells ws
     nCols = UBound(headers) - LBound(headers) + 1
     ApplyFrame ws, sheetName, subtitle, LAYOUT_FIRST_COL + nCols - 1
     SetWidths ws, widths
@@ -675,7 +684,7 @@ End Sub
 Private Function ParamSheet(ByVal sheetName As String, ByVal subtitle As String, ByVal lastCol As Long) As Object
     Dim ws As Object
     Set ws = GetSheet(sheetName)
-    ws.Cells.Clear
+    ClearCells ws
     ApplyFrame ws, sheetName, subtitle, lastCol
     Set ParamSheet = ws
 End Function

@@ -460,8 +460,9 @@ End Function
 
 
 ' Every data validation rule of the template is on its sheet, with the same
-' type, alert style and error title (#348). The formulas are not compared:
-' Excel returns them in the language of the host.
+' type, alert style and error title (#348), also after Load sample data and
+' Reset parameters rewrite the input and parameter sheets. The formulas are
+' not compared: Excel returns them in the language of the host.
 Private Function CheckDataValidation(ByRef detail As String) As String
     Dim item As Variant, problems As String, n As Long, kind As Long, alert As Long, title As String
     If Not mInExcel Then
@@ -469,6 +470,8 @@ Private Function CheckDataValidation(ByRef detail As String) As String
         CheckDataValidation = "SKIPPED"
         Exit Function
     End If
+    LoadSampleData                                           'both rewrite their sheets: the rules must survive
+    ResetParameters
     For Each item In AcceptanceValidation()
         n = n + 1
         If Not ReadValidation(CStr(item(0)), CStr(item(1)), kind, alert, title) Then
@@ -478,7 +481,8 @@ Private Function CheckDataValidation(ByRef detail As String) As String
                        " and title '" & title & "'; "
         End If
     Next item
-    detail = IIf(problems = "", n & " rules on the input and parameter sheets, as in the template", problems)
+    detail = IIf(problems = "", n & " rules on the input and parameter sheets, as in the template, also after " & _
+                 "Load sample data and Reset parameters", problems)
     CheckDataValidation = IIf(problems = "", "PASS", "FAIL")
 End Function
 

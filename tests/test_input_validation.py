@@ -91,6 +91,15 @@ def test_every_numeric_parameter_cell_has_a_rule():
     assert missing == []
 
 
+def test_formulas_hold_no_array_constant_and_no_unguarded_error():
+    for rule in stored():
+        if rule.kind == "custom":
+            assert "{" not in rule.formula, rule
+            for function in ("ABS(", "INT(", "CODE("):
+                for match in re.finditer(re.escape(function), rule.formula):
+                    assert "IF(" in rule.formula[:match.start()], (rule.sheet, rule.sqref, function)
+
+
 def test_rule_texts_fit_excel_limits():
     for rule in stored():
         assert len(rule.title) <= 32 and len(rule.message) <= 255, rule
@@ -202,8 +211,9 @@ def test_number_rules(tmp_path):
 def test_currency_rule(tmp_path):
     rule = [r for r in stored() if r.sheet == "Control" and r.sqref == "D7"][0]
     assert rule.alert == "warning"
-    assert evaluate(tmp_path, rule, [{"D": "EUR"}, {"D": "usd"}, {"D": "EU"}, {"D": "EURO"}, {"D": "E1R"}, {"D": 123}, {"D": None}]) == [
-        True, True, False, False, False, False, True]
+    values = ["EUR", "usd", " eur ", "EU", "E", "EURO", "E1R", "E R", 123, None]
+    assert evaluate(tmp_path, rule, [{"D": v} for v in values]) == [
+        True, True, True, False, False, False, False, False, False, True]
 
 
 def test_parameter_rules(tmp_path):

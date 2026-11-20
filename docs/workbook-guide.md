@@ -252,7 +252,8 @@ writes them into the template after the headless build, and
 LibreOffice and compares their vocabularies with what the run accepts. The
 unattended Excel check `DATA_VALIDATION` reads every rule back in Excel. A
 workbook built with `-FromSource` has no rules, because it is not made from
-the template: build from the template for the workbook you use. The rules
+the template: build from the template for the workbook you use. **Load sample
+data** and **Reset parameters** rewrite their sheets but keep the rules. The rules
 reference cells directly, so the workbook defines no names for them, and the
 engine keeps reading the tagged tables.
 

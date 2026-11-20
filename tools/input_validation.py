@@ -8,7 +8,8 @@ tools/Build-Workbook.ps1 -FromSource does not, and the guide says so.
 
 A rule guards typing and pasting into a cell. Formulas never return an error:
 Excel evaluates every argument of AND and OR, so a text cell inside ABS or INT
-sits behind an IF. The run's own validation stays
+sits behind an IF. They hold no array constant, which a validation formula
+may not contain. The run's own validation stays
 the authority: a pasted value bypasses a rule, and the run rejects the same
 rows with the same messages whatever the rules say. Rules never accept what
 the run rejects, with these exceptions that only narrow what a person can
@@ -156,6 +157,13 @@ def _risk_class_rules(sheet: str, first: int, last: int) -> list[Rule]:
     ]
 
 
+def _three_letters(cell: str) -> str:
+    """Blank, or exactly three letters A to Z. No array constant: Excel does not allow one in a rule,
+    and the IF keeps CODE away from a text shorter than three characters."""
+    letters = ",".join(f"ABS(CODE(MID(UPPER(TRIM({cell})),{i},1))-77.5)<13" for i in (1, 2, 3))
+    return f'OR({cell}="",IF(LEN(TRIM({cell}))=3,AND({letters}),FALSE))'
+
+
 def _flag(sheet: str, sqref: str) -> Rule:
     return Rule(sheet, sqref, "list", ",".join(FLAGS), "stop", "Invalid flag", "Enter TRUE or FALSE, or leave the cell blank.")
 
@@ -169,8 +177,7 @@ def input_rules(wb: Any) -> list[Rule]:
     """Rules of Control and the five input sheets."""
     first, last = _layout()
     rules = [
-        _custom("Control", "D7", 'OR(D7="",AND(ISTEXT(D7),LEN(TRIM(D7))=3,'
-                'SUMPRODUCT(--ISNUMBER(FIND(MID(UPPER(TRIM(D7)),{1,2,3},1),"ABCDEFGHIJKLMNOPQRSTUVWXYZ")))=3))',
+        _custom("Control", "D7", _three_letters("D7"),
                 "Check the currency", "A currency code has three letters, such as EUR. The run reads the text as typed.",
                 alert="warning"),
         _flag("Control", "D8:D11"),
