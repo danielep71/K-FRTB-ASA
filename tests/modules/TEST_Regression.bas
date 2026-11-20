@@ -67,6 +67,22 @@ End Sub
 '                               COMPARISON
 '------------------------------------------------------------------------------
 Private Function ExecuteRegressionTest(ByRef total As Long) As Long
+    Dim failures As Long
+    Dim errNumber As Long, errSource As String, errDescription As String
+    BeginWrite                                               'Test_Expected is protected (#349)
+    On Error Resume Next
+    failures = CompareExpected(total)
+    errNumber = Err.Number
+    errSource = Err.Source
+    errDescription = Err.Description
+    On Error GoTo 0
+    EndWrite
+    If errNumber <> 0 Then Err.Raise errNumber, errSource, errDescription
+    ExecuteRegressionTest = failures
+End Function
+
+
+Private Function CompareExpected(ByRef total As Long) As Long
     Dim ws As Object, r As Long, firstRow As Long, failures As Long
     Dim item As String, expected As Double, actual As Variant, diff As Double
 
@@ -105,7 +121,7 @@ Private Function ExecuteRegressionTest(ByRef total As Long) As Long
         TableCell(ws, LAYOUT_SUBTITLE_ROW, 1).Value = "Result: FAIL (" & failures & " of " & total & " items)"
         MarkStatus TableCell(ws, LAYOUT_SUBTITLE_ROW, 1), False
     End If
-    ExecuteRegressionTest = failures
+    CompareExpected = failures
 End Function
 
 

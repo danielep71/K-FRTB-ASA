@@ -2,7 +2,9 @@
 
 The VBA builder owns cell content and the visual design. This OOXML step
 restores view/print properties and README guide borders that the headless
-host does not reliably expose through Excel's compatibility APIs.
+host does not reliably expose through Excel's compatibility APIs, and the
+protection settings that host does not write: the actions the input sheets
+allow and the locked workbook structure (#349).
 """
 
 from __future__ import annotations
@@ -83,6 +85,25 @@ def _guide_borders(root: ET.Element, styles: ET.Element) -> None:
             cell.set("s", str(intern(formats, fmt)))
 
 
+def _allow_input_actions(sheet: ET.Element, name: str) -> None:
+    """The input sheets accept inserted rows, sorting and the autofilter on their unlocked cells (#349)."""
+    protection = sheet.find(_tag("sheetProtection"))
+    if protection is not None and name.startswith("In_"):
+        for action in ("insertRows", "sort", "autoFilter"):
+            protection.set(action, "0")
+
+
+def _lock_structure(book: ET.Element) -> None:
+    """The sheet names and their order stay as they are, with no password (#349)."""
+    lock = book.find(_tag("workbookProtection"))
+    if lock is None:
+        lock = ET.Element(_tag("workbookProtection"))
+        views = book.find(_tag("bookViews"))
+        book.insert(list(book).index(views) if views is not None else 0, lock)
+    lock.attrib.clear()
+    lock.set("lockStructure", "1")
+
+
 def normalize(path: Path) -> None:
     """Restore presentation only; never change cell values or formulas."""
     palette = _palette()
@@ -104,6 +125,7 @@ def normalize(path: Path) -> None:
         root = ET.fromstring(parts[target])
         if name == "README":
             _guide_borders(root, styles)
+        _allow_input_actions(root, name)
         props = root.find(_tag("sheetPr"))
         if props is None:
             props = ET.Element(_tag("sheetPr"))
@@ -155,6 +177,7 @@ def normalize(path: Path) -> None:
         if role != "TAB_OUTPUT":
             ET.SubElement(names, _tag("definedName"), name="_xlnm.Print_Area", localSheetId=str(index)).text = f"{quoted}!$B$1:${last_col}${last_row}"
         parts[target] = ET.tostring(root, encoding="utf-8", xml_declaration=True)
+    _lock_structure(book)
     # definedNames precedes calcPr/external-link metadata in workbook order.
     book.remove(names)
     sheets_index = list(book).index(sheets)

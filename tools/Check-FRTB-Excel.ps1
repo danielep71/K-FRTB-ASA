@@ -345,6 +345,9 @@ function Export-SheetPicture {
     try {
         $ws = $Workbook.Worksheets.Item($Sheet)
         [void]$ws.Activate()
+        # The sheets are protected without a password (#349); the chart needs the
+        # protection lifted, and the next command protects the sheet again.
+        if ($ws.ProtectContents) { [void]$ws.Unprotect('') }
         $range = $ws.Range($Address)
         # Right of the range, so the copies never picture the chart itself
         $chartObject = $ws.ChartObjects().Add([double]$range.Left + [double]$range.Width + 20, [double]$range.Top,

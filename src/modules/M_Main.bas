@@ -84,11 +84,20 @@ End Function
 
 
 Public Sub ClearOutputs()
+    Dim errNumber As Long, errSource As String, errDescription As String
+    BeginWrite
+    On Error Resume Next
     ClearResultSheets "No results yet: press Run FRTB-SA.", False
-    If SheetExists(SH_LOG) Then
+    If Err.Number = 0 And SheetExists(SH_LOG) Then
         ClearTableArea GetSheet(SH_LOG)
         WriteOutputPlaceholder GetSheet(SH_LOG)
     End If
+    errNumber = Err.Number
+    errSource = Err.Source
+    errDescription = Err.Description
+    On Error GoTo 0
+    EndWrite
+    If errNumber <> 0 Then Err.Raise errNumber, errSource, errDescription
 End Sub
 
 ' Returns Results and the Out_* sheets, but not the Log, to their empty
@@ -116,11 +125,14 @@ Private Function ExecuteRun() As Boolean
     Dim savedScreen As Boolean                               'ScreenUpdating before the run
     Dim savedCalculation As Long                             'Calculation mode before the run
     Dim captured As Boolean                                  'True once both were read
+    Dim opened As Boolean                                    'True once the write window is open
     Dim errNumber As Long                                    'Primary error; 0 for none
     Dim errDescription As String
 
     On Error GoTo Failed
     CaptureSettings savedScreen, savedCalculation, captured
+    BeginWrite                                               'the sheets are protected (#349)
+    opened = True
     ClearOutputs                                             'no earlier results after a failure
     ResetLog
     LogMessage "INFO", "RunFRTB", APP_NAME & " " & APP_VERSION & " started"
@@ -140,6 +152,7 @@ CleanUp:
         ' Drop the rows written before the error.
         ClearResultSheets "Run failed (see the Log sheet): " & errDescription, True
     End If
+    If opened Then EndWrite
     If captured Then RestoreSettings savedScreen, savedCalculation
     On Error GoTo 0
     ExecuteRun = (errNumber = 0)

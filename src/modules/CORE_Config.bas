@@ -8,8 +8,8 @@ Attribute VB_Name = "CORE_Config"
 '   scenarios. Every other module refers to these names only.
 '
 ' PUBLIC SURFACE
-'   Constants; RiskClassCode, RiskClassIndex, ComponentName, ScenarioName,
-'   HasNumericBuckets.
+'   Constants; ManagedSheets, RiskClassCode, RiskClassIndex, ComponentName,
+'   ScenarioName, HasNumericBuckets.
 '
 ' DEPENDENCIES
 '   None.
@@ -119,6 +119,16 @@ Public Const SCEN_COUNT As Long = 3
 '------------------------------------------------------------------------------
 '                              CODE LOOKUPS
 '------------------------------------------------------------------------------
+' The sheet names in workbook order.
+Public Function ManagedSheets() As Variant
+    ManagedSheets = Array(SH_HOME, SH_CONTROL, SH_RESULTS, _
+                          SH_IN_DELTA, SH_IN_VEGA, SH_IN_CURV, SH_IN_DRC, SH_IN_RRAO, _
+                          SH_OUT_SUMMARY, SH_OUT_CLASS, SH_OUT_BUCKETS, SH_OUT_DRC, SH_LOG, _
+                          SH_P_GENERAL, SH_P_GIRR, SH_P_CSR, SH_P_EQ, SH_P_COM, SH_P_FX, _
+                          SH_P_DRC, SH_P_RRAO, SH_TEST, SH_README)
+End Function
+
+
 Public Function RiskClassCode(ByVal i As Long) As String
     Select Case i
         Case 1: RiskClassCode = RC_GIRR

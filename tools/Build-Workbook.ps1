@@ -158,10 +158,14 @@ try {
     $excel.DisplayAlerts = $false
 
     if ($Template) {
-        # A template holds no buttons: FinishWorkbook adds them at build time
+        # A template holds no buttons: FinishWorkbook adds them at build time.
+        # The sheets are protected without a password (#349): the write window
+        # lifts it for the deletion and the macro that closes it restores it.
+        [void]$excel.Run($prefix + 'OpenWriteWindow')
         foreach ($sheet in $workbook.Worksheets) {
             foreach ($shape in @($sheet.Shapes)) { $shape.Delete() }
         }
+        [void]$excel.Run($prefix + 'CloseWriteWindow')
         # 51 = xlOpenXMLWorkbook: the saved file carries no VBA project
         $workbook.RemovePersonalInformation = $true
         $workbook.SaveAs($OutputPath, 51)

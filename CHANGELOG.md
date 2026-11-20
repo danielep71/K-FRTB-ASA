@@ -7,6 +7,21 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- Protection of the sheets and the workbook structure, without a password
+  (#349). The cells in the input fill are unlocked and everything else is
+  locked: headers, tags, outputs, `Log`, `Test_Expected`, `Home` and `README`.
+  The five input sheets also allow inserted rows, sorting and the autofilter,
+  and the structure is locked, so a sheet cannot be added, renamed or moved.
+  The commands lift the protection while they write and restore it, also
+  after an error, through `BeginWrite` and `EndWrite` in `CORE_Util`; a
+  password of the user's own stops a command with a message that names the
+  sheets. `ManagedSheets` moves from `M_Setup` to `CORE_Config` so that the
+  core modules can use it. `tests/test_template.py` asserts the locked and
+  unlocked cells and the actions, and the Excel check gains `PROTECTION`. The
+  workbook guide says that there is no password and how to remove the
+  protection. The sheet pictures and the README gallery are refreshed with
+  the next Excel run.
+
 - A start sheet and a navigation bar on every sheet (#347). `Home` is the
   first sheet and the one the workbook opens on: it says what the workbook
   does, gives the steps of a run and lists every sheet once, with its role and
