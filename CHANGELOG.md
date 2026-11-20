@@ -17,6 +17,9 @@ Unreleased describe integrated work, not a published version.
   repository only.
   `.github/actionlint.yaml` declares the label `excel`, and
   `docs/EXCEL_EVIDENCE.md` says how to register the runner and what it exposes.
+  The step runs in `cmd` and starts `tools/Run-Excel-Check-CI.ps1` with
+  `-ExecutionPolicy Bypass`, because the host's execution policy refuses the
+  temporary script that the runner writes for a PowerShell step.
 
 - A quick profile of the unattended Excel check (#274).
   `tools\Check-FRTB-Excel-Quick.cmd`, or `tools\Check-FRTB-Excel.ps1 -Quick`, runs
