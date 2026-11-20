@@ -7,6 +7,16 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- A quick profile of the unattended Excel check (#274).
+  `tools\Check-FRTB-Excel-Quick.cmd`, or `tools\Check-FRTB-Excel.ps1 -Quick`, runs
+  one development build with the regression test and the acceptance checks,
+  and leaves out the production build, the round trips, the pictures, the
+  builds from source and as a template, the Trust Center check and the
+  synchronization, which the summary lists as `NOT_RUN_IN_QUICK`. It asks
+  nothing, writes no recorded run and is not evidence; the full check stays the
+  one to record. Tests check the script's text, and the PowerShell parse test
+  runs in CI.
+
 - An optional FRTB-SA ribbon tab (#353). `tools\Build-Workbook.ps1 -Ribbon`
   adds `src/ribbon/customUI14.xml` to the saved workbook with
   `tools\Add-RibbonTab.ps1`, because Excel's object model saves no custom UI
