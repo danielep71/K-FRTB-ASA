@@ -222,6 +222,41 @@ Input sheets are read from row 6 down to the first row whose `ID` and
 `Risk class` (second) columns are both blank. Invalid rows are skipped and
 logged on `Log`; check the error count on `Results` after every run.
 
+### ✅ Data validation
+
+The template carries data validation rules (#348) that check what you type
+into a cell. The run's own validation stays the authority: a pasted value
+bypasses a rule, and the run rejects the same rows with the same messages
+whatever the rules say.
+
+| Cells | Rule |
+| --- | --- |
+| `Control` switches | A drop-down of `TRUE` and `FALSE`; blank is accepted |
+| `Control` reporting currency | A warning unless the text has three letters |
+| `In_*` risk class | A drop-down of `GIRR`, `CSR_NS`, `EQ`, `COM` and `FX` |
+| `In_Delta`, `In_Vega`, `In_Curvature` bucket | `GIRR` and `FX`: a three-letter currency. `CSR_NS`, `EQ` and `COM`: a number of 1 or more |
+| `In_Delta`, `In_Vega`, `In_Curvature` sub-type | The sub-types the run accepts for the risk class: delta `GIRR` `YIELD`, `INFLATION` or `XCCY`, `CSR_NS` `BOND` or `CDS`, `EQ` `SPOT` or `REPO`; vega the same without `REPO`; curvature `GIRR` `YIELD` only. `COM` takes free text, `FX` none, and a blank takes the default |
+| Tenors, maturities, amounts, CVRs, LGD, notionals | Numbers only; tenors, maturities and the RRAO gross notional also zero or more |
+| `In_Curvature` references reporting ccy | A drop-down of `TRUE` and `FALSE` |
+| `In_DRC` bucket, credit quality, seniority and `In_RRAO` category | A drop-down of the keys in the tables of `P_DRC` and `P_RRAO`. A value that is not there yet only warns, so you can add the key to the table afterwards |
+| `P_*` numeric cells | Numbers only. A risk weight below zero and a correlation outside -1 to 1 only warn |
+
+The `ID`, `Qualifier`, `Obligor` and `Comment` columns have no rule: the run
+does not read the ID and the comment, and it reports a blank qualifier or
+obligor itself. Text lists are case-sensitive in Excel while the run ignores
+case, and a bucket number must be typed as a number, not as text.
+
+`tools/input_validation.py` defines the rules once. `tools/build_template.py`
+writes them into the template after the headless build, and
+`tests/test_input_validation.py` pins them, evaluates their formulas in
+LibreOffice and compares their vocabularies with what the run accepts. The
+unattended Excel check `DATA_VALIDATION` reads every rule back in Excel. A
+workbook built with `-FromSource` has no rules, because it is not made from
+the template: build from the template for the workbook you use. **Load sample
+data** and **Reset parameters** rewrite their sheets but keep the rules. The rules
+reference cells directly, so the workbook defines no names for them, and the
+engine keeps reading the tagged tables.
+
 ## ▶️ Running
 
 * **Run FRTB-SA** (`RunFRTB`) recalculates everything and rewrites the output

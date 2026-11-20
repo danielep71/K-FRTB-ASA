@@ -30,6 +30,9 @@ sys.path.insert(0, str(REPO_ROOT / "tests"))
 import acceptance_cases as cases  # noqa: E402
 import frtb_reference as ref  # noqa: E402
 
+sys.path.insert(0, str(REPO_ROOT / "tools"))
+import input_validation  # noqa: E402
+
 TEMPLATE = REPO_ROOT / "src" / "workbook" / "FRTB_Template.xlsx"
 MODULE = REPO_ROOT / "tests" / "modules" / "TEST_AcceptanceData.bas"
 SUMMARY_ITEMS = ("SBM_LOW", "SBM_MEDIUM", "SBM_HIGH", "SBM", "DRC_NONSEC", "RRAO", "TOTAL")
@@ -64,6 +67,8 @@ Attribute VB_Name = "TEST_AcceptanceData"
 '     sheet the template freezes.
 '   AcceptanceFilters: Array(sheet, autofilter range) for every sheet the
 '     template filters.
+'   AcceptanceValidation: Array(sheet, first cell, type, alert style, error
+'     title) for every data validation rule of the template (#348).
 '
 ' DEPENDENCIES
 '   None.
@@ -139,7 +144,19 @@ def presentation_lines() -> list[str]:
             filters.append(f"    c.Add Array({vba_literal(ws.title)}, {vba_literal(ws.auto_filter.ref)})")
     panes += ["    Set AcceptancePanes = c", "End Function"]
     filters += ["    Set AcceptanceFilters = c", "End Function"]
-    return panes + ["", ""] + filters
+    return panes + ["", ""] + filters + ["", ""] + validation_lines()
+
+
+def validation_lines() -> list[str]:
+    """Return the data validation rules of the committed template: Excel's type
+    (3 list, 7 custom) and alert style (1 stop, 2 warning) with each rule's title."""
+    lines = ["Public Function AcceptanceValidation() As Collection", "    Dim c As New Collection"]
+    for rule in input_validation.read_rules(TEMPLATE):
+        kind = 7 if rule.kind == "custom" else 3
+        alert = 2 if rule.alert == "warning" else 1
+        first = rule.sqref.split(":")[0]
+        lines.append(f"    c.Add Array({vba_literal(rule.sheet)}, {vba_literal(first)}, {kind}, {alert}, {vba_literal(rule.title)})")
+    return lines + ["    Set AcceptanceValidation = c", "End Function"]
 
 
 def render() -> str:
