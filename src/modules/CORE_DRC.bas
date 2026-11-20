@@ -178,10 +178,10 @@ Public Sub RunDRC()
     j = 0
     For o = 1 To nObl
         If oSplit(o) Then
-            LogMessage "ERROR", SH_IN_DRC, "Obligor " & oName(o) & " has positions in several buckets (MAR22.22); its positions are skipped"
+            LogMessage "ERROR", SH_IN_DRC, "Obligor " & oName(o) & " has positions in several buckets (MAR22.22); its positions are skipped", , oName(o)
         Else
             If oMixed(o) Then
-                LogMessage "WARN", SH_IN_DRC, "Obligor " & oName(o) & " has several credit qualities; the worst, " & oQuality(o) & ", is used"
+                LogMessage "WARN", SH_IN_DRC, "Obligor " & oName(o) & " has several credit qualities; the worst, " & oQuality(o) & ", is used", , oName(o)
             End If
             j = j + 1
             oName(j) = oName(o)

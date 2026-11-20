@@ -217,12 +217,35 @@ empty template's extent.
 | Blue | `Out_RiskClass` | Capital per risk class, component and scenario; `Alternative Sb used` flag |
 | Blue | `Out_Buckets` | `Kb`, `Sb`, risk factor count and notes (`ALT_SB`, `UP`/`DOWN`, `OTHER`) per bucket |
 | Blue | `Out_DRC` | Net long/short per obligor; HBR and charge per bucket |
-| Blue | `Log` | Every rejected input row with the reason, warnings and run status |
+| Blue | `Log` | Every rejected input row with the reason, warnings and run status; `Row` and `Reference` name the sheet row and its ID |
 | Green | `Test_Expected` | Expected sample results, actual values and PASS/FAIL per item |
 
 Input sheets are read from row 6 down to the first row whose `ID` and
 `Risk class` (second) columns are both blank. Invalid rows are skipped and
 logged on `Log`; check the error count on `Results` after every run.
+
+`Log` has five columns: `Level`, `Source`, `Message`, `Row` and `Reference`.
+`ERROR` is red and `WARN` amber in the `Level` column. For a rejected input row,
+`Row` is its sheet row and `Reference` its `ID`, left blank when the row has
+none; for a finding about an obligor, `Reference` is the obligor; for a key
+that a parameter table repeats, it is the key. The messages and the `Source`
+text are the same as before, so a filter on them keeps working. `Results` does
+not say whether its figures still match the inputs: edit an input, then run
+again. A line that said so would need a worksheet event or a fingerprint of
+every input cell, which a changed value of the same sum would defeat, and I
+decided against both (#350).
+
+A key that repeats in the first column of a `Key | Value` table, which the run
+ignores with a warning, is highlighted in red where it is typed or pasted, also in
+the row directly below the table, which the run reads too. The
+rule is conditional formatting on the ten tables that `CORE_Params` reads that
+way (`SETTINGS`, `CORR_SCENARIOS`, `VEGA`, `VERTICES`, `GIRR_PARAMS`,
+`CSR_PARAMS`, `EQ_PARAMS`, `COM_PARAMS`, `FX_PARAMS` and `DRC_PARAMS`). The keys
+are locked on a protected sheet, so a repeat appears only after the sheet is
+unprotected or a block is pasted over it. `tools/key_highlights.py` writes the
+rules into the template and `M_Setup` applies them when Excel builds or resets
+a sheet; a workbook built with `-FromSource` gets them from `M_Setup`, which
+the Excel check `KEY_HIGHLIGHTS` reads back.
 
 ### 🧭 Navigation
 

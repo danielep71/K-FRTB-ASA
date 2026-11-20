@@ -293,3 +293,19 @@ Public Function AcceptanceValidation() As Collection
     c.Add Array("P_RRAO", "D7", 7, 2, "Check the risk weight")
     Set AcceptanceValidation = c
 End Function
+
+
+Public Function AcceptanceKeyTables() As Collection
+    Dim c As New Collection
+    c.Add Array("Control", 7, 12)
+    c.Add Array("P_General", 7, 9)
+    c.Add Array("P_General", 12, 14)
+    c.Add Array("P_General", 28, 32)
+    c.Add Array("P_GIRR", 20, 29)
+    c.Add Array("P_CSR", 28, 33)
+    c.Add Array("P_EQ", 23, 24)
+    c.Add Array("P_COM", 21, 23)
+    c.Add Array("P_FX", 7, 11)
+    c.Add Array("P_DRC", 26, 28)
+    Set AcceptanceKeyTables = c
+End Function
