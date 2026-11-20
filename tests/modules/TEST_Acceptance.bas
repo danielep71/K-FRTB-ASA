@@ -576,14 +576,14 @@ Private Function CheckNavigation(ByRef detail As String) As String
 End Function
 
 
-' A key that repeats in a Key | Value table is highlighted (#350): every table
-' of the template carries the rule, also after Reset parameters, which clears the
-' formats of its sheets and applies the rule again, and a repeated key shows the
-' red fill. The probe puts the first key of a table into its second row and
-' restores it.
+' A key that repeats in a Key | Value table is highlighted (#350). After Reset parameters,
+' which clears the formats of its sheets and applies the rule again, every table
+' shows what the rule is for: its first key is not red, and the same key typed into
+' the row below makes that row red. FormatConditions.Count is not read: it was 0 in the
+' run on 15bcf82, where the red fill showed. Each probe restores the cell.
 Private Function CheckKeyHighlights(ByRef detail As String) As String
-    Dim item As Variant, ws As Object, keys As Object, problems As String, n As Long
-    Dim second As Object, saved As Variant, shown As Boolean, probed As String
+    Dim item As Variant, ws As Object, first As Object, second As Object, problems As String, n As Long
+    Dim saved As Variant, red As Boolean, plain As Boolean
     If Not mInExcel Then
         detail = "Excel only: the conditional formats as Excel applies them"
         CheckKeyHighlights = "SKIPPED"
@@ -592,23 +592,20 @@ Private Function CheckKeyHighlights(ByRef detail As String) As String
     ResetParameters
     For Each item In AcceptanceKeyTables()
         Set ws = GetSheet(CStr(item(0)))
-        Set keys = ws.Range(TableCell(ws, CLng(item(1)), 1), TableCell(ws, CLng(item(2)), 1))
+        Set first = TableCell(ws, CLng(item(1)), 1)
+        Set second = TableCell(ws, CLng(item(1)) + 1, 1)
         n = n + 1
-        If keys.FormatConditions.Count < 1 Then problems = problems & ws.Name & "!" & keys.Address(False, False) & " has no rule; "
-        If probed = "" And CLng(item(2)) > CLng(item(1)) Then
-            Set second = TableCell(ws, CLng(item(1)) + 1, 1)
-            BeginWrite                                       'a key is locked on a protected sheet
-            saved = second.Value
-            second.Value = TableCell(ws, CLng(item(1)), 1).Value
-            shown = (second.DisplayFormat.Interior.Color = COLOR_FAIL_FILL)
-            second.Value = saved
-            EndWrite
-            probed = ws.Name & "!" & second.Address(False, False)
-            If Not shown Then problems = problems & "a repeated key at " & probed & " is not highlighted; "
-        End If
+        plain = (first.DisplayFormat.Interior.Color <> COLOR_FAIL_FILL)
+        BeginWrite                                           'a key is locked on a protected sheet
+        saved = second.Value
+        second.Value = first.Value
+        red = (second.DisplayFormat.Interior.Color = COLOR_FAIL_FILL)
+        second.Value = saved
+        EndWrite
+        If Not plain Then problems = problems & ws.Name & "!" & first.Address(False, False) & " is red without a repeat; "
+        If Not red Then problems = problems & "a repeat at " & ws.Name & "!" & second.Address(False, False) & " is not red; "
     Next item
-    detail = IIf(problems = "", n & " Key | Value tables carry the rule after Reset parameters; a repeated key at " & _
-                 probed & " shows the red fill", problems)
+    detail = IIf(problems = "", n & " Key | Value tables after Reset parameters: a key is plain, and the same key in the row below is red", problems)
     CheckKeyHighlights = IIf(problems = "", "PASS", "FAIL")
 End Function
 
