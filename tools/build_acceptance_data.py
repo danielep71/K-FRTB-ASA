@@ -32,6 +32,7 @@ import frtb_reference as ref  # noqa: E402
 
 sys.path.insert(0, str(REPO_ROOT / "tools"))
 import input_validation  # noqa: E402
+import key_highlights  # noqa: E402
 
 TEMPLATE = REPO_ROOT / "src" / "workbook" / "FRTB_Template.xlsx"
 MODULE = REPO_ROOT / "tests" / "modules" / "TEST_AcceptanceData.bas"
@@ -144,7 +145,7 @@ def presentation_lines() -> list[str]:
             filters.append(f"    c.Add Array({vba_literal(ws.title)}, {vba_literal(ws.auto_filter.ref)})")
     panes += ["    Set AcceptancePanes = c", "End Function"]
     filters += ["    Set AcceptanceFilters = c", "End Function"]
-    return panes + ["", ""] + filters + ["", ""] + validation_lines()
+    return panes + ["", ""] + filters + ["", ""] + validation_lines() + ["", ""] + key_table_lines()
 
 
 def validation_lines() -> list[str]:
@@ -157,6 +158,15 @@ def validation_lines() -> list[str]:
         first = rule.sqref.split(":")[0]
         lines.append(f"    c.Add Array({vba_literal(rule.sheet)}, {vba_literal(first)}, {kind}, {alert}, {vba_literal(rule.title)})")
     return lines + ["    Set AcceptanceValidation = c", "End Function"]
+
+
+def key_table_lines() -> list[str]:
+    """Return the Key | Value tables whose repeated keys are highlighted: sheet, first and last data row."""
+    lines = ["Public Function AcceptanceKeyTables() As Collection", "    Dim c As New Collection"]
+    for highlight in key_highlights.expected_highlights(TEMPLATE):
+        first, last = (int(part[1:]) for part in highlight.sqref.split(":"))
+        lines.append(f"    c.Add Array({vba_literal(highlight.sheet)}, {first}, {last})")
+    return lines + ["    Set AcceptanceKeyTables = c", "End Function"]
 
 
 def render() -> str:

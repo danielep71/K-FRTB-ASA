@@ -44,7 +44,7 @@ KEYWORDS = {
 
 BUILTINS = {
     "abs", "application", "array", "cbool", "cdbl", "chr", "clng", "cstr", "debug", "dir", "fix", "int",
-    "err", "exp", "format", "iif", "isarray", "isempty", "iserror", "isnumeric", "isobject", "isnull", "cverr",
+    "err", "exp", "format", "iif", "isarray", "isempty", "ismissing", "iserror", "isnumeric", "isobject", "isnull", "cverr",
     "lbound", "lcase", "lcase$", "left", "left$", "len", "log", "mid", "mid$", "msgbox", "now",
     "replace", "rgb", "right", "right$", "round", "sgn", "split", "sqr", "thisworkbook", "trim",
     "trim$", "typename", "ubound", "ucase", "ucase$", "val", "vartype", "join", "instr",

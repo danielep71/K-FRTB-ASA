@@ -400,13 +400,32 @@ Private Function PutTable(ByVal ws As Object, ByVal r As Long, ByVal tag As Stri
 End Function
 
 
+' Highlights a key that repeats in the first column of a Key | Value table, which
+' the run ignores with a warning (#350). The rule is conditional formatting, so it
+' needs no event and follows the cells. Excel reads a relative reference in a formula
+' added by a macro from the active cell, so the formula finds its own cell with ROW.
+Private Sub MarkDuplicateKeys(ByVal ws As Object, ByVal r1 As Long, ByVal r2 As Long)
+    Dim keys As Object, rule As Object, first As String, key As String
+    On Error Resume Next
+    Set keys = ws.Range(TableCell(ws, r1, 1), TableCell(ws, r2 + 1, 1))   'and the row below, which the run reads too
+    first = TableCell(ws, r1, 1).Address
+    key = "INDEX(" & keys.Address & ",ROW()-ROW(" & first & ")+1)"
+    Set rule = keys.FormatConditions.Add(2, , "=AND(" & key & "<>"""",COUNTIF(" & keys.Address & "," & key & ")>1)")
+    rule.Interior.Color = COLOR_FAIL_FILL
+    rule.Font.Color = COLOR_FAIL_TEXT
+    On Error GoTo 0
+End Sub
+
+
 ' Formats the data rows of a parameter table: editable columns from
 ' firstValueCol to lastValueCol in the input fill, percentages where the
 ' column (or, in Key | Value tables, the key) denotes a rate.
 Private Sub FormatParamRows(ByVal ws As Object, ByVal r1 As Long, ByVal r2 As Long, ByVal nCols As Long, _
-                            ByVal firstValueCol As Long, ByVal lastValueCol As Long, ByVal pctCols As String)
+                            ByVal firstValueCol As Long, ByVal lastValueCol As Long, ByVal pctCols As String, _
+                            Optional ByVal keyTable As Boolean = False)
     Dim r As Long, k As Long, key As String
     FormatDataRows ws, r1, r2, nCols, 0, "", False
+    If keyTable Then MarkDuplicateKeys ws, r1, r2
     On Error Resume Next
     ws.Range(TableCell(ws, r1, firstValueCol), TableCell(ws, r2, lastValueCol)).Interior.Color = COLOR_INPUT_CELL
     ws.Range(TableCell(ws, r1, firstValueCol), TableCell(ws, r2, lastValueCol)).Locked = False   'editable on a protected sheet (#349)
@@ -784,7 +803,7 @@ Private Sub BuildControl()
     PutRow ws, r + 2, Array("FX_SPECIFIED_PAIR_DISCRETION", False, "TRUE: FX risk weight divided by sqrt(2) for specified pairs and their first-order crosses", "MAR21.88")
     PutRow ws, r + 3, Array("FX_CURVATURE_DIVISOR", False, "TRUE: FX curvature CVRs divided by 1.5 for options that do not reference the reporting currency (In_Curvature References reporting ccy not TRUE)", "MAR21.98")
     PutRow ws, r + 4, Array("FX_CURVATURE_DIVISOR_ALL", False, "TRUE: all FX curvature CVRs divided by 1.5; needs supervisory approval and curvature sensitivities for all currencies, including the reporting currency", "MAR21.98")
-    FormatParamRows ws, r, r + 4, 4, 2, 2, ""
+    FormatParamRows ws, r, r + 4, 4, 2, 2, "", True
     On Error Resume Next
     ws.Range(TableCell(ws, r, 2), TableCell(ws, r + 4, 2)).HorizontalAlignment = -4108
     On Error GoTo 0
@@ -833,8 +852,8 @@ Private Sub BuildOutputSheets()
     WriteOutputPlaceholder ws
 
     Set ws = GetSheet(SH_LOG)
-    ApplyFrame ws, "Log", "Every rejected input row with the reason, warnings and the run status.", 6
-    SetWidths ws, Array(9, 24, 110)
+    ApplyFrame ws, "Log", "Every rejected input row with the reason, warnings and the run status; Row and Reference name the row and its ID.", 8
+    SetWidths ws, Array(9, 24, 110, 7, 24)
     WriteOutputPlaceholder ws
 End Sub
 
@@ -914,12 +933,12 @@ Private Sub WriteParamGeneral()
     r = PutTable(ws, LAYOUT_HEADER_ROW, "CORR_SCENARIOS", "Correlation scenarios", Array("Code", "Value", "Reference"))
     PutRow ws, r, Array("HIGH_MULTIPLIER", 1.25, "MAR21.6(2): rho_high = min(1.25 x rho, 100%)")
     PutRow ws, r + 1, Array("LOW_MULTIPLIER", 0.75, "MAR21.6(3): rho_low = max(2 x rho - 100%, 75% x rho)")
-    FormatParamRows ws, r, r + 1, 3, 2, 2, ""
+    FormatParamRows ws, r, r + 1, 3, 2, 2, "", True
 
     r = PutTable(ws, r + 3, "VEGA", "Vega risk weight and maturity correlation", Array("Code", "Value", "Reference"))
     PutRow ws, r, Array("RW_SIGMA", 0.55, "MAR21.92: RW = min(RW_sigma x sqrt(LH / 10), 100%)")
     PutRow ws, r + 1, Array("ALPHA", 0.01, "MAR21.93: option maturity correlation parameter")
-    FormatParamRows ws, r, r + 1, 3, 2, 2, "2"
+    FormatParamRows ws, r, r + 1, 3, 2, 2, "2", True
 
     r = PutTable(ws, r + 3, "VEGA_LH", "Vega liquidity horizons (days)", Array("RiskClass", "Bucket", "LH", "Reference"))
     PutRow ws, r, Array("GIRR", "*", 60, "MAR21.92 Table 13")
@@ -937,7 +956,7 @@ Private Sub WriteParamGeneral()
     PutRow ws, r + 1, Array("CSR_TENORS", "0.5,1,3,5,10", "MAR21.9(1)")
     PutRow ws, r + 2, Array("COM_TENORS", "0,0.25,0.5,1,2,3,5,10,15,20,30", "MAR21.13(1)")
     PutRow ws, r + 3, Array("VEGA_MATURITIES", "0.5,1,3,5,10", "MAR21.8(4)")
-    FormatParamRows ws, r, r + 3, 3, 2, 2, ""
+    FormatParamRows ws, r, r + 3, 3, 2, 2, "", True
 End Sub
 
 
@@ -963,7 +982,7 @@ Private Sub WriteParamGirr()
     PutRow ws, r + 6, Array("RW_XCCY", 0.016, "MAR21.43")
     PutRow ws, r + 7, Array("GAMMA", 0.5, "MAR21.50")
     PutRow ws, r + 8, Array("SPECIFIED_DIVISOR", Sqr(2), "MAR21.44")
-    FormatParamRows ws, r, r + 8, 3, 2, 2, "KEY"
+    FormatParamRows ws, r, r + 8, 3, 2, 2, "KEY", True
     TableCell(ws, r + 8, 2).NumberFormat = "0.0000"         'sqrt(2), shown to four decimals (#206)
 
     ccys = Array("EUR", "USD", "GBP", "AUD", "JPY", "SEK", "CAD")
@@ -1008,7 +1027,7 @@ Private Sub WriteParamCsr()
     PutRow ws, r + 2, Array("RHO_TENOR", 0.65, "MAR21.54")
     PutRow ws, r + 3, Array("RHO_BASIS", 0.999, "MAR21.54 (bond vs CDS curve)")
     PutRow ws, r + 4, Array("GAMMA_RATING", 0.5, "MAR21.57: IG vs HY/NR, both buckets in 1-15")
-    FormatParamRows ws, r, r + 4, 3, 2, 2, "KEY"
+    FormatParamRows ws, r, r + 4, 3, 2, 2, "KEY", True
 
     ' Sector component of the cross-bucket correlation (MAR21.57 Table 5), symmetric
     groups = Array(1, 2, 3, 4, 5, 6, 7, 8, 16, 17, 18)
@@ -1060,7 +1079,7 @@ Private Sub WriteParamEquity()
 
     r = PutTable(ws, r + 14, "EQ_PARAMS", "Correlations", Array("Code", "Value", "Reference"))
     PutRow ws, r, Array("RHO_SPOT_REPO", 0.999, "MAR21.78")
-    FormatParamRows ws, r, r, 3, 2, 2, "KEY"
+    FormatParamRows ws, r, r, 3, 2, 2, "KEY", True
 
     r = PutTable(ws, r + 2, "EQ_GAMMA", "Cross-bucket correlation (MAR21.80)", _
         Array("Bucket", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13))
@@ -1107,7 +1126,7 @@ Private Sub WriteParamCommodity()
     r = PutTable(ws, r + 12, "COM_PARAMS", "Correlations", Array("Code", "Value", "Reference"))
     PutRow ws, r, Array("RHO_TENOR", 0.99, "MAR21.83")
     PutRow ws, r + 1, Array("RHO_BASIS", 0.999, "MAR21.83 (delivery location)")
-    FormatParamRows ws, r, r + 1, 3, 2, 2, "KEY"
+    FormatParamRows ws, r, r + 1, 3, 2, 2, "KEY", True
 
     r = PutTable(ws, r + 3, "COM_GAMMA", "Cross-bucket correlation (MAR21.85)", _
         Array("Bucket", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11))
@@ -1137,7 +1156,7 @@ Private Sub WriteParamFx()
     PutRow ws, r + 1, Array("GAMMA", 0.6, "MAR21.89")
     PutRow ws, r + 2, Array("SPECIFIED_DIVISOR", Sqr(2), "MAR21.88")
     PutRow ws, r + 3, Array("CURVATURE_DIVISOR", 1.5, "MAR21.98")
-    FormatParamRows ws, r, r + 3, 3, 2, 2, "KEY"
+    FormatParamRows ws, r, r + 3, 3, 2, 2, "KEY", True
     TableCell(ws, r + 2, 2).NumberFormat = "0.0000"         'sqrt(2), shown to four decimals (#206)
 
     pairs = Array("USD/EUR", "USD/JPY", "USD/GBP", "USD/AUD", "USD/CAD", "USD/CHF", "USD/MXN", "USD/CNY", _
@@ -1178,7 +1197,7 @@ Private Sub WriteParamDrc()
     r = PutTable(ws, r + 5, "DRC_PARAMS", "Maturity scaling (years)", Array("Code", "Value", "Reference"))
     PutRow ws, r, Array("MIN_MATURITY", 0.25, "MAR22.18: floor of three months")
     PutRow ws, r + 1, Array("MAX_MATURITY", 1, "MAR22.15: one-year capital horizon")
-    FormatParamRows ws, r, r + 1, 3, 2, 2, ""
+    FormatParamRows ws, r, r + 1, 3, 2, 2, "", True
 
     r = PutTable(ws, r + 3, "DRC_BUCKETS", "Buckets (MAR22.22)", Array("Bucket", "Description"))
     PutRow ws, r, Array("CORP", "Corporates")
