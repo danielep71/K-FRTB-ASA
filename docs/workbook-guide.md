@@ -244,8 +244,10 @@ way (`SETTINGS`, `CORR_SCENARIOS`, `VEGA`, `VERTICES`, `GIRR_PARAMS`,
 are locked on a protected sheet, so a repeat appears only after the sheet is
 unprotected or a block is pasted over it. `tools/key_highlights.py` writes the
 rules into the template and `M_Setup` applies them when Excel builds or resets
-a sheet; a workbook built with `-FromSource` gets them from `M_Setup`, which
-the Excel check `KEY_HIGHLIGHTS` reads back.
+a sheet, with the formula in the language of the Excel that runs it; a workbook
+built with `-FromSource` gets them from `M_Setup`. The Excel check
+`KEY_HIGHLIGHTS` types a repeat into every table after **Reset parameters** and
+checks that it turns red.
 
 ### 🧭 Navigation
 

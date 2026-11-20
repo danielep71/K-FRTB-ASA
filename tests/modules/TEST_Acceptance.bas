@@ -579,8 +579,9 @@ End Function
 ' A key that repeats in a Key | Value table is highlighted (#350). After Reset parameters,
 ' which clears the formats of its sheets and applies the rule again, every table
 ' shows what the rule is for: its first key is not red, and the same key typed into
-' the row below makes that row red. FormatConditions.Count is not read: it was 0 in the
-' run on 15bcf82, where the red fill showed. Each probe restores the cell.
+' the row below makes that row red. The run on 0d7fbf9 showed the P_* tables without the
+' rule after Reset parameters, while Control, which it does not reset, had the template's.
+' Each probe restores the cell.
 Private Function CheckKeyHighlights(ByRef detail As String) As String
     Dim item As Variant, ws As Object, first As Object, second As Object, problems As String, n As Long
     Dim saved As Variant, red As Boolean, plain As Boolean
