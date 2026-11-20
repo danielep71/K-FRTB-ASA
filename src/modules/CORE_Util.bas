@@ -23,13 +23,18 @@ Attribute VB_Name = "CORE_Util"
 '   ExtendPrintArea.
 '   Output placeholders: WriteOutputPlaceholder.
 '   Log: ResetLog, LogMessage, LogErrorCount, LogWarningCount.
+'   Protection: BeginWrite, EndWrite, CloseWriteWindows. The sheets and the workbook structure
+'   are protected without a password; a command that writes to locked cells
+'   opens a write window with BeginWrite and closes it with EndWrite (#349).
 '
 ' DEPENDENCIES
 '   CORE_Config for sheet names, layout and palette.
 '
 ' STATE OWNERSHIP
 '   Owns the log cursor and the error and warning counters of the current
-'   run (mLogRow, mErrorCount, mWarningCount); ResetLog resets them.
+'   run (mLogRow, mErrorCount, mWarningCount); ResetLog resets them. Owns the
+'   depth of the open write windows (mWriteDepth): the protection comes back
+'   when the outermost window closes.
 '
 ' ERROR POLICY
 '   GetSheet and ReadTable raise vbObjectError + ERR_APP for a missing sheet
@@ -37,7 +42,8 @@ Attribute VB_Name = "CORE_Util"
 '   KVNumber, TableNumber and ParseNumberList raise it for a required
 '   parameter that is blank or not a number. Formatting is cosmetic: a host
 '   that rejects a format property leaves the cell unformatted instead of
-'   stopping the run.
+'   stopping the run. BeginWrite raises vbObjectError + ERR_APP, naming the
+'   sheets, when a sheet or the workbook structure has a password of its own.
 '
 ' COMPATIBILITY
 '   Excel VBA; also runs in LibreOffice Calc with VBA support for the
@@ -62,6 +68,7 @@ Private Const TAG_SCAN_ROWS As Long = 1000                   'Rows searched for 
 Private mLogRow As Long                                      'Last row written on the Log sheet
 Private mErrorCount As Long                                  'ERROR lines of the current run
 Private mWarningCount As Long                                'WARN lines of the current run
+Private mWriteDepth As Long                                  'Open write windows; the sheets are unprotected above 0
 
 '------------------------------------------------------------------------------
 '                                  SHEETS
@@ -620,7 +627,10 @@ Public Sub FormatDataRows(ByVal ws As Object, ByVal r1 As Long, ByVal r2 As Long
     With ws.Range(TableCell(ws, r1, 1), TableCell(ws, r2, nCols))
         .Font.Size = 10
         .RowHeight = 20.1
-        If isInput Then .Interior.Color = COLOR_INPUT_CELL
+        If isInput Then
+            .Interior.Color = COLOR_INPUT_CELL
+            .Locked = False                                  'an input cell stays editable on a protected sheet (#349)
+        End If
     End With
     FormatBorders ws.Range(TableCell(ws, r1, 1), TableCell(ws, r2, nCols)), COLOR_GRID, 1
     If firstNumCol > 0 And numberFormat <> "" Then
@@ -790,3 +800,119 @@ End Function
 Public Function LogWarningCount() As Long
     LogWarningCount = mWarningCount
 End Function
+
+'------------------------------------------------------------------------------
+'                                PROTECTION
+'------------------------------------------------------------------------------
+' Opens a write window: the sheets and the workbook structure lose their
+' protection until the outermost window closes. Raises, naming the sheets,
+' when one of them has a password, and leaves everything as it found it.
+Public Sub BeginWrite()
+    Dim errNumber As Long, errSource As String, errDescription As String
+    If mWriteDepth = 0 Then
+        On Error Resume Next
+        SetProtection False
+        errNumber = Err.Number
+        errSource = Err.Source
+        errDescription = Err.Description
+        If errNumber <> 0 Then SetProtection True            'put back what this call removed
+        On Error GoTo 0
+        If errNumber <> 0 Then Err.Raise errNumber, errSource, errDescription
+    End If
+    mWriteDepth = mWriteDepth + 1
+End Sub
+
+
+' Closes a write window and, with the outermost one, protects the sheets and
+' the workbook structure again. A command whose body raised calls it before
+' it raises, so it never raises itself: a host that refuses the protection
+' leaves the workbook unprotected, which the Excel check reports.
+Public Sub EndWrite()
+    If mWriteDepth > 0 Then mWriteDepth = mWriteDepth - 1
+    If mWriteDepth = 0 Then
+        On Error Resume Next
+        SetProtection True
+        On Error GoTo 0
+    End If
+End Sub
+
+
+' Closes every open write window at once and protects the sheets again: for a
+' caller that caught an error between a BeginWrite and its EndWrite.
+Public Sub CloseWriteWindows()
+    mWriteDepth = 1
+    EndWrite
+End Sub
+
+
+' Protects or unprotects every managed sheet and the workbook structure, all
+' without a password. A sheet that refuses is named in the error.
+Private Sub SetProtection(ByVal turnOn As Boolean)
+    Dim names As Variant, i As Long, ws As Object, blocked As String, message As String
+    names = ManagedSheets()
+    For i = LBound(names) To UBound(names)
+        If SheetExists(CStr(names(i))) Then
+            Set ws = GetSheet(CStr(names(i)))
+            On Error Resume Next
+            Err.Clear
+            If ws.ProtectContents Then ws.Unprotect ""       'an empty password never prompts
+            If turnOn And Err.Number = 0 Then
+                UnlockInputCells ws
+                ProtectSheet ws
+            End If
+            If Err.Number <> 0 Then
+                blocked = blocked & IIf(blocked = "", "", ", ") & ws.Name
+            ElseIf Not turnOn Then
+                If ws.ProtectContents Then blocked = blocked & IIf(blocked = "", "", ", ") & ws.Name
+            End If
+            On Error GoTo 0
+        End If
+    Next i
+    On Error Resume Next
+    Err.Clear
+    If ThisWorkbook.ProtectStructure Then ThisWorkbook.Unprotect ""
+    If turnOn And Err.Number = 0 Then ThisWorkbook.Protect Structure:=True, Windows:=False
+    If Err.Number <> 0 Then
+        message = "The workbook structure has a password of its own. "
+    ElseIf Not turnOn Then
+        If ThisWorkbook.ProtectStructure Then message = "The workbook structure has a password of its own. "
+    End If
+    On Error GoTo 0
+    If blocked <> "" Then message = message & "The sheet(s) " & blocked & " have a password of their own. "
+    If message <> "" Then
+        Err.Raise vbObjectError + ERR_APP, "CORE_Util", message & _
+            "Remove it (Review > Unprotect Sheet or Protect Workbook) and run again: the workbook itself needs no password."
+    End If
+End Sub
+
+
+' A workbook that the sync updated keeps its own cell formats, and one made before
+' the protection has every cell locked: on the sheets that hold input cells, unlock the
+' cells in the input fill once, before the first protection. A sheet with an unlocked
+' cell already is left alone, so a built workbook pays one property read.
+Private Sub UnlockInputCells(ByVal ws As Object)
+    Dim cell As Object, state As Variant, lastRow As Long, lastCol As Long
+    If Not (ws.Name = SH_CONTROL Or Left$(ws.Name, 3) = "In_" Or Left$(ws.Name, 2) = "P_") Then Exit Sub
+    state = ws.UsedRange.Locked
+    If VarType(state) <> vbBoolean Then Exit Sub             'Null: some cells are unlocked already
+    If Not state Then Exit Sub
+    lastRow = ws.UsedRange.Row + ws.UsedRange.Rows.Count - 1
+    lastCol = ws.UsedRange.Column + ws.UsedRange.Columns.Count - 1
+    'The pre-formatted input rows are empty, which a host may leave out of the used range
+    If Left$(ws.Name, 3) = "In_" And lastRow < LAYOUT_FIRST_DATA_ROW + INPUT_ROWS - 1 Then lastRow = LAYOUT_FIRST_DATA_ROW + INPUT_ROWS - 1
+    For Each cell In ws.Range(ws.Cells(1, 1), ws.Cells(lastRow, lastCol)).Cells
+        If cell.Interior.Color = COLOR_INPUT_CELL Then cell.Locked = False
+    Next cell
+End Sub
+
+
+' The input sheets accept inserted rows, sorting and the autofilter on their unlocked
+' cells; every other sheet is protected completely.
+Private Sub ProtectSheet(ByVal ws As Object)
+    If Left$(ws.Name, 3) = "In_" Then
+        ws.Protect DrawingObjects:=True, Contents:=True, Scenarios:=True, _
+                   AllowInsertingRows:=True, AllowSorting:=True, AllowFiltering:=True
+    Else
+        ws.Protect DrawingObjects:=True, Contents:=True, Scenarios:=True
+    End If
+End Sub

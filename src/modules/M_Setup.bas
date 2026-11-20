@@ -17,9 +17,13 @@ Attribute VB_Name = "M_Setup"
 '   opened from the template.
 '   AddNavigationBars: add the bar of links in column A of every sheet; Excel
 '   only, because the bar is made of shapes (#347).
+'   Every public macro opens a write window (BeginWrite, EndWrite of CORE_Util)
+'   around its work, because the sheets and the workbook structure are
+'   protected without a password (#349); FinishWorkbook protects them last.
 '   ResetParameters: rewrite the P_* sheets with the defaults.
 '   LoadSampleData: rewrite the In_* sheets with the sample portfolio.
-'   ManagedSheets: the sheet names in workbook order.
+'   OpenWriteWindow, CloseWriteWindow: lift and restore the protection for a
+'   caller outside the workbook, such as the build script.
 '
 ' DEPENDENCIES
 '   CORE_Config for names, layout and palette; CORE_Util for sheet access
@@ -53,7 +57,6 @@ Option Explicit
 '------------------------------------------------------------------------------
 '                              MODULE CONSTANTS
 '------------------------------------------------------------------------------
-Private Const INPUT_ROWS As Long = 200                       'Pre-formatted input rows per input sheet
 Private Const NAV_COUNT As Long = 23                         'Entries of NavEntry: every managed sheet once (#347)
 ' Input number formats. A format such as #,##0.#### ends a whole number with
 ' the decimal separator in Excel ("5.000.000,"), so amounts show two decimals
@@ -66,6 +69,20 @@ Private Const FMT_YEARS As String = "0.0##"
 '                              PUBLIC MACROS
 '------------------------------------------------------------------------------
 Public Sub BuildWorkbook()
+    Dim errNumber As Long, errSource As String, errDescription As String
+    BeginWrite
+    On Error Resume Next
+    BuildAllSheets
+    errNumber = Err.Number
+    errSource = Err.Source
+    errDescription = Err.Description
+    On Error GoTo 0
+    EndWrite
+    If errNumber <> 0 Then Err.Raise errNumber, errSource, errDescription
+End Sub
+
+
+Private Sub BuildAllSheets()
     Dim names As Variant, i As Long
     SetAlerts False
     names = ManagedSheets()
@@ -90,6 +107,20 @@ End Sub
 ' The XLSX retains presentation settings. Reapply them when adding the
 ' macro buttons, which are deliberately excluded from the template.
 Public Sub FinishWorkbook()
+    Dim errNumber As Long, errSource As String, errDescription As String
+    BeginWrite
+    On Error Resume Next
+    FinishAllSheets
+    errNumber = Err.Number
+    errSource = Err.Source
+    errDescription = Err.Description
+    On Error GoTo 0
+    EndWrite
+    If errNumber <> 0 Then Err.Raise errNumber, errSource, errDescription
+End Sub
+
+
+Private Sub FinishAllSheets()
     Dim names As Variant, i As Long
     SetAlerts False
     names = ManagedSheets()
@@ -106,27 +137,37 @@ End Sub
 
 
 Public Sub ResetParameters()
+    Dim errNumber As Long, errSource As String, errDescription As String
+    BeginWrite
+    On Error Resume Next
     SetAlerts False
     WriteParameters
+    errNumber = Err.Number
+    errSource = Err.Source
+    errDescription = Err.Description
     SetAlerts True
+    On Error GoTo 0
+    EndWrite
+    If errNumber <> 0 Then Err.Raise errNumber, errSource, errDescription
 End Sub
 
 
 Public Sub LoadSampleData()
+    Dim errNumber As Long, errSource As String, errDescription As String
+    BeginWrite
+    On Error Resume Next
     SetAlerts False
     BuildInputSheets
-    WriteSampleData
+    If Err.Number = 0 Then WriteSampleData
+    errNumber = Err.Number
+    errSource = Err.Source
+    errDescription = Err.Description
     SetAlerts True
+    On Error GoTo 0
+    EndWrite
+    If errNumber <> 0 Then Err.Raise errNumber, errSource, errDescription
 End Sub
 
-
-Public Function ManagedSheets() As Variant
-    ManagedSheets = Array(SH_HOME, SH_CONTROL, SH_RESULTS, _
-                          SH_IN_DELTA, SH_IN_VEGA, SH_IN_CURV, SH_IN_DRC, SH_IN_RRAO, _
-                          SH_OUT_SUMMARY, SH_OUT_CLASS, SH_OUT_BUCKETS, SH_OUT_DRC, SH_LOG, _
-                          SH_P_GENERAL, SH_P_GIRR, SH_P_CSR, SH_P_EQ, SH_P_COM, SH_P_FX, _
-                          SH_P_DRC, SH_P_RRAO, SH_TEST, SH_README)
-End Function
 
 '------------------------------------------------------------------------------
 '                              SHEET HELPERS
@@ -368,6 +409,7 @@ Private Sub FormatParamRows(ByVal ws As Object, ByVal r1 As Long, ByVal r2 As Lo
     FormatDataRows ws, r1, r2, nCols, 0, "", False
     On Error Resume Next
     ws.Range(TableCell(ws, r1, firstValueCol), TableCell(ws, r2, lastValueCol)).Interior.Color = COLOR_INPUT_CELL
+    ws.Range(TableCell(ws, r1, firstValueCol), TableCell(ws, r2, lastValueCol)).Locked = False   'editable on a protected sheet (#349)
     ws.Range(TableCell(ws, r1, 1), TableCell(ws, r2, 1)).Font.Bold = True
     For r = r1 To r2
         For k = firstValueCol To lastValueCol
@@ -584,7 +626,7 @@ Private Sub BuildHome()
     WriteSectionHeading ws, r, "How to run", 3
     WriteTableHeader ws, r + 1, Array("Step", "Where", "What to do"), COLOR_INPUT_HEADER
     r = r + 2
-    PutRow ws, r, Array("1. Check the settings", "Control", "Reporting currency and the national discretions. Cream cells are inputs.")
+    PutRow ws, r, Array("1. Check the settings", "Control", "Reporting currency and the national discretions. Cream cells are inputs; every other cell is locked, with no password.")
     PutRow ws, r + 1, Array("2. Enter the inputs", "In_* sheets", "Delta, vega and curvature sensitivities, DRC positions and RRAO notional, one row each, in the reporting currency.")
     PutRow ws, r + 2, Array("3. Run", "Control", "Click Run FRTB-SA. The output sheets and the Log are rewritten on every run.")
     PutRow ws, r + 3, Array("4. Read the results", "Results, Log", "Results shows the capital; the Log lists every rejected row with its reason.")
@@ -648,8 +690,21 @@ End Function
 ' shapes, which the template does not hold: Excel adds them at build time
 ' (tools/Build-Workbook.ps1 runs this after FinishWorkbook) and a sheet shows
 ' its own entry as the marker. Excel only.
+' For the build script, which deletes the shapes of a template: a write window
+' lifts the protection until CloseWriteWindow restores it (#349).
+Public Sub OpenWriteWindow()
+    BeginWrite
+End Sub
+
+
+Public Sub CloseWriteWindow()
+    EndWrite
+End Sub
+
+
 Public Sub AddNavigationBars()
     Dim names As Variant, i As Long
+    BeginWrite
     SetAlerts False
     names = ManagedSheets()
     For i = LBound(names) To UBound(names)
@@ -659,6 +714,7 @@ Public Sub AddNavigationBars()
     ThisWorkbook.Worksheets(SH_HOME).Activate
     On Error GoTo 0
     SetAlerts True
+    EndWrite
 End Sub
 
 

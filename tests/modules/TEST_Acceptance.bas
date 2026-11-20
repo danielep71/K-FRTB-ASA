@@ -96,6 +96,7 @@ Private Sub RunAll(ByVal inExcel As Boolean)
     RunCheck "SHEET_VIEW"
     RunCheck "DATA_VALIDATION"
     RunCheck "NAVIGATION"
+    RunCheck "PROTECTION"
     RunCheck "INVALID_ROW_VARIANT"                           'last: it adds input rows
     WriteReport
 End Sub
@@ -118,18 +119,21 @@ Private Sub RunCheck(ByVal checkName As String)
         Case "SHEET_VIEW": result = CheckSheetView(detail)
         Case "DATA_VALIDATION": result = CheckDataValidation(detail)
         Case "NAVIGATION": result = CheckNavigation(detail)
+        Case "PROTECTION": result = CheckProtection(detail)
         Case "INVALID_ROW_VARIANT": result = CheckVariant(detail)
     End Select
     mReport.Add Array(checkName, result, detail)
     Exit Sub
 
 Failed:
+    CloseWriteWindows                                        'a check that failed inside a write window
     mReport.Add Array(checkName, "FAIL", "Error " & Err.Number & ": " & Err.Description)
 End Sub
 
 
 Private Sub WriteReport()
     Dim ws As Object, item As Variant, r As Long, anyFailed As Boolean
+    BeginWrite                                               'a new sheet needs the structure unprotected (#349)
     If SheetExists(SH_ACCEPTANCE) Then
         Set ws = GetSheet(SH_ACCEPTANCE)
         ws.Cells.Clear
@@ -149,6 +153,7 @@ Private Sub WriteReport()
         If item(1) = "FAIL" Then anyFailed = True
     Next item
     ws.Cells(2, 3).Value = IIf(anyFailed, "RESULT=FAIL", "RESULT=PASS")
+    EndWrite
 End Sub
 
 '------------------------------------------------------------------------------
@@ -217,6 +222,21 @@ End Function
 ' A comma is rejected whatever the regional settings; a typed number is not
 ' text and is accepted (docs/workbook-guide.md).
 Private Function CheckNumericText(ByRef detail As String) As String
+    Dim result As String, errNumber As Long, errSource As String, errDescription As String
+    BeginWrite                                               'a cell format is locked on a protected sheet (#349)
+    On Error Resume Next
+    result = CheckNumericTextInWindow(detail)
+    errNumber = Err.Number
+    errSource = Err.Source
+    errDescription = Err.Description
+    On Error GoTo 0
+    EndWrite
+    If errNumber <> 0 Then Err.Raise errNumber, errSource, errDescription
+    CheckNumericText = result
+End Function
+
+
+Private Function CheckNumericTextInWindow(ByRef detail As String) As String
     Dim ws As Object, target As Object, savedValue As Variant, savedFormat As String
     Dim cases As Variant, i As Long, rejected As Boolean, problems As String, source As String
     Dim errNumber As Long, errDescription As String
@@ -245,7 +265,7 @@ Private Function CheckNumericText(ByRef detail As String) As String
     target.Value = savedValue
     On Error GoTo 0
     detail = IIf(problems = "", "rejected as text: '0,5', '1.000,5', '1,5'; accepted: '0.5', '-1.25e2' and the number 0.5", problems)
-    CheckNumericText = IIf(problems = "", "PASS", "FAIL")
+    CheckNumericTextInWindow = IIf(problems = "", "PASS", "FAIL")
     Exit Function
 
 Restore:
@@ -336,6 +356,7 @@ Private Function CheckAutofilters(ByRef detail As String) As String
     For r = LAYOUT_FIRST_DATA_ROW To lastRow
         If CStr(TableCell(ws, r, 2).Value) = "GIRR" Then girrRows = girrRows + 1
     Next r
+    BeginWrite                                               'a script filters the protected sheet; a person's filter is not run here
     ws.Range(TableCell(ws, LAYOUT_HEADER_ROW, 1), TableCell(ws, lastRow, HeaderCount(ws))).AutoFilter 2, "GIRR"
     For r = LAYOUT_FIRST_DATA_ROW To lastRow
         If Not ws.Rows(r).Hidden Then
@@ -343,6 +364,7 @@ Private Function CheckAutofilters(ByRef detail As String) As String
         End If
     Next r
     If ws.FilterMode Then ws.ShowAllData
+    EndWrite
     If girrRows = 0 Or visibleGirr <> girrRows Or visibleOther <> 0 Then
         problems = problems & "the GIRR filter on In_Delta showed " & visibleGirr & " of " & girrRows & _
                    " GIRR rows and " & visibleOther & " other rows; "
@@ -367,9 +389,11 @@ Private Function CheckControlDescriptions(ByRef detail As String) As String
     first = LAYOUT_HEADER_ROW + 2
     last = LastDataRow(ws)
     saved = ws.Columns(col).ColumnWidth
+    BeginWrite                                               'a column width is locked on a protected sheet
     ws.Range(ws.Cells(first, col), ws.Cells(last, col)).Columns.AutoFit
     fitted = ws.Columns(col).ColumnWidth
     ws.Columns(col).ColumnWidth = saved
+    EndWrite
     detail = "Description column " & Format(saved, "0.00") & " wide; its texts need " & Format(fitted, "0.00")
     CheckControlDescriptions = IIf(fitted <= saved + 0.5, "PASS", "FAIL")
 End Function
@@ -540,6 +564,60 @@ Private Function CheckNavigation(ByRef detail As String) As String
 End Function
 
 
+' The sheets and the workbook structure are protected after every command
+' that ran above, without a password: the input fill marks exactly the
+' unlocked cells, the input sheets allow inserted rows, sorting and the
+' autofilter, a script cannot write to a locked cell and can write to an
+' input cell (#349). Typing and filtering by a person are not run here.
+Private Function CheckProtection(ByRef detail As String) As String
+    Dim names As Variant, i As Long, ws As Object, cell As Object, problems As String
+    Dim wrong As Long, unlocked As Long, listed As String, isInput As Boolean
+    If Not mInExcel Then
+        detail = "Excel only: the protection as Excel applies and enforces it"
+        CheckProtection = "SKIPPED"
+        Exit Function
+    End If
+    names = ManagedSheets()
+    For i = LBound(names) To UBound(names)
+        Set ws = GetSheet(CStr(names(i)))
+        isInput = (Left$(ws.Name, 3) = "In_")
+        If Not ws.ProtectContents Then problems = problems & ws.Name & " is not protected; "
+        If ws.Protection.AllowInsertingRows <> isInput Or ws.Protection.AllowSorting <> isInput Or _
+           ws.Protection.AllowFiltering <> isInput Then
+            problems = problems & ws.Name & " allows the wrong actions; "
+        End If
+        For Each cell In ws.UsedRange.Cells
+            If cell.Locked = (cell.Interior.Color = COLOR_INPUT_CELL) Then
+                wrong = wrong + 1
+                If wrong <= MAX_LISTED Then listed = listed & ws.Name & "!" & cell.Address(False, False) & " "
+            End If
+            If Not cell.Locked Then unlocked = unlocked + 1
+        Next cell
+    Next i
+    If wrong > 0 Then problems = problems & wrong & " cells are locked against their fill: " & listed & IIf(wrong > MAX_LISTED, "and more", "") & "; "
+    If Not ThisWorkbook.ProtectStructure Then problems = problems & "the workbook structure is not protected; "
+    If Not WriteRefused(GetSheet(SH_OUT_SUMMARY).Cells(LAYOUT_HEADER_ROW, LAYOUT_FIRST_COL)) Then
+        problems = problems & "a header on Out_Summary accepted a script's write; "
+    End If
+    If WriteRefused(TableCell(GetSheet(SH_IN_DELTA), LAYOUT_FIRST_DATA_ROW, 1)) Then
+        problems = problems & "an input cell on In_Delta refused a script's write; "
+    End If
+    detail = IIf(problems = "", (UBound(names) - LBound(names) + 1) & " sheets and the structure protected without a password; " & _
+                 unlocked & " unlocked cells, all in the input fill; a script's write to a header is refused", problems)
+    CheckProtection = IIf(problems = "", "PASS", "FAIL")
+End Function
+
+
+' True when writing the cell's own value back raises; the value is unchanged.
+Private Function WriteRefused(ByVal cell As Object) As Boolean
+    On Error Resume Next
+    cell.Value = cell.Value
+    WriteRefused = (Err.Number <> 0)
+    Err.Clear
+    On Error GoTo 0
+End Function
+
+
 Private Function ShapeExists(ByVal ws As Object, ByVal shapeName As String) As Boolean
     Dim s As Object
     On Error Resume Next
@@ -553,6 +631,21 @@ End Function
 ' The discretions on and invalid rows on every input sheet: every invalid row
 ' is logged and the results equal the reference for the same inputs (#28).
 Private Function CheckVariant(ByRef detail As String) As String
+    Dim result As String, errNumber As Long, errSource As String, errDescription As String
+    BeginWrite                                               'a cell format is locked on a protected sheet (#349)
+    On Error Resume Next
+    result = CheckVariantInWindow(detail)
+    errNumber = Err.Number
+    errSource = Err.Source
+    errDescription = Err.Description
+    On Error GoTo 0
+    EndWrite
+    If errNumber <> 0 Then Err.Raise errNumber, errSource, errDescription
+    CheckVariant = result
+End Function
+
+
+Private Function CheckVariantInWindow(ByRef detail As String) As String
     Dim item As Variant, ws As Object, rowData As Variant, r As Long, k As Long
     For Each item In AcceptanceDiscretions()
         SetControlValue CStr(item), True
@@ -567,7 +660,7 @@ Private Function CheckVariant(ByRef detail As String) As String
     Next rowData
     RunFRTB_Silent
     detail = CompareSummary(AcceptanceVariantExpected(), ACCEPTANCE_VARIANT_ERRORS, ACCEPTANCE_VARIANT_WARNINGS)
-    CheckVariant = IIf(detail = "", "PASS", "FAIL")
+    CheckVariantInWindow = IIf(detail = "", "PASS", "FAIL")
     If detail = "" Then
         detail = "total " & Format(OutSummaryValue("TOTAL"), "0.00") & ", " & LogErrorCount() & " errors and " & _
                  LogWarningCount() & " warning, as the reference"

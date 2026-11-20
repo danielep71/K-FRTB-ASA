@@ -6,6 +6,7 @@ import re
 import zipfile
 
 import openpyxl
+from openpyxl.styles import Protection
 
 import build_template
 import lo_runner
@@ -280,3 +281,60 @@ def test_build_from_template_runs_and_reconciles(tmp_path):
     assert str(wb["Test_Expected"].cell(3, FIRST_COL).value).startswith("Result: PASS")
     assert log_rows(wb, "ERROR") == []
     assert reconcile(wb) == []
+
+
+def test_template_protects_sheets_and_structure_without_a_password():
+    """Every sheet and the workbook structure are protected without a password; the cells in
+    the input fill are the unlocked ones, and the input sheets allow inserted rows, sorting
+    and the autofilter (#349)."""
+    wb = openpyxl.load_workbook(build_template.TEMPLATE)
+    security = wb.security
+    assert security is not None and security.lockStructure
+    assert not security.workbookPassword and not security.workbookHashValue
+    problems = []
+    for ws in wb:
+        protection = ws.protection
+        assert protection.sheet, ws.title
+        assert not protection.password and not protection.hashValue, ws.title
+        is_input = ws.title.startswith("In_")
+        actions = (protection.insertRows, protection.sort, protection.autoFilter)
+        assert actions == ((False,) * 3 if is_input else (True,) * 3), (ws.title, actions)
+        assert (protection.formatCells, protection.deleteRows, protection.selectLockedCells) == (True, True, False), ws.title
+        for row in ws.iter_rows():
+            for cell in row:
+                filled = bool(cell.fill.fill_type and cell.fill.fgColor.rgb == "FFFFF2CC")
+                if cell.protection.locked == filled:
+                    problems.append((ws.title, cell.coordinate, "locked" if filled else "unlocked"))
+    assert problems == []
+    # The cells to edit are where the guide says they are
+    unlocked = {ws.title: sum(not c.protection.locked for r in ws.iter_rows() for c in r) for ws in wb}
+    assert unlocked["Control"] == 5 and unlocked["In_Delta"] > 0
+    assert all(unlocked[name] == 0 for name in ("Home", "Results", "Log", "Test_Expected", "README")
+               + tuple(n for n in unlocked if n.startswith("Out_")))
+
+
+def test_a_workbook_with_every_cell_locked_gets_its_input_cells_unlocked(tmp_path):
+    """A workbook made before the protection, or updated by the sync, has every cell locked and
+    no protection; the first command unlocks the cells in the input fill and protects it (#349)."""
+    require_libreoffice()
+    old = openpyxl.load_workbook(build_template.TEMPLATE)
+    for ws in old:
+        ws.protection.sheet = False
+        for row in ws.iter_rows():
+            for cell in row:
+                cell.protection = Protection(locked=True)
+    old.security = None
+    source = tmp_path / "old.xlsx"
+    old.save(source)
+    out = tmp_path / "migrated.xlsx"
+    assert lo_runner.run(out, ["M_Main.ClearOutputs"], input_book=source) == []
+    migrated = openpyxl.load_workbook(out)
+    wrong = []
+    for ws in migrated:
+        assert ws.protection.sheet, ws.title
+        for row in ws.iter_rows():
+            for cell in row:
+                filled = bool(cell.fill.fill_type and cell.fill.fgColor.rgb == "FFFFF2CC")
+                if cell.protection.locked == filled:
+                    wrong.append((ws.title, cell.coordinate))
+    assert wrong == []

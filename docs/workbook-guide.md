@@ -272,6 +272,38 @@ data** and **Reset parameters** rewrite their sheets but keep the rules. The rul
 reference cells directly, so the workbook defines no names for them, and the
 engine keeps reading the tagged tables.
 
+### 🔒 Protection
+
+The sheets and the workbook structure are protected **without a password**
+(#349), so that a header, a tag, an output or a sheet name is not overwritten
+or changed by accident. It is not a security control: anyone can remove it.
+
+| What | Protection |
+| --- | --- |
+| Cells in the input fill (cream) | Unlocked on every sheet: the `Control` settings, the five input sheets and the values of the `P_*` sheets |
+| Headers, tags, outputs, `Log`, `Test_Expected`, `Home` and `README` | Locked |
+| `In_*` sheets | Also allow inserted rows, sorting and the autofilter |
+| Workbook structure | Locked: a sheet cannot be added, deleted, renamed or moved |
+
+To change something locked, use **Review > Unprotect Sheet** or **Protect
+Workbook**; no password is asked. The commands (**Run FRTB-SA**, **Clear
+outputs**, **Run regression test**, **Load sample data**, **Reset
+parameters**, the build and the sync) lift the protection while they write and
+put it back afterwards, also when they fail, so a protected workbook runs
+without unprotecting anything. A workbook made before the protection, or updated by the sync,
+has every cell locked: its first command unlocks the cells in the input fill
+on `Control`, the input sheets and the `P_*` sheets and then protects it. If you protect a sheet or the workbook with a
+password of your own, a command stops with a message that names the sheets:
+remove the password and run again.
+
+The committed template carries the protection: `M_Setup` and `CORE_Util`
+apply it, `tools/template_presentation.py` writes what the headless build
+cannot (the actions of the input sheets and the locked structure), and
+`tests/test_template.py` asserts the locked and unlocked cells. A workbook
+built with `-FromSource` gets it from the same code. The unattended Excel check
+`PROTECTION` reads it back in Excel and tries a write to a header and to an
+input cell; typing and filtering by a person are not part of a run.
+
 ## ▶️ Running
 
 * **Run FRTB-SA** (`RunFRTB`) recalculates everything and rewrites the output

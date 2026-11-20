@@ -52,5 +52,5 @@ def test_the_build_turns_printer_communication_off_while_it_sets_page_setup():
     helper = setup.split("Private Sub SetAlerts(ByVal enabled As Boolean)", 1)[1].split("End Sub", 1)[0]
     assert helper.lstrip().startswith("On Error Resume Next")
     assert "Application.PrintCommunication = enabled" in helper
-    build = setup.split("Public Sub BuildWorkbook()", 1)[1].split("End Sub", 1)[0]
+    build = setup.split("Private Sub BuildAllSheets()", 1)[1].split("End Sub", 1)[0]
     assert build.index("SetAlerts False") < build.index("BuildReadme") < build.index("SetAlerts True")

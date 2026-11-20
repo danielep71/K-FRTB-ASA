@@ -97,9 +97,8 @@ class Rule:
 def _layout() -> tuple[int, int]:
     """First and last data row of the input sheets, from the VBA constants."""
     config = (REPO_ROOT / "src/modules/CORE_Config.bas").read_text(encoding="cp1252")
-    setup = (REPO_ROOT / "src/modules/M_Setup.bas").read_text(encoding="cp1252")
     first = re.search(r"Const LAYOUT_FIRST_DATA_ROW As Long = (\d+)", config)
-    count = re.search(r"Const INPUT_ROWS As Long = (\d+)", setup)
+    count = re.search(r"Const INPUT_ROWS As Long = (\d+)", config)
     assert first is not None and count is not None
     return int(first.group(1)), int(first.group(1)) + int(count.group(1)) - 1
 
