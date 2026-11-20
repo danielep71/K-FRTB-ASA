@@ -30,6 +30,7 @@ sys.path.insert(0, str(REPO_ROOT / "tools"))
 
 import frtb_reference as ref  # noqa: E402
 import lo_runner  # noqa: E402
+import test_catalogue  # noqa: E402
 
 SETUP = REPO_ROOT / "src" / "modules" / "M_Setup.bas"
 BEGIN = "    ' BEGIN GENERATED EXPECTED VALUES"
@@ -54,7 +55,8 @@ def vba_literal(x: float) -> str:
 def generated_block(items: Sequence[tuple[str, float]], newline: str) -> str:
     lines = [BEGIN]
     for i, (name, value) in enumerate(items):
-        lines.append(f'    PutRow ws, r + {i}, Array("{name}", {vba_literal(value)})')
+        catalogue = ", ".join(f'"{text}"' for text in test_catalogue.describe(name))
+        lines.append(f'    PutRow ws, r + {i}, Array("{name}", {vba_literal(value)}, Empty, Empty, Empty, {catalogue})')
     lines.append(f"    WriteExpectedRows = {len(items)}")
     lines.append(END)
     return newline.join(lines)
