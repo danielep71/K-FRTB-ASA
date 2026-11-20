@@ -77,7 +77,9 @@ then, #20, #30, #79 and #82 have closed with the
 21 of 21 on `1badef1` on November 12, 2026
 ([Excel check](evidence/2026-11-12-excel-check-1badef1.md)), closing #28, #72
 and #85, and 24 of 24 on `308cbc6` on November 15, 2026, with the review of
-every sheet (#206, [Excel check](evidence/2026-11-15-excel-check-308cbc6.md)).
+every sheet (#206, [Excel check](evidence/2026-11-15-excel-check-308cbc6.md)),
+and 25 of 25 on `27eb55a` on November 20, 2026, with the data validation of the
+input and parameter sheets (#348, [Excel check](evidence/2026-11-20-excel-check-27eb55a.md)).
 The [closeout record](evidence/2026-11-16-prototype-closeout.md) of
 November 16, 2026 reconciles the milestone's 96 issues and closes #32.
 

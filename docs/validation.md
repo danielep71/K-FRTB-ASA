@@ -1,7 +1,7 @@
 # 🧪 Validation
 
 [![Reconciliation: LibreOffice vs reference](https://img.shields.io/badge/reconciliation-LibreOffice%20vs%20reference-2ea44f)](#automated-checks)
-[![Excel evidence: recorded](https://img.shields.io/badge/Excel%20evidence-recorded%20308cbc6-2ea44f)](evidence/2026-11-15-excel-check-308cbc6.md)
+[![Excel evidence: recorded](https://img.shields.io/badge/Excel%20evidence-recorded%2027eb55a-2ea44f)](evidence/2026-11-20-excel-check-27eb55a.md)
 [![Parameters: BIS checked](https://img.shields.io/badge/parameters-BIS%20checked-1f3a5f)](methodology.md#bis-check)
 
 This document states what is checked automatically, how, and what is not
@@ -82,9 +82,14 @@ macros and saves the result as `.xlsx`.
     PASS: all of the above, with Microsoft Print to PDF as the printer for
     the run (#305), the displayed values, dates and view of every sheet, and
     a picture of each sheet before and after a sample run, which show the
-    fixes of the formatting review (#206, #316, #326).
+    fixes of the formatting review (#206, #316, #326);
+  * the same [check](evidence/2026-11-20-excel-check-27eb55a.md) on `27eb55a`, 25 of 25
+    PASS: all of the above, with the data validation of the input and
+    parameter sheets read back in Excel, also after **Load sample data** and
+    **Reset parameters** (#348). Its pictures showed four 11 pt headers that
+    did not fit, which #356 fixes and a new run has to confirm.
 
-  A change after `308cbc6` needs a new run. Not yet run in Excel:
+  A change after `27eb55a` needs a new run. Not yet run in Excel:
   `Dev_ExportModules`, and printing. Other Excel versions,
   32-bit Excel and other regional settings, such as the period decimal
   separator, are untested.
