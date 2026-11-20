@@ -236,7 +236,8 @@ every input cell, which a changed value of the same sum would defeat, and I
 decided against both (#350).
 
 A key that repeats in the first column of a `Key | Value` table, which the run
-ignores with a warning, is highlighted in red where it is typed or pasted. The
+ignores with a warning, is highlighted in red where it is typed or pasted, also in
+the row directly below the table, which the run reads too. The
 rule is conditional formatting on the ten tables that `CORE_Params` reads that
 way (`SETTINGS`, `CORR_SCENARIOS`, `VEGA`, `VERTICES`, `GIRR_PARAMS`,
 `CSR_PARAMS`, `EQ_PARAMS`, `COM_PARAMS`, `FX_PARAMS` and `DRC_PARAMS`). The keys

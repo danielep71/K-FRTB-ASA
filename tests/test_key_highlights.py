@@ -18,7 +18,11 @@ def test_the_template_highlights_a_repeated_key_in_every_key_value_table():
     tables = key_highlights.key_tables()
     assert len(tables) == 10 and len(stored) == 10
     assert {(h.sheet) for h in stored} == {sheet for sheet, _ in tables}
-    assert all(h.formula.startswith("COUNTIF($C$") and h.formula.endswith(")>1") for h in stored)
+    assert all(h.formula.startswith("AND(C") and "COUNTIF($C$" in h.formula and h.formula.endswith(")>1)") for h in stored)
+    # a single-row table such as [EQ_PARAMS] covers its row and the one below it
+    eq = next(h for h in stored if h.sheet == "P_EQ")
+    first, last = (int(part[1:]) for part in eq.sqref.split(":"))
+    assert last == first + 1
 
 
 def test_the_vba_marks_the_same_tables_as_the_engine_reads():

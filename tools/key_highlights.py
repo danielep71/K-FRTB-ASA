@@ -8,7 +8,8 @@ writes the rules into the template's sheet XML after the headless build, because
 LibreOffice's VBA compatibility cannot store a conditional format; M_Setup
 applies the same rule when Excel builds or resets a sheet.
 
-The rule is an expression, COUNTIF($C$7:$C$9,C7)>1, with a red fill and text.
+The rule is an expression, AND(C7<>"",COUNTIF($C$7:$C$9,C7)>1), with a red fill and text,
+on the key cells of a table and the row directly below, which the run reads too.
 COUNTIF ignores case, as the run does; it does not trim blanks, which the run
 does, so a key with a trailing blank is not highlighted.
 
@@ -58,8 +59,10 @@ def expected_highlights(path: Path) -> list[Highlight]:
     out = []
     for sheet, tag in key_tables():
         first, last = input_validation.table_rows(wb[sheet], tag)
+        last += 1  # the run also reads a row typed directly below the table
+        keys = f"${KEY_COLUMN}${first}:${KEY_COLUMN}${last}"
         out.append(Highlight(sheet, f"{KEY_COLUMN}{first}:{KEY_COLUMN}{last}",
-                             f"COUNTIF(${KEY_COLUMN}${first}:${KEY_COLUMN}${last},{KEY_COLUMN}{first})>1"))
+                             f'AND({KEY_COLUMN}{first}<>"",COUNTIF({keys},{KEY_COLUMN}{first})>1)'))
     return out
 
 

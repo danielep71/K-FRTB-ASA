@@ -297,15 +297,15 @@ End Function
 
 Public Function AcceptanceKeyTables() As Collection
     Dim c As New Collection
-    c.Add Array("Control", 7, 11)
-    c.Add Array("P_General", 7, 8)
-    c.Add Array("P_General", 12, 13)
-    c.Add Array("P_General", 28, 31)
-    c.Add Array("P_GIRR", 20, 28)
-    c.Add Array("P_CSR", 28, 32)
-    c.Add Array("P_EQ", 23, 23)
-    c.Add Array("P_COM", 21, 22)
-    c.Add Array("P_FX", 7, 10)
-    c.Add Array("P_DRC", 26, 27)
+    c.Add Array("Control", 7, 12)
+    c.Add Array("P_General", 7, 9)
+    c.Add Array("P_General", 12, 14)
+    c.Add Array("P_General", 28, 32)
+    c.Add Array("P_GIRR", 20, 29)
+    c.Add Array("P_CSR", 28, 33)
+    c.Add Array("P_EQ", 23, 24)
+    c.Add Array("P_COM", 21, 23)
+    c.Add Array("P_FX", 7, 11)
+    c.Add Array("P_DRC", 26, 28)
     Set AcceptanceKeyTables = c
 End Function

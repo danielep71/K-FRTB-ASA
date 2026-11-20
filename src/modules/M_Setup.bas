@@ -405,11 +405,12 @@ End Function
 ' needs no event and follows the cells. Excel reads a relative reference in a formula
 ' added by a macro from the active cell, so the formula finds its own cell with ROW.
 Private Sub MarkDuplicateKeys(ByVal ws As Object, ByVal r1 As Long, ByVal r2 As Long)
-    Dim keys As Object, rule As Object, first As String
+    Dim keys As Object, rule As Object, first As String, key As String
     On Error Resume Next
-    Set keys = ws.Range(TableCell(ws, r1, 1), TableCell(ws, r2, 1))
+    Set keys = ws.Range(TableCell(ws, r1, 1), TableCell(ws, r2 + 1, 1))   'and the row below, which the run reads too
     first = TableCell(ws, r1, 1).Address
-    Set rule = keys.FormatConditions.Add(2, , "=COUNTIF(" & keys.Address & ",INDEX(" & keys.Address & ",ROW()-ROW(" & first & ")+1))>1")
+    key = "INDEX(" & keys.Address & ",ROW()-ROW(" & first & ")+1)"
+    Set rule = keys.FormatConditions.Add(2, , "=AND(" & key & "<>"""",COUNTIF(" & keys.Address & "," & key & ")>1)")
     rule.Interior.Color = COLOR_FAIL_FILL
     rule.Font.Color = COLOR_FAIL_TEXT
     On Error GoTo 0
