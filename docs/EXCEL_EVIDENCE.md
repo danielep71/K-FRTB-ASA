@@ -174,6 +174,10 @@ I set the runner up once, on the host that has desktop Excel:
    Center Settings > Macro Settings**), because a runner cannot answer the
    question the script asks; with the access off the run stops with exit code 2.
    Git and Python must be on the `PATH` of that session.
+   The workflow's step runs in `cmd` and starts `tools\Run-Excel-Check-CI.ps1` with
+   `-ExecutionPolicy Bypass`, so I do not have to change the PowerShell execution
+   policy of the host: with the default Restricted policy, the temporary script
+   that the runner writes for a PowerShell step is refused.
 4. Under **Settings > Actions > General**, I set the approval for workflows from
    outside collaborators to **Require approval for all outside collaborators**.
 

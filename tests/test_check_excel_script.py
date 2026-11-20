@@ -384,7 +384,13 @@ def test_the_self_hosted_workflow_runs_only_for_my_pushes_and_publishes_nothing(
     text = WORKFLOW.read_text(encoding="utf-8")
     assert "secrets." not in text and "upload-artifact" not in text
     assert "pull_request" not in text.replace("never runs for a pull request", "")
-    assert "-NoPrompt" in text and "-Commit $env:GITHUB_SHA" in text
+    # The step runs in cmd and starts a script with -ExecutionPolicy Bypass: the host's policy refuses
+    # the temporary script the runner writes for a PowerShell step
+    step = job["steps"][1]
+    assert step["shell"] == "cmd" and "-ExecutionPolicy Bypass -File tools\\Run-Excel-Check-CI.ps1" in step["run"]
+    wrapper = (ROOT / "tools" / "Run-Excel-Check-CI.ps1").read_text(encoding="ascii")
+    assert "-NoPrompt" in wrapper and "-Commit $env:GITHUB_SHA" in wrapper and "-Branch $env:BRANCH" in wrapper
+    assert "exit $code" in wrapper and "GITHUB_STEP_SUMMARY" in wrapper
     assert job["steps"][0]["with"]["clean"] is False  # the default git clean would delete test-results
     # The untrusted branch name reaches the script through an environment variable, not the command line text
     assert "${{ github.ref_name }}" not in job["steps"][1]["run"]
