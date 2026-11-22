@@ -139,6 +139,10 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- `CORE_RRAO` and `M_Dev` follow the house style for VBA, the second step of #374: the same
+  header and documentation blocks, locals in PascalCase (`RunRRAO`, `Dev_ExportModules`), one
+  declaration per line, `vbNullString` and `VBA.Left$`. They change no behavior. `tools/vba_lint.py`
+  accepts the `VBA.` qualifier.
 - `CORE_Config` follows the house style for VBA, the first step of #374: a header with nine
   fields, a documentation block on each procedure, aligned declarations with a comment, one
   statement per line and `vbNullString` for the empty string. It changes no value and no behavior.
