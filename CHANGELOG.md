@@ -139,6 +139,10 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- `M_Main` follows the house style for VBA, the fourth step of #374: the same header and
+  documentation blocks, `ExecuteRun` in `DECLARE` / `INITIALIZE` / `RUN` / `CLEAN UP` / `EXIT PROCEDURE` /
+  `ERROR HANDLER` sections with its error flow unchanged, and locals in PascalCase. Library calls stay
+  without the `VBA.` prefix, which the LibreOffice tests do not resolve. It changes no behavior.
 - `CORE_DRC` follows the house style for VBA, the third step of #374: the same header and
   documentation blocks, a `DECLARE` / `INITIALIZE` / task layout for `RunDRC` in seven sections, one
   declaration per line, locals in PascalCase and `vbNullString`. It changes no behavior; the
