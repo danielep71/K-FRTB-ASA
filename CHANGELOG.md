@@ -139,6 +139,11 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- `CORE_SBM` follows the house style for VBA, the sixth step of #374: the same header and
+  documentation blocks on its 31 procedures, the long loaders and the risk class calculation in
+  `DECLARE` / `INITIALIZE` / task sections, locals in PascalCase, one statement per line and a
+  `Case Else` on every `Select Case`. Library calls stay without the `VBA.` prefix, which the
+  LibreOffice tests do not resolve. It changes no behavior.
 - `CORE_Util` follows the house style for VBA, the fifth step of #374: the same header and
   documentation blocks on its 52 procedures, group banners for each family, locals in PascalCase,
   one statement per line and `vbNullString`. Library calls stay without the `VBA.` prefix, which the
