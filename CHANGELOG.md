@@ -139,6 +139,10 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- `CORE_Config` follows the house style for VBA, the first step of #374: a header with nine
+  fields, a documentation block on each procedure, aligned declarations with a comment, one
+  statement per line and `vbNullString` for the empty string. It changes no value and no behavior.
+  The tools that read constants from the module accept the aligned form.
 - The navigation bar and the command buttons get a dark style (#347). Column A is black on every sheet; the bar is a stack of dark entries
   (`262626`, `D9D9D9` Aptos 9 pt) under amber section labels, with a strip in the
   sheet's tab color at the left of each entry, and the current sheet is a blue
