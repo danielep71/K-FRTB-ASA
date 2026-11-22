@@ -139,6 +139,10 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- `CORE_Util` follows the house style for VBA, the fifth step of #374: the same header and
+  documentation blocks on its 52 procedures, group banners for each family, locals in PascalCase,
+  one statement per line and `vbNullString`. Library calls stay without the `VBA.` prefix, which the
+  LibreOffice tests do not resolve. It changes no behavior.
 - `M_Main` follows the house style for VBA, the fourth step of #374: the same header and
   documentation blocks, `ExecuteRun` in `DECLARE` / `INITIALIZE` / `RUN` / `CLEAN UP` / `EXIT PROCEDURE` /
   `ERROR HANDLER` sections with its error flow unchanged, and locals in PascalCase. Library calls stay
