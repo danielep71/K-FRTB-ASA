@@ -50,7 +50,7 @@ def key_tables() -> list[tuple[str, str]]:
     """(sheet, tag) of every table the run reads as Key | Value, from CORE_Params."""
     config = (REPO_ROOT / "src/modules/CORE_Config.bas").read_text(encoding="cp1252")
     params = (REPO_ROOT / "src/modules/CORE_Params.bas").read_text(encoding="cp1252")
-    names = dict(re.findall(r'Const (SH_\w+) As String = "(\w+)"', config))
+    names = dict(re.findall(r'Const (SH_\w+)\s+As String\s+=\s+"(\w+)"', config))
     return [(names[sheet], tag) for sheet, tag in re.findall(r'ReadKeyValues\((SH_\w+), "(\w+)"\)', params)]
 
 

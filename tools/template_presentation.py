@@ -44,7 +44,7 @@ def _palette() -> dict[str, str]:
     """Use the VBA palette, converting Excel's BGR Long to OOXML ARGB."""
     source = (Path(__file__).resolve().parents[1] / "src/modules/CORE_Config.bas").read_text()
     colors = {}
-    for name, value in re.findall(r"Public Const (TAB_\w+) As Long = (\d+)", source):
+    for name, value in re.findall(r"Public Const (TAB_\w+)\s+As Long\s+=\s+(\d+)", source):
         number = int(value)
         colors[name] = f"FF{number & 255:02X}{(number >> 8) & 255:02X}{(number >> 16) & 255:02X}"
     return colors

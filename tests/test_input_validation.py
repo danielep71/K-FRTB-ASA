@@ -275,7 +275,7 @@ def test_sub_type_vocabulary_matches_the_run(lo_default_path, tmp_path):
 def test_risk_class_and_flag_vocabularies_match_the_run(lo_default_path, tmp_path):
     require_libreoffice()
     config = (Path(__file__).resolve().parents[1] / "src/modules/CORE_Config.bas").read_text(encoding="cp1252")
-    codes = tuple(re.findall(r'Public Const RC_\w+ As String = "(\w+)"', config))
+    codes = tuple(re.findall(r'Public Const RC_\w+\s+As String\s+=\s+"(\w+)"', config))
     assert codes == iv.RISK_CLASSES
     wb = openpyxl.load_workbook(lo_default_path)
     ws = wb["In_Curvature"]
