@@ -139,6 +139,10 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- `CORE_DRC` follows the house style for VBA, the third step of #374: the same header and
+  documentation blocks, a `DECLARE` / `INITIALIZE` / task layout for `RunDRC` in seven sections, one
+  declaration per line, locals in PascalCase and `vbNullString`. It changes no behavior; the
+  reference reconciliation gives the same results.
 - `CORE_RRAO` and `M_Dev` follow the house style for VBA, the second step of #374: the same
   header and documentation blocks, locals in PascalCase (`RunRRAO`, `Dev_ExportModules`), one
   declaration per line, `vbNullString` and `VBA.Left$`. They change no behavior. `tools/vba_lint.py`
