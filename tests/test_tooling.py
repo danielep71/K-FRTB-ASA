@@ -50,7 +50,8 @@ def test_the_build_turns_printer_communication_off_while_it_sets_page_setup():
     # alerts and screen updating, ignored by hosts without the property.
     setup = (REPO_ROOT / "src" / "modules" / "M_Setup.bas").read_text(encoding="cp1252")
     helper = setup.split("Private Sub SetAlerts(ByVal enabled As Boolean)", 1)[1].split("End Sub", 1)[0]
-    assert helper.lstrip().startswith("On Error Resume Next")
+    code = "\n".join(line for line in helper.splitlines() if line.strip() and not line.strip().startswith("'"))
+    assert code.lstrip().startswith("On Error Resume Next")
     assert "Application.PrintCommunication = enabled" in helper
     build = setup.split("Private Sub BuildAllSheets()", 1)[1].split("End Sub", 1)[0]
     assert build.index("SetAlerts False") < build.index("BuildReadme") < build.index("SetAlerts True")
