@@ -139,6 +139,13 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- `M_Setup` follows the house style for VBA, the ninth step of #374: the same header and
+  documentation blocks on its 63 procedures, group banners for the build, the navigation bar, the
+  buttons, the sheets and the parameters, locals in PascalCase and one statement per line. The block
+  that `tools/update_expected.py` regenerates keeps its form. Library calls stay without the
+  `VBA.` prefix, which the LibreOffice tests do not resolve. `tests/test_tooling.py` and
+  `tests/test_key_highlights.py` read the text of the module and follow its new layout. It changes no
+  behavior.
 - `CORE_Params` follows the house style for VBA, the seventh step of #374: the same header and
   documentation blocks on its 52 procedures, the loaders in `DECLARE` / task sections, locals in
   PascalCase, one statement per line and `vbNullString`. The `ReadKeyValues` calls that

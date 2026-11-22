@@ -30,10 +30,10 @@ def test_the_vba_marks_the_same_tables_as_the_engine_reads():
     lines = SETUP.read_text(encoding="cp1252").splitlines()
     marked, last_tag = [], ""
     for line in lines:
-        tag = re.search(r'PutTable\(ws, [^"]*"(\w+)"', line)
+        tag = re.search(r'PutTable\(\w+, [^"]*"(\w+)"', line)
         if tag:
             last_tag = tag.group(1)
-        if "FormatParamRows ws," in line and line.rstrip().endswith(", True"):
+        if re.search(r"FormatParamRows \w+,", line) and line.rstrip().endswith(", True"):
             marked.append(last_tag)
     assert sorted(marked) == sorted(tag for _, tag in key_highlights.key_tables())
 
