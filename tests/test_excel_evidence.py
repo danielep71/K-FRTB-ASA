@@ -10,6 +10,7 @@ import copy
 import hashlib
 import io
 import json
+import re
 import shutil
 import subprocess
 from contextlib import redirect_stderr, redirect_stdout
@@ -400,8 +401,9 @@ def test_the_validator_reads_the_lines_the_tools_print(tmp_path):
     assert 'Write-Host "Regression test: $result"' in build
     assert 'Write-Host "Saved $OutputPath"' in build
     regression = (ROOT / "tests" / "modules" / "TEST_Regression.bas").read_text(encoding="cp1252")
-    assert '"Result: PASS (" & total & " items)"' in regression
-    assert '"Result: FAIL (" & failures & " of " & total & " items)"' in regression
+    flat = re.sub(r"\s*_\r?\n\s*", " ", regression)  # a continued line reads as one statement
+    assert '"Result: PASS (" & total & " items)"' in flat
+    assert '"Result: FAIL (" & FailureCount & " of " & total & " items)"' in flat
     assert tool.REGRESSION_LINE.match("Regression test: Result: PASS (52 items)")
     assert tool.REGRESSION_LINE.match("Regression test: Result: FAIL (2 of 52 items)")
     # The comparison tool prints the lines the round-trip stages parse.

@@ -139,6 +139,12 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The four test modules follow the house style for VBA, the last steps of #374: `TEST_Numeric` and
+  `TEST_Regression`, `TEST_Acceptance` and `TEST_AcceptanceData`. They get the same header and
+  documentation blocks, locals in PascalCase and `DECLARE` / task sections. `TEST_AcceptanceData` is
+  generated, so `tools/build_acceptance_data.py` writes the new layout. Library calls stay without the
+  `VBA.` prefix, which the LibreOffice tests do not resolve. `tests/test_excel_evidence.py` reads the
+  continued result line of `TEST_Regression` and its renamed local. They change no behavior.
 - `M_Setup` follows the house style for VBA, the ninth step of #374: the same header and
   documentation blocks on its 63 procedures, group banners for the build, the navigation bar, the
   buttons, the sheets and the parameters, locals in PascalCase and one statement per line. The block
