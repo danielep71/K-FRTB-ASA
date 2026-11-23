@@ -614,6 +614,10 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- The duplicate-key rule no longer freezes Excel (#368). `M_Setup.LocalFormula` translated the
+  formula in the last cell of the sheet, which stretched the used range to the last row and column, so
+  the acceptance checks that walk `UsedRange` cell by cell did not end. It now uses `BH1` and reads the
+  used range afterwards. A test pins that the scratch cell is not the last cell.
 - Two tools now match the template baseline (#332):
   - **Issue triage:** the audit reports a dependency section that is empty
     or holds only `_No response_`.
