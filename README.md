@@ -78,7 +78,10 @@
 > `27eb55a`, 25 of 25 PASS with the data validation of the input and parameter
 > sheets (#348, [evidence](docs/evidence/2026-11-20-excel-check-27eb55a.md)), and
 > on `a7fa207`, 27 of 27 PASS with the start sheet, the navigation bar and the
-> protection of the sheets (#347, #349, [evidence](docs/evidence/2026-11-20-excel-check-a7fa207.md)). The long-term platform decision is open
+> protection of the sheets (#347, #349, [evidence](docs/evidence/2026-11-20-excel-check-a7fa207.md)), and
+> on `15bcf82`, 27 of 28 PASS with the dark navigation bar and the catalogue of the
+> 52 regression items; the failed check found that Reset parameters removed the
+> duplicate-key rule (#350, fixed in #368, [evidence](docs/evidence/2026-11-20-excel-check-15bcf82.md)). The long-term platform decision is open
 > ([scope](docs/SCOPE.md#platform-and-environment)), and no result is
 > validated for regulatory use ([validation](docs/validation.md)).
 
@@ -126,8 +129,8 @@ need to **check** an FRTB-SA number:
 | Sensitivities-based method (SBM) | Prototype: GIRR, CSR non-securitization, equity, commodity, FX; delta, vega, curvature |
 | Default risk charge (DRC) | Prototype: non-securitizations |
 | Residual risk add-on (RRAO) | Prototype |
-| Independent benchmarks and runtime evidence | Python reference reconciled with the VBA run in LibreOffice; desktop Excel runs recorded on `323260b` ([evidence](docs/evidence/2026-10-31-excel-run-323260b.md)) `1badef1` ([evidence](docs/evidence/2026-11-12-excel-check-1badef1.md)) `308cbc6` ([evidence](docs/evidence/2026-11-15-excel-check-308cbc6.md)), `27eb55a` ([evidence](docs/evidence/2026-11-20-excel-check-27eb55a.md)) and `a7fa207` ([evidence](docs/evidence/2026-11-20-excel-check-a7fa207.md)) |
-| Excel round trip and evidence tooling | One-step recorder, read-only VBA export, source comparison and evidence validator; both round trips passed in Excel on `323260b`, `1badef1`, `308cbc6`, `27eb55a` and `a7fa207` (#28, #30). The unattended check (#274) passed in Excel on `1badef1`, `308cbc6`, `27eb55a` and `a7fa207` |
+| Independent benchmarks and runtime evidence | Python reference reconciled with the VBA run in LibreOffice; desktop Excel runs recorded on `323260b` ([evidence](docs/evidence/2026-10-31-excel-run-323260b.md)) `1badef1` ([evidence](docs/evidence/2026-11-12-excel-check-1badef1.md)) `308cbc6` ([evidence](docs/evidence/2026-11-15-excel-check-308cbc6.md)), `27eb55a` ([evidence](docs/evidence/2026-11-20-excel-check-27eb55a.md)) `a7fa207` ([evidence](docs/evidence/2026-11-20-excel-check-a7fa207.md)) and `15bcf82` ([evidence](docs/evidence/2026-11-20-excel-check-15bcf82.md)) |
+| Excel round trip and evidence tooling | One-step recorder, read-only VBA export, source comparison and evidence validator; both round trips passed in Excel on `323260b`, `1badef1`, `308cbc6`, `27eb55a`, `a7fa207` and `15bcf82` (#28, #30). The unattended check (#274) passed in Excel on `1badef1`, `308cbc6`, `27eb55a` and `a7fa207` |
 | Market risk and CVA method maps | Five diagrams in [`docs/assets/market-risk/`](docs/assets/market-risk/README.md) (#98, #102) |
 | Issue-only milestones | PR milestones removed automatically (#104) |
 
@@ -234,16 +237,16 @@ role.
 | 🟩 Green | `Test_Expected` | Regression test of the sample portfolio |
 
 In desktop Excel, after a run of the sample portfolio, with the navigation bar
-and the sheets protected (check of November 20, 2026 on `a7fa207`):
+and the sheets protected (check of November 20, 2026 on `15bcf82`):
 
 | Results | Control |
 | --- | --- |
-| <img src="docs/assets/screenshots/check-a7fa207-results.png" alt="Results sheet after a run of the sample portfolio" width="420"> | <img src="docs/assets/screenshots/check-a7fa207-control.png" alt="Control sheet with the run settings" width="420"> |
+| <img src="docs/assets/screenshots/check-15bcf82-results.png" alt="Results sheet after a run of the sample portfolio" width="420"> | <img src="docs/assets/screenshots/check-15bcf82-control.png" alt="Control sheet with the run settings" width="420"> |
 | **In_Delta** | **P_CSR** |
-| <img src="docs/assets/screenshots/check-a7fa207-in-delta.png" alt="In_Delta sheet with the sample delta sensitivities" width="420"> | <img src="docs/assets/screenshots/check-a7fa207-p-csr.png" alt="P_CSR sheet with the credit spread buckets and correlations" width="420"> |
+| <img src="docs/assets/screenshots/check-15bcf82-in-delta.png" alt="In_Delta sheet with the sample delta sensitivities" width="420"> | <img src="docs/assets/screenshots/check-15bcf82-p-csr.png" alt="P_CSR sheet with the credit spread buckets and correlations" width="420"> |
 
-The [record of that check](docs/evidence/2026-11-20-excel-check-a7fa207.md#-sheet-pictures-351-347)
-links a screenshot of every one of the 23 sheets.
+The [record of that check](docs/evidence/2026-11-20-excel-check-15bcf82.md#-sheet-pictures-347-363)
+links a screenshot of 22 of the 23 sheets.
 
 <a id="validation"></a>
 
@@ -268,7 +271,7 @@ what is **not** validated yet.
 ## ⚠️ Limitations
 
 - Desktop Excel runs are recorded on `323260b`, `1badef1`, `308cbc6`,
-  `27eb55a` and `a7fa207`, on one host. Changes after `a7fa207`, other Excel
+  `27eb55a`, `a7fa207` and `15bcf82`, on one host. Changes after `15bcf82`, other Excel
   versions and other regional settings
   are untested in Excel, and LibreOffice's VBA support is not Excel's.
 - CSR securitization (non-CTP and CTP) is not implemented, and its rows are
