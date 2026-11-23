@@ -101,6 +101,16 @@ Unreleased describe integrated work, not a published version.
   shape-free. The Excel check gains `NAVIGATION`. The sheet pictures and the
   README gallery are refreshed with the next Excel run.
 
+- The record of the unattended Excel check of November 20, 2026 on `15bcf82`
+  ([`docs/evidence/2026-11-20-excel-check-15bcf82.md`](docs/evidence/2026-11-20-excel-check-15bcf82.md),
+  #347, #349, #350, #352): 27 of 28 PASS, with the full profile (builds, round trips,
+  pictures, synchronization). The failed check, `KEY_HIGHLIGHTS`, found that
+  Reset parameters removed the duplicate-key rule on the nine `P_*` tables; the record
+  tells how #368 fixed it and how #384 fixed the freeze that followed, and gives the
+  quick run on `fcf25c3` that passes. Its 22 pictures show the dark navigation bar and
+  are added as `docs/assets/screenshots/check-15bcf82-<sheet>.png`; the README gallery
+  uses four of them.
+
 - The record of the unattended Excel check of November 20, 2026 on `a7fa207`
   ([`docs/evidence/2026-11-20-excel-check-a7fa207.md`](docs/evidence/2026-11-20-excel-check-a7fa207.md),
   #347, #349, #351): 27 of 27 PASS, with the new `NAVIGATION` and `PROTECTION`
