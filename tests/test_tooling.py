@@ -55,3 +55,13 @@ def test_the_build_turns_printer_communication_off_while_it_sets_page_setup():
     assert "Application.PrintCommunication = enabled" in helper
     build = setup.split("Private Sub BuildAllSheets()", 1)[1].split("End Sub", 1)[0]
     assert build.index("SetAlerts False") < build.index("BuildReadme") < build.index("SetAlerts True")
+
+
+def test_the_scratch_cell_of_the_duplicate_key_rule_is_not_the_last_cell_of_the_sheet():
+    # Writing to the last cell stretches the used range to the last row and column in Excel, and the
+    # acceptance checks that walk UsedRange cell by cell then do not end (#368).
+    setup = (REPO_ROOT / "src" / "modules" / "M_Setup.bas").read_text(encoding="cp1252")
+    function = setup.split("Private Function LocalFormula(", 1)[1].split("End Function", 1)[0]
+    code = "\n".join(line for line in function.splitlines() if not line.strip().startswith("'"))
+    assert "Rows.Count" not in code and "Columns.Count" not in code
+    assert "ws.UsedRange" in code

@@ -1393,7 +1393,7 @@ Private Function LocalFormula(ByVal ws As Object, ByVal english As String) As St
 '
 ' INPUTS
 '   ws
-'     Sheet whose last cell is used as the scratch cell
+'     Sheet whose cell BH1, beyond the used columns, is used as the scratch cell
 '
 '   english
 '     Formula in English
@@ -1402,7 +1402,8 @@ Private Function LocalFormula(ByVal ws As Object, ByVal english As String) As St
 '   The local form, or the English form when the host has no FormulaLocal.
 '
 ' BEHAVIOR
-'   Writes the English form into a scratch cell, reads FormulaLocal and clears the cell.
+'   Writes the English form into a scratch cell, reads FormulaLocal, clears the cell and
+'   reads UsedRange so that Excel drops the cell from the used range.
 '
 ' ERROR POLICY
 '   Errors are ignored (On Error Resume Next).
@@ -1416,18 +1417,23 @@ Private Function LocalFormula(ByVal ws As Object, ByVal english As String) As St
 '------------------------------------------------------------------------------
     Const PROC_NAME             As String = "M_Setup.LocalFormula"
 
-    Dim ScratchCell             As Object       'Last cell of the sheet, used to translate the formula
+    Dim ScratchCell             As Object       'Cell BH1, used to translate the formula
+    Dim UsedArea                As Object       'Used range, read to reset it after the scratch cell
 
 '------------------------------------------------------------------------------
 ' TRANSLATE
 '------------------------------------------------------------------------------
     'Ignore errors from the host
         On Error Resume Next
-    'Write the English form, read the local form and clear the cell
-        Set ScratchCell = ws.Cells(ws.Rows.Count, ws.Columns.Count)
+    'Write the English form, read the local form and clear the cell. The cell is not the last one
+    'of the sheet: it would stretch the used range to the last row and column, and a check that walks
+    'the used range cell by cell would not end
+        Set ScratchCell = ws.Cells(1, 60)
         ScratchCell.Formula = english
         LocalFormula = ScratchCell.FormulaLocal
         ScratchCell.Clear
+    'Read the used range, which makes Excel drop the cleared cell from it
+        Set UsedArea = ws.UsedRange
     'Restore normal error handling
         On Error GoTo 0
     'Fall back to the English form when there is no local form
