@@ -195,6 +195,15 @@ another repository.
 The quick profile is not evidence. To record a run, I start the full profile
 from the Actions tab, or run the check by hand as above, and send the bundle.
 
+### Verify a branch with one launcher
+
+`tools\Verify-FRTB-Branch.cmd` runs the same check for a branch of origin, full or
+quick. Pass the branch and, as a second argument, `quick`
+(`tools\Verify-FRTB-Branch.cmd feat/my-branch quick`); double-clicked, it asks
+for both and defaults to `release/v0.3.0` and the full check. It calls
+`Check-FRTB-Excel.ps1`, so it checks the branch out, refuses a checkout with local
+changes and writes the same zip. A quick check is not evidence.
+
 ### Quick profile
 
 `tools\Check-FRTB-Excel-Quick.cmd`, or the script with `-Quick`, runs one

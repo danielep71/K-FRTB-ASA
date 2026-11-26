@@ -395,3 +395,19 @@ def test_the_self_hosted_workflow_runs_only_for_my_pushes_and_publishes_nothing(
     # The untrusted branch name reaches the script through an environment variable, not the command line text
     assert "${{ github.ref_name }}" not in job["steps"][1]["run"]
     assert (ROOT / ".github" / "actionlint.yaml").read_text(encoding="utf-8").count("excel") >= 1
+
+
+VERIFY_LAUNCHER = ROOT / "tools" / "Verify-FRTB-Branch.cmd"
+
+
+def test_the_verify_launcher_asks_for_the_branch_and_the_mode_and_passes_both_to_the_check():
+    text = VERIFY_LAUNCHER.read_text(encoding="ascii")
+    assert '-File "%SCRIPT%" -Branch "%BRANCH%" %QUICK%' in text
+    assert 'set "DEFAULT_BRANCH=release/v0.3.0"' in text
+    # The branch and the mode are asked for only when the file is double-clicked
+    assert 'if not defined BRANCH (' in text and 'set /p "BRANCH=' in text and 'set /p "MODE=' in text
+    # Quotes are removed from what was typed before it reaches the command line
+    assert 'set "BRANCH=%BRANCH:"=%"' in text and 'set "MODE=%MODE:"=%"' in text
+    assert text.count('set "QUICK=-Quick"') == 4
+    for line in ('if "%RC%"=="0"', 'if "%RC%"=="1"', "exit /b %RC%"):
+        assert line in text

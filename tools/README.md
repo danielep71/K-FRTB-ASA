@@ -8,7 +8,8 @@ prototype, milestone v0.2.0 (issue #20). None of them holds calculation logic.
 | `Build-Workbook.ps1` | Builds `dist\K-FRTB-ASA.xlsm` from the template and the VBA modules through Excel COM on Windows (`-FromSource` without the template; `-Template` saves a source-built template) |
 | `Build-Workbook.cmd` | Double-click launcher for `Build-Workbook.ps1`: asks for a production or development build and whether to overwrite |
 | `Sync-FRTB-VBA.ps1` | Replaces the standard modules of an existing `.xlsm` through Excel COM, from the checkout (`-Mode Production` or `Development`) or from a folder (`-SourceDir`), with a safety copy; never writes cells or sheets |
-| `Sync-FRTB-VBA.cmd`, `Sync-FRTB-VBA-Downloads.cmd` | Drag-and-drop launchers for `Sync-FRTB-VBA.ps1`: from the checkout, or from a folder that defaults to `%USERPROFILE%\Downloads` |
+| `Sync-FRTB-VBA.cmd`, `Sync-FRTB-VBA-Downloads.cmd` | Launchers for `Sync-FRTB-VBA.ps1`. `Sync-FRTB-VBA.cmd` with a workbook (dropped or given, and `P` or `D` as the second argument, or asked) synchronizes it from the checkout; double-clicked, it builds a fresh development workbook from the template as `test-results\K-FRTB-ASA-Development.xlsm`. `Sync-FRTB-VBA-Downloads.cmd` takes a folder that defaults to `%USERPROFILE%\Downloads` |
+| `Verify-FRTB-Branch.cmd` | Launcher for `Check-FRTB-Excel.ps1`: takes the branch and `quick` as arguments or asks for them, checks the branch out and runs the unattended Excel check, full or quick |
 | `Export-FRTB-VBA.ps1` | Exports every VBA component of a workbook, read-only and with macros disabled, to an empty folder with `export-manifest.json` (workbook and file SHA-256, component types) |
 | `compare_vba_export.py` | Compares an export with the source of a commit, read from Git, and checks its binding to the workbook; never runs Excel |
 | `build_template.py` | Rebuilds (or `--check`s) the macro-free template `src/workbook/FRTB_Template.xlsx` headless in LibreOffice |
