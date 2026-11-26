@@ -23,7 +23,9 @@ of 24, with the sheet checks and pictures of the formatting review (#206,
 25, with the data validation of the input and parameter sheets (#348,
 [Excel check](evidence/2026-11-20-excel-check-27eb55a.md)), and on `a7fa207` 27 of
 27, with the start sheet, the navigation bar and the protection of the sheets
-(#347, #349, [Excel check](evidence/2026-11-20-excel-check-a7fa207.md)).
+(#347, #349, [Excel check](evidence/2026-11-20-excel-check-a7fa207.md)), and on `6777292` 28 of
+28, after every VBA module was reformatted in the house style and the launchers were
+added (#374, #386, [Excel check](evidence/2026-11-26-excel-check-6777292.md)).
 
 The intended outcome is transparent, testable market risk calculation for
 practitioners, developers, validators, researchers and educators.
@@ -35,7 +37,7 @@ practitioners, developers, validators, researchers and educators.
 | SBM | GIRR, CSR non-securitization, equity, commodity and FX; delta, vega, curvature; three correlation scenarios | CSR securitization and CTP excluded; sensitivities/CVRs are inputs, not priced here |
 | DRC | Non-securitization JTD, maturity scaling, seniority netting and bucket aggregation | Securitization DRC out of scope: `In_DRC` cannot identify one, so it must not be entered; the DRC readings of #29 are decided and implemented (#134, #142) |
 | RRAO | Gross notional with exotic/other residual-risk weights | Eligibility remains an input contract, not an instrument classifier |
-| Validation | Independently derived Python reference, hand-calculated cases, LibreOffice reconciliation and desktop Excel runs on `323260b`, `1badef1`, `308cbc6`, `27eb55a` and `a7fa207` | Other Excel versions and regional settings, an independent review of the #29 readings (v0.3.0) and production-scale performance are not established |
+| Validation | Independently derived Python reference, hand-calculated cases, LibreOffice reconciliation and desktop Excel runs on `323260b`, `1badef1`, `308cbc6`, `27eb55a`, `a7fa207` and `6777292` | Other Excel versions and regional settings, an independent review of the #29 readings (v0.3.0) and production-scale performance are not established |
 
 Coverage and data contracts are detailed in [methodology](methodology.md),
 [workbook guide](workbook-guide.md) and [validation](validation.md). Each
@@ -50,7 +52,7 @@ remains open.** The approved layout places a committed macro-free template under
 src/workbook and production/workbook modules under src/modules (#30/#34).
 This is no approval of production support, an Excel-certified host matrix or
 public workbook distribution. Windows desktop Excel/PowerShell is the target
-build path; runs of it are recorded on `323260b`, `1badef1`, `308cbc6`, `27eb55a` and `a7fa207`, on one host. LibreOffice
+build path; runs of it are recorded on `323260b`, `1badef1`, `308cbc6`, `27eb55a`, `a7fa207` and `6777292`, on one host. LibreOffice
 execution is a distinct compatibility runtime.
 
 | Decision or evidence | Current record and remaining work |
@@ -60,7 +62,7 @@ execution is a distinct compatibility runtime.
 | Initial products/risk classes | Prototype coverage above; CSR securitization rows rejected, securitization DRC out of scope and not identifiable on `In_DRC` |
 | Inputs, units, signs, identifiers and outputs | Workbook guide and methodology; the #29 interpretations are decided and implemented, and v0.3.0 reviews them for the certified scope |
 | Expected-value provenance/tolerances | Independent Python reference, hand-calculated cases and validation record |
-| Host execution/export and release packaging | Excel runs recorded on `323260b`, `1badef1`, `308cbc6`, `27eb55a` and `a7fa207` (#28, #72, #85, #206, #347, #348, #349; round trip #30 closed; unattended check #274), setup release procedure #8 and prototype closeout #32 |
+| Host execution/export and release packaging | Excel runs recorded on `323260b`, `1badef1`, `308cbc6`, `27eb55a`, `a7fa207` and `6777292` (#28, #72, #85, #206, #347, #348, #349; round trip #30 closed; unattended check #274), setup release procedure #8 and prototype closeout #32 |
 
 Maintenance tooling uses Node built-ins and Python with a pinned CI parser;
 the prototype test environment has its own packages. These are documented in

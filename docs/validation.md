@@ -1,7 +1,7 @@
 # 🧪 Validation
 
 [![Reconciliation: LibreOffice vs reference](https://img.shields.io/badge/reconciliation-LibreOffice%20vs%20reference-2ea44f)](#automated-checks)
-[![Excel evidence: recorded](https://img.shields.io/badge/Excel%20evidence-recorded%20a7fa207-2ea44f)](evidence/2026-11-20-excel-check-a7fa207.md)
+[![Excel evidence: recorded](https://img.shields.io/badge/Excel%20evidence-recorded%206777292-2ea44f)](evidence/2026-11-26-excel-check-6777292.md)
 [![Parameters: BIS checked](https://img.shields.io/badge/parameters-BIS%20checked-1f3a5f)](methodology.md#bis-check)
 
 This document states what is checked automatically, how, and what is not
@@ -92,9 +92,14 @@ macros and saves the result as `.xlsx`.
     PASS: all of the above, with the start sheet and the navigation bar
     (#347) and the protection of the sheets and of the structure, without a
     password, which every command respects (#349). Its pictures show every
-    11 pt header fitting.
+    11 pt header fitting;
+  * the same [check](evidence/2026-11-26-excel-check-6777292.md) on `6777292`, 28 of 28
+    PASS: all of the above, after every VBA module was reformatted in the house
+    style (#374) and the launchers were added (#386), with the key highlights
+    of the duplicate-key rule (#350), the test catalogue (#352) and both round
+    trips of the reformatted modules.
 
-  A change after `a7fa207` needs a new run. Not yet run in Excel:
+  A change after `6777292` needs a new run. Not yet run in Excel:
   `Dev_ExportModules`, and printing. Other Excel versions,
   32-bit Excel and other regional settings, such as the period decimal
   separator, are untested.
