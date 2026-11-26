@@ -409,6 +409,62 @@ function ConvertTo-ColumnName {
     return $name
 }
 
+function Get-RibbonIds {
+    # The id of every control and container of a custom UI part, sorted
+    param([string]$XmlText)
+    $document = New-Object System.Xml.XmlDocument
+    $document.LoadXml($XmlText)
+    $ids = @()
+    foreach ($node in $document.SelectNodes('//*[@id]')) { $ids += [string]$node.GetAttribute('id') }
+    return @($ids | Sort-Object)
+}
+
+function Get-RibbonPart {
+    # What a saved workbook carries of the ribbon: the ids of the custom UI
+    # part that a relationship of the package of the right type points to,
+    # whether such a relationship points to a part that exists, and whether
+    # the VBA project is still there
+    param([string]$Path)
+    Add-Type -AssemblyName System.IO.Compression
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $ids = @()
+    $relationship = $false
+    $project = $false
+    $archive = [System.IO.Compression.ZipFile]::OpenRead($Path)
+    try {
+        $project = ($null -ne $archive.GetEntry('xl/vbaProject.bin'))
+        $rels = $archive.GetEntry('_rels/.rels')
+        if ($null -ne $rels) {
+            $reader = New-Object System.IO.StreamReader($rels.Open())
+            try { $relsText = $reader.ReadToEnd() } finally { $reader.Dispose() }
+            $document = New-Object System.Xml.XmlDocument
+            $document.LoadXml($relsText)
+            foreach ($node in $document.SelectNodes('//*[local-name()=''Relationship'']')) {
+                if ([string]$node.GetAttribute('Type') -notmatch '/ui/extensibility$') { continue }
+                # A target is relative to the package root, with or without a leading slash
+                $target = ([string]$node.GetAttribute('Target')).TrimStart('/')
+                $entry = $archive.GetEntry($target)
+                if ($null -eq $entry) { continue }
+                $reader = New-Object System.IO.StreamReader($entry.Open())
+                try { $ids = Get-RibbonIds $reader.ReadToEnd() } finally { $reader.Dispose() }
+                $relationship = $true
+                break
+            }
+        }
+    } finally { $archive.Dispose() }
+    return [pscustomobject]@{ Ids = @($ids); Relationship = $relationship; Project = $project }
+}
+
+function Test-RibbonPart {
+    # True when the workbook carries the part of the source, its relationship
+    # and its VBA project; the detail says what was found
+    param([string]$Path, [string[]]$SourceIds)
+    $found = Get-RibbonPart $Path
+    $same = ($found.Ids.Count -gt 0) -and ((@($found.Ids) -join ',') -eq (@($SourceIds) -join ','))
+    $detail = "controls $($found.Ids.Count) of $($SourceIds.Count); relationship to the part: $($found.Relationship); VBA project: $($found.Project)"
+    return [pscustomobject]@{ Ok = ($same -and $found.Relationship -and $found.Project); Detail = $detail }
+}
+
 function Get-PictureAddress {
     # From A1 to the last used cell of a sheet, at most $sheetPictureRows rows
     # and $sheetPictureColumns columns
@@ -579,7 +635,7 @@ try {
 
     # The full profile only: the pictures, the builds, the Trust Center check and the synchronization
     if ($Quick) {
-        Add-Result 'NOT_RUN_IN_QUICK' 'NOT_RUN' 'production build, round trips, pictures, builds from source and as a template, Trust Center check, synchronization'
+        Add-Result 'NOT_RUN_IN_QUICK' 'NOT_RUN' 'production build, round trips, pictures, builds from source and as a template, ribbon tab, Trust Center check, synchronization'
     }
     if (-not $Quick) {
     # Pictures of the states #85 and #203 are about, for the record
@@ -668,6 +724,92 @@ try {
     } else {
         Add-Result 'BUILD_TEMPLATE' 'FAIL' "exit code $code"
     }
+
+    # ------------------------------------------------------ 3b. ribbon tab
+    # Build with -Ribbon: the part is in the file, Excel opens it and keeps it
+    # when it saves, the callbacks of the tab do their work, the VBA exports
+    # and synchronizes with the part present (#353). That the tab shows and
+    # that a click runs a command needs a person at the screen.
+    Assert-TimeLeft
+    Write-Host '== Ribbon tab: build with -Ribbon'
+    $ribbonSource = [System.IO.File]::ReadAllText((Join-Path $repoRoot 'src\ribbon\customUI14.xml'))
+    $ribbonIds = @(Get-RibbonIds $ribbonSource)
+    $ribbonBook = Join-Path $script:bundle 'ribbon.xlsm'
+    $code = Invoke-Tool 'build-ribbon.log' @('-File', 'tools\Build-Workbook.ps1', '-Ribbon', '-RunTests',
+                                            '-OutputPath', $ribbonBook, '-Force')
+    $ribbonBuilt = $false
+    if ($code -eq 0 -and (Test-Path -LiteralPath $ribbonBook)) {
+        $check = Test-RibbonPart $ribbonBook $ribbonIds
+        $ribbonBuilt = $check.Ok
+        Add-Result 'BUILD_RIBBON' $(if ($check.Ok) { 'PASS' } else { 'FAIL' }) "exit code $code; regression through -RunTests; $($check.Detail)"
+    } else {
+        Add-Result 'BUILD_RIBBON' 'FAIL' "exit code $code"
+    }
+
+    if ($ribbonBuilt) {
+        Assert-TimeLeft
+        Write-Host '== Ribbon tab: open, callbacks, save'
+        $copy = Join-Path $script:bundle 'ribbon-open.xlsm'
+        $savedCopy = Join-Path $script:bundle 'ribbon-saved.xlsm'
+        Copy-Item -LiteralPath $ribbonBook -Destination $copy -Force
+        $excel = $null; $workbook = $null
+        $callbacksOk = $false
+        try {
+            $excel = New-Excel $msoAutomationSecurityLow
+            $workbook = $excel.Workbooks.Open($copy)
+            # The callbacks ignore their control: the workbook stands in for it
+            $shownAtOpen = [bool](Invoke-Macro $excel $workbook 'M_Setup.NavigationVisible')
+            [void](Invoke-Macro $excel $workbook 'M_Main.Ribbon_ToggleNav' @($workbook, $false))
+            $hidden = -not [bool](Invoke-Macro $excel $workbook 'M_Setup.NavigationVisible')
+            [void](Invoke-Macro $excel $workbook 'M_Main.Ribbon_ToggleNav' @($workbook, $true))
+            $shownAgain = [bool](Invoke-Macro $excel $workbook 'M_Setup.NavigationVisible')
+            [void](Invoke-Macro $excel $workbook 'M_Main.RunFRTB_Silent')
+            $resultsSheet = $workbook.Worksheets.Item('Results')
+            $afterRun = [string]$resultsSheet.Range('C6').Value2
+            [void](Invoke-Macro $excel $workbook 'M_Main.Ribbon_Clear' @($workbook))
+            $afterClear = [string]$resultsSheet.Range('C6').Value2
+            $cleared = ($afterClear -ne '') -and ($afterClear -ne $afterRun)
+            $callbacksOk = $shownAtOpen -and $hidden -and $shownAgain -and $cleared
+            $workbook.SaveAs($savedCopy, 52)
+            Add-Result 'RIBBON_CALLBACKS' $(if ($callbacksOk) { 'PASS' } else { 'FAIL' }) `
+                       "bar shown at open: $shownAtOpen; hidden by the toggle: $hidden; shown again: $shownAgain; Clear outputs changed Results: $cleared"
+        } catch {
+            Add-Result 'RIBBON_CALLBACKS' 'FAIL' "stopped: $($_.Exception.Message)"
+        } finally {
+            Close-Excel $excel $workbook
+        }
+        if (Test-Path -LiteralPath $savedCopy) {
+            $check = Test-RibbonPart $savedCopy $ribbonIds
+            Add-Result 'RIBBON_KEPT_BY_EXCEL' $(if ($check.Ok) { 'PASS' } else { 'FAIL' }) "after Excel opened and saved the workbook; $($check.Detail)"
+        } else {
+            Add-Result 'RIBBON_KEPT_BY_EXCEL' 'FAIL' 'Excel left no saved copy'
+        }
+
+        Assert-TimeLeft
+        Write-Host '== Ribbon tab: export and comparison'
+        $export = Join-Path $script:bundle 'ribbon-export'
+        $code = Invoke-Tool 'ribbon-export.log' @('-File', 'tools\Export-FRTB-VBA.ps1', '-WorkbookPath', $ribbonBook, '-OutDir', $export)
+        $exported = ($code -eq 0)
+        $compareLog = Join-Path $script:bundle 'ribbon-round-trip.log'
+        $ErrorActionPreference = 'Continue'
+        $compareOutput = & python tools\compare_vba_export.py --export $export --mode Development --candidate-sha $sha --workbook $ribbonBook 2>&1 |
+            ForEach-Object { [string]$_ }
+        $compareCode = $LASTEXITCODE
+        $ErrorActionPreference = 'Stop'
+        $compareOutput | Set-Content -Path $compareLog -Encoding UTF8
+        $resultLine = @($compareOutput | Where-Object { $_ -match '^RESULT=' }) | Select-Object -First 1
+        Add-Result 'RIBBON_ROUND_TRIP' $(if ($exported -and $compareCode -eq 0) { 'PASS' } else { 'FAIL' }) "export exit code $code; $resultLine"
+
+        Assert-TimeLeft
+        Write-Host '== Ribbon tab: synchronization'
+        $syncCopy = Join-Path $script:bundle 'ribbon-sync.xlsm'
+        Copy-Item -LiteralPath $ribbonBook -Destination $syncCopy -Force
+        $code = Invoke-Tool 'ribbon-sync.log' @('-File', 'tools\Sync-FRTB-VBA.ps1', '-WorkbookPath', $syncCopy,
+                                               '-RepoRoot', $repoRoot, '-Mode', 'Development')
+        $check = Test-RibbonPart $syncCopy $ribbonIds
+        Add-Result 'RIBBON_SYNC' $(if ($code -eq 0 -and $check.Ok) { 'PASS' } else { 'FAIL' }) "exit code $code; $($check.Detail)"
+    }
+    Add-Result 'RIBBON_TAB_SHOWN' 'NOT_RUN' 'the tab on the screen and a click on each command need a person: see docs/ribbon.md'
 
     # ------------------------------------------------- 4. Trust Center path
     if ($access.Policy) {

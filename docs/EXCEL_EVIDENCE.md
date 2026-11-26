@@ -212,7 +212,7 @@ changes and writes the same zip. A quick check is not evidence.
 development build with the regression test and then the acceptance checks
 above, which takes a few minutes instead of about ten. It leaves out the
 production build, the round trips, the pictures, the builds from source and as a
-template, the Trust Center check and the synchronization, and the summary lists
+template, the ribbon tab, the Trust Center check and the synchronization, and the summary lists
 them as one `NOT_RUN_IN_QUICK` line. It asks nothing: with the VBA project
 access off it stops with exit code 2 instead of offering to turn it on, and it
 skips the Trust Center check. Its bundle is `excel-check-SHORTSHA-quick-TIME`,

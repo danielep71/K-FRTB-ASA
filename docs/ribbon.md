@@ -57,3 +57,19 @@ saved workbook without a repair prompt, shows the tab, runs each command, keeps
 the macros, and that the synchronization, the export and the round trip pass
 with the tab present. Build with `-Ribbon`, open the file and check each
 control; the Excel evidence records the result.
+
+The full profile of the unattended Excel check (`tools\Check-FRTB-Excel.ps1`)
+runs most of this itself, in a stage after the builds:
+
+| Result | What it shows |
+| --- | --- |
+| `BUILD_RIBBON` | `Build-Workbook.ps1 -Ribbon -RunTests` exits 0, and the file carries the part with the control ids of `src\ribbon\customUI14.xml`, the relationship and the VBA project |
+| `RIBBON_CALLBACKS` | In Excel, `Ribbon_ToggleNav` hides and shows the navigation bar and `Ribbon_Clear` changes `Results`; the callbacks ignore their control, so the check passes the workbook in its place |
+| `RIBBON_KEPT_BY_EXCEL` | After Excel opened and saved the workbook, the file still carries the part, its relationship and the VBA project |
+| `RIBBON_ROUND_TRIP` | The exported modules of the workbook with the tab equal the source |
+| `RIBBON_SYNC` | The modules synchronize into a copy, and the part is still there |
+| `RIBBON_TAB_SHOWN` | Always `NOT_RUN`: the tab on the screen, the enabled state while a run is busy and a click on each command need a person |
+
+What stays with a person: build with `-Ribbon`, open the file, look at the
+**FRTB-SA** tab, click each command once and watch the three commands go
+disabled during a run.

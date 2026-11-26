@@ -411,3 +411,33 @@ def test_the_verify_launcher_asks_for_the_branch_and_the_mode_and_passes_both_to
     assert text.count('set "QUICK=-Quick"') == 4
     for line in ('if "%RC%"=="0"', 'if "%RC%"=="1"', "exit /b %RC%"):
         assert line in text
+
+
+def test_the_ribbon_stage_is_in_the_full_profile_only_and_judges_each_step_by_itself():
+    flat = script_text().replace("\r\n", "\n")
+    full = flat.split("    if (-not $Quick) {", 1)[1].split("    } # end of the full profile", 1)[0]
+    stage = full.split("# ------------------------------------------------------ 3b. ribbon tab", 1)[1].split("# ------------------------------------------------- 4. Trust Center path", 1)[0]
+    # The build adds the part, and the file is judged by the control ids of the source part
+    assert "'-Ribbon', '-RunTests'" in stage and "src\\ribbon\\customUI14.xml" in stage
+    for name in ("BUILD_RIBBON", "RIBBON_CALLBACKS", "RIBBON_KEPT_BY_EXCEL", "RIBBON_ROUND_TRIP", "RIBBON_SYNC"):
+        assert f"'{name}' $(if" in stage or f"'{name}' 'FAIL'" in stage, name
+    # What needs a person is never reported as passed
+    assert "'RIBBON_TAB_SHOWN' 'NOT_RUN'" in stage
+    # Excel saves the workbook as macro-enabled (52) and the check finds the part in the saved file
+    assert "SaveAs($savedCopy, 52)" in stage and "Test-RibbonPart $savedCopy" in stage
+    # The relationship is read as XML and must lead to the part whose ids are compared
+    assert "/ui/extensibility$" in flat and "$archive.GetEntry($target)" in flat and "-match 'ui/extensibility'" not in flat
+    # The quick profile has none of it
+    assert "RIBBON" not in flat.split("    if (-not $Quick) {", 1)[0].split("== Acceptance checks in Excel", 1)[1]
+
+
+def test_the_macros_the_ribbon_stage_runs_exist_with_the_signatures_it_passes():
+    flat = script_text().replace("\r\n", "\n")
+    main = (ROOT / "src" / "modules" / "M_Main.bas").read_text(encoding="utf-8")
+    setup = (ROOT / "src" / "modules" / "M_Setup.bas").read_text(encoding="utf-8")
+    assert "Public Sub Ribbon_ToggleNav(ByVal control As Object, ByVal pressed As Boolean)" in main
+    assert "Public Sub Ribbon_Clear(ByVal control As Object)" in main
+    assert "Public Function NavigationVisible() As Boolean" in setup
+    for call in ("'M_Main.Ribbon_ToggleNav' @($workbook, $false)", "'M_Main.Ribbon_ToggleNav' @($workbook, $true)",
+                 "'M_Main.Ribbon_Clear' @($workbook)", "'M_Setup.NavigationVisible'"):
+        assert call in flat, call
