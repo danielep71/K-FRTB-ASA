@@ -191,3 +191,5 @@ def test_the_toggle_hides_column_a_with_the_bar_and_the_bar_is_rebuilt_with_it_s
     acceptance = (REPO_ROOT / "tests" / "modules" / "TEST_Acceptance.bas").read_text(encoding="cp1252")
     check = acceptance.split("Private Function CheckNavigation", 1)[1].split("End Function", 1)[0]
     assert "SetNavigationVisible (ToggleStep = 1)" in check and "Columns(1).Hidden" in check
+    # The baseline is the shown bar, whatever state the workbook was saved in
+    assert check.index("SetNavigationVisible True") < check.index("NavWidth(SheetIndex) = ")

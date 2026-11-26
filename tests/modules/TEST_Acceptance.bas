@@ -1933,11 +1933,12 @@ Private Function CheckNavigation(ByRef detail As String) As String
 '     - column C of Home does not hold its name exactly once
 '   Then, for each sheet, compares the number of buttons with the number of
 '   buttons SheetButtons defines for it (none when it returns Empty).
-'   Last, calls SetNavigationVisible with False and then with True, as the ribbon's
-'   toggle does, and after each call records a problem for every sheet whose column A
-'   or whose Nav shapes disagree, or whose first button is not where it was, moved left by
-'   the width of column A while the bar is hidden, or whose column A is not
-'   LAYOUT_NAV_WIDTH wide when the bar is shown again. The bar is left shown.
+'   Last, calls SetNavigationVisible with True to start from the shown bar, then with
+'   False and with True again, as the ribbon's toggle does, and after each call records a
+'   problem for every sheet whose column A or whose Nav shapes disagree, or whose first
+'   button is not where it was, moved left by the width of column A while the bar is
+'   hidden, or whose column A is not LAYOUT_NAV_WIDTH wide when the bar is shown again.
+'   The bar is left shown.
 '
 ' ERROR POLICY
 '   None. An error raised by the sheet calls is caught by RunCheck.
@@ -2036,9 +2037,11 @@ Private Function CheckNavigation(ByRef detail As String) As String
 '------------------------------------------------------------------------------
 ' CHECK THE TOGGLE
 '------------------------------------------------------------------------------
-    'Hide the bar and show it again, as the ribbon's toggle does; after each call column A
+    'Show the bar first, so the baseline is its shown state whatever state the workbook was in,
+    'then hide it and show it again, as the ribbon's toggle does; after each call column A
     'is hidden exactly while the bar is, every Nav shape follows, and shown again column A
     'has the width it was built with
+        SetNavigationVisible True
         ReDim NavWidth(LBound(SheetNames) To UBound(SheetNames))
         ReDim ButtonLeft(LBound(SheetNames) To UBound(SheetNames))
         For SheetIndex = LBound(SheetNames) To UBound(SheetNames)
