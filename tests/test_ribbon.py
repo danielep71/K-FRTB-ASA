@@ -121,12 +121,12 @@ def test_the_script_adds_the_part_and_one_relationship_and_is_idempotent(tmp_pat
         types = archive.read("[Content_Types].xml").decode("utf-8")
         assert 'Extension="xml"' in types and types.count('Extension="png"') == 1
         # The four icons, one relationship each, in the rels of the part
-        for name in ICONS:
+        for name in ICONS.values():
             assert names.count(f"customUI/images/{name}.png") == 1
             assert archive.read(f"customUI/images/{name}.png") == (ICON_DIR / f"{name}.png").read_bytes()
         part_rels = archive.read("customUI/_rels/customUI14.xml.rels").decode("utf-8")
         assert part_rels.count("/relationships/image") == len(ICONS)
-        for name in ICONS:
+        for name in ICONS.values():
             assert f'Id="{name}"' in part_rels and f'Target="images/{name}.png"' in part_rels
 
 
