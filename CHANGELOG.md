@@ -108,6 +108,15 @@ Unreleased describe integrated work, not a published version.
   shape-free. The Excel check gains `NAVIGATION`. The sheet pictures and the
   README gallery are refreshed with the next Excel run.
 
+- The record of the unattended Excel check of November 26, 2026 on `6777292`
+  ([`docs/evidence/2026-11-26-excel-check-6777292.md`](docs/evidence/2026-11-26-excel-check-6777292.md),
+  #350, #352, #374, #386): 28 of 28 PASS, with the full profile, the first after every VBA module
+  was reformatted in the house style. It tells how the failures of the run on `15bcf82` and of the
+  run on `d8ff9b5` were fixed (#368, #384, #388). Its 23 pictures, `Test_Expected` included, are
+  added as `docs/assets/screenshots/check-6777292-<sheet>.png`; the README gallery uses four of
+  them. The README, the scope, the validation record, the repository structure, the Excel evidence
+  guide and the documentation index name the run.
+
 - The record of the unattended Excel check of November 20, 2026 on `15bcf82`
   ([`docs/evidence/2026-11-20-excel-check-15bcf82.md`](docs/evidence/2026-11-20-excel-check-15bcf82.md),
   #347, #349, #350, #352): 27 of 28 PASS, with the full profile (builds, round trips,

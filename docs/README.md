@@ -34,6 +34,7 @@ procedures. Keep root entry documents linked rather than copying them here.
 | Unattended Excel check with the sheet review, on `308cbc6` | [Excel check](evidence/2026-11-15-excel-check-308cbc6.md) |
 | Unattended Excel check with the data validation, on `27eb55a` | [Excel check](evidence/2026-11-20-excel-check-27eb55a.md) |
 | Unattended Excel check with the start sheet, the navigation bar and the protection, on `a7fa207` | [Excel check](evidence/2026-11-20-excel-check-a7fa207.md) |
+| Unattended Excel check with the VBA modules in the house style and the launchers, on `6777292` | [Excel check](evidence/2026-11-26-excel-check-6777292.md) |
 | Prototype closeout, with the issue reconciliation | [Closeout record](evidence/2026-11-16-prototype-closeout.md) |
 | Recorded changes | [Changelog](../CHANGELOG.md) |
 

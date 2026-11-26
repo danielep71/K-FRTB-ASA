@@ -117,16 +117,18 @@ requirements apply:
    Independently specified numeric expectations remain a separate requirement.
 
 The prototype has source export/build helpers and a LibreOffice runtime gate.
-Desktop Excel runs on `323260b`, `1badef1`, `308cbc6`, `27eb55a` and `a7fa207` recorded the builds,
+Desktop Excel runs on `323260b`, `1badef1`, `308cbc6`, `27eb55a`, `a7fa207` and `6777292` recorded the builds,
 compilation, regression test and both source round trips on one host
 ([Excel run](evidence/2026-10-31-excel-run-323260b.md),
 [Excel check](evidence/2026-11-12-excel-check-1badef1.md),
 [Excel check](evidence/2026-11-15-excel-check-308cbc6.md),
 [Excel check](evidence/2026-11-20-excel-check-27eb55a.md),
-[Excel check](evidence/2026-11-20-excel-check-a7fa207.md)); the later four also recorded the
+[Excel check](evidence/2026-11-20-excel-check-a7fa207.md),
+[Excel check](evidence/2026-11-26-excel-check-6777292.md)); the later five also recorded the
 acceptance checks and the synchronization, the third the formatting of
-every sheet (#206), the fourth the data validation (#348) and the fifth the
-start sheet, the navigation bar and the protection (#347, #349).
+every sheet (#206), the fourth the data validation (#348), the fifth the
+start sheet, the navigation bar and the protection (#347, #349) and the sixth
+the VBA modules in the house style and the launchers (#374, #386).
 
 **Prototype implementation (issues #20, #30).** Exported modules live in
 `src/modules` and `tests/modules`; the committed template at the approved
@@ -137,5 +139,5 @@ personal properties. Excel builds start from the template and
 `M_Setup.FinishWorkbook` adds the buttons and window settings. The automated
 checks run LibreOffice Calc in VBA-compatibility mode, which is not Excel host
 evidence; desktop Excel runs, with both round trips and their digests, are
-recorded on `323260b`, `1badef1`, `308cbc6`, `27eb55a` and `a7fa207` (#28, #30), and a change after
-`a7fa207` needs a new run. See [validation](validation.md).
+recorded on `323260b`, `1badef1`, `308cbc6`, `27eb55a`, `a7fa207` and `6777292` (#28, #30), and a change after
+`6777292` needs a new run. See [validation](validation.md).
