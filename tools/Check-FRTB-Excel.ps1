@@ -792,12 +792,14 @@ try {
         $exported = ($code -eq 0)
         $compareLog = Join-Path $script:bundle 'ribbon-round-trip.log'
         $ErrorActionPreference = 'Continue'
-        $compareOutput = & python tools\compare_vba_export.py --export $export --mode Development --candidate-sha $sha --workbook $ribbonBook 2>&1 |
+        $compareOutput = & python tools\compare_vba_export.py --export $export --mode development --candidate-sha $sha --workbook $ribbonBook 2>&1 |
             ForEach-Object { [string]$_ }
         $compareCode = $LASTEXITCODE
         $ErrorActionPreference = 'Stop'
         $compareOutput | Set-Content -Path $compareLog -Encoding UTF8
         $resultLine = @($compareOutput | Where-Object { $_ -match '^RESULT=' }) | Select-Object -First 1
+        # A comparison that stopped before its result says why in its last line
+        if (-not $resultLine) { $resultLine = @($compareOutput) | Select-Object -Last 1 }
         Add-Result 'RIBBON_ROUND_TRIP' $(if ($exported -and $compareCode -eq 0) { 'PASS' } else { 'FAIL' }) "export exit code $code; $resultLine"
 
         Assert-TimeLeft
