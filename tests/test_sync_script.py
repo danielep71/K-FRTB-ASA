@@ -209,7 +209,9 @@ def test_the_sync_launcher_builds_a_development_workbook_without_one_and_asks_th
     text = (REPO_ROOT / "tools" / "Sync-FRTB-VBA.cmd").read_text(encoding="ascii")
     # Without a workbook: a development workbook from the template, in the ignored test-results folder
     assert "if not defined WORKBOOK goto :fresh" in text
-    assert 'set "FRESH=%CD%\\test-results\\K-FRTB-ASA-Development.xlsm"' in text
+    assert 'set "FRESH=%REPO_ROOT%\\test-results\\K-FRTB-ASA-Development.xlsm"' in text
+    # The directory is not changed, so a relative workbook path stays the caller's
+    assert "cd /d" not in text
     assert '-File "%BUILD_SCRIPT%" -OutputPath "%FRESH%" -Force' in text
     assert "-Production" not in text.split(":fresh", 1)[1]
     # With one: the mode comes from the second argument or from a question, and goes to the script

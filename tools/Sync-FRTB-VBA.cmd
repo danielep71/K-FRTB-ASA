@@ -5,11 +5,11 @@ rem workbook. Drag the .xlsm onto this file, or pass its path and, as a second
 rem argument, P or D for a production or a development workbook; without the
 rem second argument it asks. Without a workbook, it builds a development
 rem workbook from the template in test-results\, replacing the last one.
-set "REPO_ROOT=%~dp0.."
-cd /d "%REPO_ROOT%"
+rem The directory is not changed: a relative workbook path is the caller's.
+for %%I in ("%~dp0..") do set "REPO_ROOT=%%~fI"
 set "SCRIPT=%~dp0Sync-FRTB-VBA.ps1"
 set "BUILD_SCRIPT=%~dp0Build-Workbook.ps1"
-set "FRESH=%CD%\test-results\K-FRTB-ASA-Development.xlsm"
+set "FRESH=%REPO_ROOT%\test-results\K-FRTB-ASA-Development.xlsm"
 
 if not exist "%SCRIPT%" (
     echo ERROR: PowerShell script not found:
