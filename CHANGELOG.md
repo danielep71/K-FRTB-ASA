@@ -7,6 +7,15 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- A ribbon stage in the full profile of the unattended Excel check (#353). It builds with
+  `-Ribbon -RunTests`, compares the control ids of the part in the file with
+  `src\ribbon\customUI14.xml`, opens the workbook in Excel and runs the callbacks of the tab that
+  hold work (the navigation toggle, **Clear outputs**), saves it and finds the part still in the
+  file, exports the VBA and compares it, and synchronizes the modules into a copy. The summary
+  gains `BUILD_RIBBON`, `RIBBON_CALLBACKS`, `RIBBON_KEPT_BY_EXCEL`, `RIBBON_ROUND_TRIP` and
+  `RIBBON_SYNC`, and `RIBBON_TAB_SHOWN` as `NOT_RUN`: the tab on the screen and a click on each
+  command need a person. The stage has not run in Excel yet.
+
 - Launchers for the workbook and the checks. `tools\Sync-FRTB-VBA.cmd`, started without a
   workbook, builds a fresh development workbook from the template as
   `test-results\K-FRTB-ASA-Development.xlsm`; with a workbook it takes `P` or `D` as a second
@@ -32,7 +41,7 @@ Unreleased describe integrated work, not a published version.
   `tools\Check-FRTB-Excel-Quick.cmd`, or `tools\Check-FRTB-Excel.ps1 -Quick`, runs
   one development build with the regression test and the acceptance checks,
   and leaves out the production build, the round trips, the pictures, the
-  builds from source and as a template, the Trust Center check and the
+  builds from source and as a template, the ribbon tab, the Trust Center check and the
   synchronization, which the summary lists as `NOT_RUN_IN_QUICK`. It asks
   nothing, writes no recorded run and is not evidence; the full check stays the
   one to record. Tests check the script's text, and the PowerShell parse test
