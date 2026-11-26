@@ -4,23 +4,23 @@
     <tabs>
       <tab id="tabFrtbAsa" label="FRTB-ASA">
         <group id="grpRun" label="Run">
-          <button id="btnRun" label="Run FRTB-SA" size="large" imageMso="MacroPlay"
+          <button id="btnRun" label="Run FRTB-SA" size="large" image="run"
                   onAction="Ribbon_Run" getEnabled="Ribbon_IsIdle"
                   screentip="Run FRTB-SA"
                   supertip="Calculates the capital from the input and parameter sheets and rewrites Results, the Out sheets and Log."/>
-          <button id="btnClear" label="Clear outputs" size="large" imageMso="Delete"
+          <button id="btnClear" label="Clear outputs" size="large" image="clear"
                   onAction="Ribbon_Clear" getEnabled="Ribbon_IsIdle"
                   screentip="Clear outputs"
                   supertip="Empties Results, the Out sheets and Log, keeping their headers and a note."/>
         </group>
         <group id="grpTest" label="Test">
-          <button id="btnTest" label="Run regression test" size="large" imageMso="CheckMark"
+          <button id="btnTest" label="Run regression test" size="large" image="test"
                   onAction="Ribbon_Test" getEnabled="Ribbon_IsIdle"
                   screentip="Run regression test"
                   supertip="Compares the results of the last run with the expected values of the sample portfolio on Test_Expected."/>
         </group>
         <group id="grpView" label="View">
-          <toggleButton id="tglNav" label="Navigation bar" size="large" imageMso="GroupShowDetail"
+          <toggleButton id="tglNav" label="Navigation bar" size="large" image="nav"
                         onAction="Ribbon_ToggleNav" getPressed="Ribbon_NavShown"
                         screentip="Navigation bar"
                         supertip="Shows or hides the bar of links in column A of every sheet."/>
