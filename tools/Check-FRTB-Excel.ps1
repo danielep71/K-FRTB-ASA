@@ -420,8 +420,9 @@ function Get-RibbonIds {
 }
 
 function Get-RibbonPart {
-    # What a saved workbook carries of the ribbon: the ids of its custom UI
-    # part, whether a relationship of the package points to it, and whether
+    # What a saved workbook carries of the ribbon: the ids of the custom UI
+    # part that a relationship of the package of the right type points to,
+    # whether such a relationship points to a part that exists, and whether
     # the VBA project is still there
     param([string]$Path)
     Add-Type -AssemblyName System.IO.Compression
@@ -435,12 +436,18 @@ function Get-RibbonPart {
         $rels = $archive.GetEntry('_rels/.rels')
         if ($null -ne $rels) {
             $reader = New-Object System.IO.StreamReader($rels.Open())
-            try { $relationship = ($reader.ReadToEnd() -match 'ui/extensibility') } finally { $reader.Dispose() }
-        }
-        foreach ($entry in $archive.Entries) {
-            if ($entry.FullName -match '^(?i)customUI/[^/]+\.xml$') {
+            try { $relsText = $reader.ReadToEnd() } finally { $reader.Dispose() }
+            $document = New-Object System.Xml.XmlDocument
+            $document.LoadXml($relsText)
+            foreach ($node in $document.SelectNodes('//*[local-name()=''Relationship'']')) {
+                if ([string]$node.GetAttribute('Type') -notmatch '/ui/extensibility$') { continue }
+                # A target is relative to the package root, with or without a leading slash
+                $target = ([string]$node.GetAttribute('Target')).TrimStart('/')
+                $entry = $archive.GetEntry($target)
+                if ($null -eq $entry) { continue }
                 $reader = New-Object System.IO.StreamReader($entry.Open())
                 try { $ids = Get-RibbonIds $reader.ReadToEnd() } finally { $reader.Dispose() }
+                $relationship = $true
                 break
             }
         }
@@ -454,7 +461,7 @@ function Test-RibbonPart {
     param([string]$Path, [string[]]$SourceIds)
     $found = Get-RibbonPart $Path
     $same = ($found.Ids.Count -gt 0) -and ((@($found.Ids) -join ',') -eq (@($SourceIds) -join ','))
-    $detail = "controls $($found.Ids.Count) of $($SourceIds.Count); relationship: $($found.Relationship); VBA project: $($found.Project)"
+    $detail = "controls $($found.Ids.Count) of $($SourceIds.Count); relationship to the part: $($found.Relationship); VBA project: $($found.Project)"
     return [pscustomobject]@{ Ok = ($same -and $found.Relationship -and $found.Project); Detail = $detail }
 }
 

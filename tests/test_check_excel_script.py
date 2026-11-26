@@ -425,6 +425,8 @@ def test_the_ribbon_stage_is_in_the_full_profile_only_and_judges_each_step_by_it
     assert "'RIBBON_TAB_SHOWN' 'NOT_RUN'" in stage
     # Excel saves the workbook as macro-enabled (52) and the check finds the part in the saved file
     assert "SaveAs($savedCopy, 52)" in stage and "Test-RibbonPart $savedCopy" in stage
+    # The relationship is read as XML and must lead to the part whose ids are compared
+    assert "/ui/extensibility$" in flat and "$archive.GetEntry($target)" in flat and "-match 'ui/extensibility'" not in flat
     # The quick profile has none of it
     assert "RIBBON" not in flat.split("    if (-not $Quick) {", 1)[0].split("== Acceptance checks in Excel", 1)[1]
 
