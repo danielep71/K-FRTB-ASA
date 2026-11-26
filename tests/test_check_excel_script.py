@@ -421,6 +421,8 @@ def test_the_ribbon_stage_is_in_the_full_profile_only_and_judges_each_step_by_it
     assert "'-Ribbon', '-RunTests'" in stage and "src\\ribbon\\customUI14.xml" in stage
     for name in ("BUILD_RIBBON", "RIBBON_CALLBACKS", "RIBBON_KEPT_BY_EXCEL", "RIBBON_ROUND_TRIP", "RIBBON_SYNC"):
         assert f"'{name}' $(if" in stage or f"'{name}' 'FAIL'" in stage, name
+    # The comparison takes its mode in lower case, as compare_vba_export.py declares it
+    assert "compare_vba_export.py --export $export --mode development --candidate-sha" in stage
     # What needs a person is never reported as passed
     assert "'RIBBON_TAB_SHOWN' 'NOT_RUN'" in stage
     # Excel saves the workbook as macro-enabled (52) and the check finds the part in the saved file
