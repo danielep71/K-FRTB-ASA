@@ -65,3 +65,20 @@ def test_the_scratch_cell_of_the_duplicate_key_rule_is_not_the_last_cell_of_the_
     code = "\n".join(line for line in function.splitlines() if not line.strip().startswith("'"))
     assert "Rows.Count" not in code and "Columns.Count" not in code
     assert "ws.UsedRange" in code
+
+
+def test_no_trailing_comment_touches_the_code_before_it():
+    # The VBE puts a space before a trailing comment when it exports a module, so a comment that touches its code
+    # fails the round trip of the development workbook (found in Excel on d8ff9b5).
+    touching = []
+    for path in sorted([*(REPO_ROOT / "src" / "modules").glob("*.bas"), *(REPO_ROOT / "tests" / "modules").glob("*.bas")]):
+        for number, line in enumerate(path.read_text(encoding="cp1252").splitlines(), 1):
+            in_string = False
+            for index, char in enumerate(line):
+                if char == '"':
+                    in_string = not in_string
+                elif char == "'" and not in_string:
+                    if index and line[:index].strip() and not line[index - 1].isspace():
+                        touching.append(f"{path.name}:{number}")
+                    break
+    assert not touching, touching
