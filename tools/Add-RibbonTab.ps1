@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Adds the FRTB-SA ribbon tab to a macro-enabled workbook.
+    Adds the FRTB-ASA ribbon tab to a macro-enabled workbook.
 
 .DESCRIPTION
     Excel's object model saves a workbook without a custom UI part, so the

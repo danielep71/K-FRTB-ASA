@@ -283,7 +283,7 @@ every sheet.
 
 ### 🎀 Ribbon tab
 
-`tools\Build-Workbook.ps1 -Ribbon` adds an **FRTB-SA** tab to the workbook it
+`tools\Build-Workbook.ps1 -Ribbon` adds an **FRTB-ASA** tab to the workbook it
 saves, with **Run FRTB-SA**, **Clear outputs**, **Run regression test** and a
 toggle for the navigation bar, each with a screen tip. The three commands are
 disabled while a run is busy. The sheet buttons stay, so the workbook works

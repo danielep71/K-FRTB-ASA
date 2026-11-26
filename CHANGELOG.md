@@ -47,7 +47,7 @@ Unreleased describe integrated work, not a published version.
   one to record. Tests check the script's text, and the PowerShell parse test
   runs in CI.
 
-- An optional FRTB-SA ribbon tab (#353). `tools\Build-Workbook.ps1 -Ribbon`
+- An optional FRTB-ASA ribbon tab (#353). `tools\Build-Workbook.ps1 -Ribbon`
   adds `src/ribbon/customUI14.xml` to the saved workbook with
   `tools\Add-RibbonTab.ps1`, because Excel's object model saves no custom UI
   part. The tab has **Run FRTB-SA**, **Clear outputs**, **Run regression test**

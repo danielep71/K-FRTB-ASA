@@ -41,7 +41,7 @@
     button then has no macro). Cannot be combined with -RunTests.
 
 .PARAMETER Ribbon
-    After the save, add the FRTB-SA ribbon tab (src\ribbon\customUI14.xml) to the
+    After the save, add the FRTB-ASA ribbon tab (src\ribbon\customUI14.xml) to the
     workbook with tools\Add-RibbonTab.ps1. Cannot be combined with -Template.
 
 .PARAMETER Force
