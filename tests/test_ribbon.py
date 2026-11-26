@@ -181,6 +181,9 @@ def test_the_toggle_hides_column_a_with_the_bar_and_the_bar_is_rebuilt_with_it_s
     toggle = setup.split("Public Sub SetNavigationVisible", 1)[1].split("End Sub", 1)[0]
     assert "CurrentSheet.Shapes(ShapeIndex).Visible = shown" in toggle
     assert "CurrentSheet.Columns(1).Hidden = Not shown" in toggle
+    # The free-floating buttons move by the width of column A, once per change of state
+    assert "If CurrentSheet.Columns(1).Hidden = shown Then" in toggle
+    assert "CurrentSheet.Buttons(ButtonIndex).Left = CurrentSheet.Buttons(ButtonIndex).Left + _" in toggle
     # A hidden column has no width to place the bar by
     bar = setup.split("Private Sub AddNavigationBar", 1)[1].split("End Sub", 1)[0]
     assert bar.index("ws.Columns(1).Hidden = False") < bar.index("BarWidth = ws.Columns(1).Width - 12")

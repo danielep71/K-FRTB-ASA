@@ -2456,7 +2456,8 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
 '                       SHOW OR HIDE THE NAVIGATION BAR
 '------------------------------------------------------------------------------
 ' PURPOSE
-'   Shows or hides the navigation bar of every sheet, with column A where it sits.
+'   Shows or hides the navigation bar of every sheet, with column A where it sits, and
+'   keeps the buttons of the sheet where they were on the cells.
 '
 ' WHY THIS EXISTS
 '   The ribbon's toggle calls it (#353).
@@ -2471,7 +2472,10 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
 ' BEHAVIOR
 '   Opens a write window, then for each managed sheet that exists sets the visibility of
 '   every shape whose name starts with "Nav" and hides column A, or shows it again, with
-'   them, then closes the write window.
+'   them. A sheet whose column A already has that state is left as it is. The buttons of a
+'   sheet do not follow the cells (they are free-floating), so they move left by the width
+'   of column A when it is hidden and right by that width when it is shown again. Then
+'   closes the write window.
 '
 ' ERROR POLICY
 '   Errors are ignored (On Error Resume Next) while the shapes are set.
@@ -2483,6 +2487,8 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
 '   A shape and a column are locked on a protected sheet, hence the write window. Column A
 '   is the black column the bar sits in: hidden, the sheet starts at column B and no empty
 '   black strip is left. Showing it again gives back the width it had.
+'   A call that asks for the state a sheet already has changes nothing there, so a button
+'   is never moved twice.
 '
 ' UPDATED
 '   2026-11-26
@@ -2497,6 +2503,8 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
     Dim Index                   As Long         'Loop counter
     Dim ShapeIndex              As Long         'Shape being set
     Dim CurrentSheet            As Object       'Sheet being set
+    Dim Offset                  As Double       'Width of column A in points, measured while it is shown
+    Dim ButtonIndex             As Long         'Button being moved
 
 '------------------------------------------------------------------------------
 ' OPEN THE WRITE WINDOW
@@ -2509,7 +2517,8 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
 '------------------------------------------------------------------------------
     'Ignore errors from the host
         On Error Resume Next
-    'Set the visibility of the navigation shapes of each managed sheet and hide column A with them
+    'Set the visibility of the navigation shapes of each managed sheet, hide column A with them
+    'and move the buttons by its width, measured while it is shown: before it is hidden, after it is shown
         SheetNames = ManagedSheets()
         For Index = LBound(SheetNames) To UBound(SheetNames)
             If SheetExists(CStr(SheetNames(Index))) Then
@@ -2519,7 +2528,15 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
                         CurrentSheet.Shapes(ShapeIndex).Visible = shown
                     End If
                 Next ShapeIndex
-                CurrentSheet.Columns(1).Hidden = Not shown
+                If CurrentSheet.Columns(1).Hidden = shown Then
+                    If Not shown Then Offset = CurrentSheet.Columns(1).Width
+                    CurrentSheet.Columns(1).Hidden = Not shown
+                    If shown Then Offset = CurrentSheet.Columns(1).Width
+                    For ButtonIndex = 1 To CurrentSheet.Buttons.Count
+                        CurrentSheet.Buttons(ButtonIndex).Left = CurrentSheet.Buttons(ButtonIndex).Left + _
+                            IIf(shown, Offset, -Offset)
+                    Next ButtonIndex
+                End If
             End If
         Next Index
     'Restore normal error handling
