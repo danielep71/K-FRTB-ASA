@@ -12,6 +12,12 @@ updates:
     assignees: [danielep71]
     labels: [repository, ci, P3]
     open-pull-requests-limit: 5
+    # The init and analyze steps of the CodeQL action must run the same
+    # version, so one pull request updates both.
+    groups:
+      codeql-action:
+        patterns:
+          - github/codeql-action/*
   - package-ecosystem: pip
     directory: /.github
     target-branch: release/v0.3.0
