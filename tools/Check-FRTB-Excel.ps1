@@ -419,6 +419,16 @@ function Get-RibbonIds {
     return @($ids | Sort-Object)
 }
 
+function Get-RibbonImageCount {
+    # How many distinct icons a custom UI part names with an image attribute
+    param([string]$XmlText)
+    $document = New-Object System.Xml.XmlDocument
+    $document.LoadXml($XmlText)
+    $names = @()
+    foreach ($node in $document.SelectNodes('//*[@image]')) { $names += [string]$node.GetAttribute('image') }
+    return @($names | Sort-Object -Unique).Count
+}
+
 function Get-RibbonPart {
     # What a saved workbook carries of the ribbon: the ids of the custom UI
     # part that a relationship of the package of the right type points to,
@@ -430,6 +440,7 @@ function Get-RibbonPart {
     $ids = @()
     $relationship = $false
     $project = $false
+    $images = 0
     $archive = [System.IO.Compression.ZipFile]::OpenRead($Path)
     try {
         $project = ($null -ne $archive.GetEntry('xl/vbaProject.bin'))
@@ -448,21 +459,36 @@ function Get-RibbonPart {
                 $reader = New-Object System.IO.StreamReader($entry.Open())
                 try { $ids = Get-RibbonIds $reader.ReadToEnd() } finally { $reader.Dispose() }
                 $relationship = $true
+                # The icons: relationships of the part of the image type whose target is a part of the package
+                $partRels = $archive.GetEntry(($target -replace '/([^/]+)$', '/_rels/$1.rels'))
+                if ($null -ne $partRels) {
+                    $reader = New-Object System.IO.StreamReader($partRels.Open())
+                    try { $partRelsText = $reader.ReadToEnd() } finally { $reader.Dispose() }
+                    $partRelsDocument = New-Object System.Xml.XmlDocument
+                    $partRelsDocument.LoadXml($partRelsText)
+                    $folder = ($target -replace '/[^/]+$', '')
+                    foreach ($rel in $partRelsDocument.SelectNodes('//*[local-name()=''Relationship'']')) {
+                        if ([string]$rel.GetAttribute('Type') -notmatch '/relationships/image$') { continue }
+                        $imageTarget = [string]$rel.GetAttribute('Target')
+                        $imagePath = if ($imageTarget.StartsWith('/')) { $imageTarget.TrimStart('/') } else { "$folder/$imageTarget" }
+                        if ($null -ne $archive.GetEntry($imagePath)) { $images++ }
+                    }
+                }
                 break
             }
         }
     } finally { $archive.Dispose() }
-    return [pscustomobject]@{ Ids = @($ids); Relationship = $relationship; Project = $project }
+    return [pscustomobject]@{ Ids = @($ids); Relationship = $relationship; Project = $project; Images = $images }
 }
 
 function Test-RibbonPart {
     # True when the workbook carries the part of the source, its relationship
     # and its VBA project; the detail says what was found
-    param([string]$Path, [string[]]$SourceIds)
+    param([string]$Path, [string[]]$SourceIds, [int]$SourceImages)
     $found = Get-RibbonPart $Path
     $same = ($found.Ids.Count -gt 0) -and ((@($found.Ids) -join ',') -eq (@($SourceIds) -join ','))
-    $detail = "controls $($found.Ids.Count) of $($SourceIds.Count); relationship to the part: $($found.Relationship); VBA project: $($found.Project)"
-    return [pscustomobject]@{ Ok = ($same -and $found.Relationship -and $found.Project); Detail = $detail }
+    $detail = "controls $($found.Ids.Count) of $($SourceIds.Count); icons $($found.Images) of $SourceImages; relationship to the part: $($found.Relationship); VBA project: $($found.Project)"
+    return [pscustomobject]@{ Ok = ($same -and $found.Relationship -and $found.Project -and ($found.Images -eq $SourceImages)); Detail = $detail }
 }
 
 function Get-PictureAddress {
@@ -734,12 +760,13 @@ try {
     Write-Host '== Ribbon tab: build with -Ribbon'
     $ribbonSource = [System.IO.File]::ReadAllText((Join-Path $repoRoot 'src\ribbon\customUI14.xml'))
     $ribbonIds = @(Get-RibbonIds $ribbonSource)
+    $ribbonImages = Get-RibbonImageCount $ribbonSource
     $ribbonBook = Join-Path $script:bundle 'ribbon.xlsm'
     $code = Invoke-Tool 'build-ribbon.log' @('-File', 'tools\Build-Workbook.ps1', '-Ribbon', '-RunTests',
                                             '-OutputPath', $ribbonBook, '-Force')
     $ribbonBuilt = $false
     if ($code -eq 0 -and (Test-Path -LiteralPath $ribbonBook)) {
-        $check = Test-RibbonPart $ribbonBook $ribbonIds
+        $check = Test-RibbonPart $ribbonBook $ribbonIds $ribbonImages
         $ribbonBuilt = $check.Ok
         Add-Result 'BUILD_RIBBON' $(if ($check.Ok) { 'PASS' } else { 'FAIL' }) "exit code $code; regression through -RunTests; $($check.Detail)"
     } else {
@@ -779,7 +806,7 @@ try {
             Close-Excel $excel $workbook
         }
         if (Test-Path -LiteralPath $savedCopy) {
-            $check = Test-RibbonPart $savedCopy $ribbonIds
+            $check = Test-RibbonPart $savedCopy $ribbonIds $ribbonImages
             Add-Result 'RIBBON_KEPT_BY_EXCEL' $(if ($check.Ok) { 'PASS' } else { 'FAIL' }) "after Excel opened and saved the workbook; $($check.Detail)"
         } else {
             Add-Result 'RIBBON_KEPT_BY_EXCEL' 'FAIL' 'Excel left no saved copy'
@@ -808,7 +835,7 @@ try {
         Copy-Item -LiteralPath $ribbonBook -Destination $syncCopy -Force
         $code = Invoke-Tool 'ribbon-sync.log' @('-File', 'tools\Sync-FRTB-VBA.ps1', '-WorkbookPath', $syncCopy,
                                                '-RepoRoot', $repoRoot, '-Mode', 'Development')
-        $check = Test-RibbonPart $syncCopy $ribbonIds
+        $check = Test-RibbonPart $syncCopy $ribbonIds $ribbonImages
         Add-Result 'RIBBON_SYNC' $(if ($code -eq 0 -and $check.Ok) { 'PASS' } else { 'FAIL' }) "exit code $code; $($check.Detail)"
     }
     Add-Result 'RIBBON_TAB_SHOWN' 'NOT_RUN' 'the tab on the screen and a click on each command need a person: see docs/ribbon.md'

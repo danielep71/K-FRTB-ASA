@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import re
 import shutil
+import struct
 import subprocess
 import zipfile
 from pathlib import Path
@@ -21,6 +22,8 @@ SCRIPT = REPO_ROOT / "tools" / "Add-RibbonTab.ps1"
 NS = "{http://schemas.microsoft.com/office/2009/07/customui}"
 PWSH = os.environ.get("PWSH") or shutil.which("pwsh")
 CALLBACK_ATTRIBUTES = ("onLoad", "onAction", "getEnabled", "getPressed")
+ICON_DIR = REPO_ROOT / "src" / "ribbon" / "icons"
+ICONS = {"btnRun": "run", "btnClear": "clear", "btnTest": "test", "tglNav": "nav"}
 
 
 def controls() -> list[ET.Element]:
@@ -115,7 +118,16 @@ def test_the_script_adds_the_part_and_one_relationship_and_is_idempotent(tmp_pat
         assert archive.read("xl/vbaProject.bin") == b"vba" and archive.read("xl/workbook.xml") == b"<workbook/>"
         rels = archive.read("_rels/.rels").decode("utf-8")
         assert rels.count("ui/extensibility") == 1 and "officeDocument" in rels
-        assert 'Extension="xml"' in archive.read("[Content_Types].xml").decode("utf-8")
+        types = archive.read("[Content_Types].xml").decode("utf-8")
+        assert 'Extension="xml"' in types and types.count('Extension="png"') == 1
+        # The four icons, one relationship each, in the rels of the part
+        for name in ICONS.values():
+            assert names.count(f"customUI/images/{name}.png") == 1
+            assert archive.read(f"customUI/images/{name}.png") == (ICON_DIR / f"{name}.png").read_bytes()
+        part_rels = archive.read("customUI/_rels/customUI14.xml.rels").decode("utf-8")
+        assert part_rels.count("/relationships/image") == len(ICONS)
+        for name in ICONS.values():
+            assert f'Id="{name}"' in part_rels and f'Target="images/{name}.png"' in part_rels
 
 
 def test_the_build_script_adds_the_tab_only_on_request_after_the_save():
@@ -132,3 +144,33 @@ def test_the_tab_is_called_frtb_asa_in_the_part_and_in_the_documents():
         text = document.read_text(encoding="utf-8")
         assert "**FRTB-ASA** tab" in text or "**FRTB-ASA** ribbon tab" in text, document.name
         assert "**FRTB-SA** tab" not in text and "**FRTB-SA** ribbon tab" not in text, document.name
+
+
+def png_header(path: Path) -> tuple[int, int, int, int]:
+    data = path.read_bytes()
+    assert data[:8] == b"\x89PNG\r\n\x1a\n", path.name
+    return struct.unpack(">IIBB", data[16:26])
+
+
+def test_every_command_has_an_icon_of_its_own_and_the_files_and_the_contract_agree():
+    found = {str(c.get("id")): c for c in controls()}
+    assert {i: c.get("image") for i, c in found.items()} == ICONS
+    assert all(c.get("imageMso") is None for c in found.values())
+    assert len(set(ICONS.values())) == len(ICONS)
+    contract = CONTRACT.read_text(encoding="utf-8")
+    for control_id, name in ICONS.items():
+        # The icon table of the contract names the control, its image and both files
+        row = next(ln for ln in contract.splitlines() if ln.startswith(f"| `{control_id}` | `{name}` |"))
+        assert f"`{name}.svg`" in row and f"`{name}.png`" in row, control_id
+        # 64 by 64 pixels, 8 bits per channel, color type 6 (RGBA), so the corners are transparent
+        assert png_header(ICON_DIR / f"{name}.png") == (64, 64, 8, 6), name
+        assert (ICON_DIR / f"{name}.svg").read_text(encoding="utf-8").lstrip().startswith("<svg"), name
+    assert sorted(p.name for p in ICON_DIR.iterdir()) == sorted(f"{n}.{e}" for n in ICONS.values() for e in ("png", "svg"))
+
+
+def test_the_icons_share_one_style():
+    # A navy tile (#1F3864) with white glyphs, as the contract says: every source draws the tile first
+    for name in ICONS.values():
+        svg = (ICON_DIR / f"{name}.svg").read_text(encoding="utf-8")
+        assert re.search(r'<rect x="1.5" y="1.5" width="29" height="29" rx="6" fill="#1F3864"/>', svg), name
+        assert "#FFFFFF" in svg and 'viewBox="0 0 32 32"' in svg, name

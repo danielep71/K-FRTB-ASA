@@ -7,6 +7,13 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- Icons of their own for the four commands of the ribbon tab (#353): a play triangle, an eraser, a
+  checklist and a window with its column of links, each on a navy tile with a white glyph, in
+  `src/ribbon/icons` as `.svg` sources and 64 px `.png` files. `Add-RibbonTab.ps1` writes them to
+  `customUI/images` with the relationships of the part and the `png` content type, and the
+  ribbon stage of the Excel check counts them after Excel saves the workbook. A test checks the
+  files, the part and the contract.
+
 - A ribbon stage in the full profile of the unattended Excel check (#353). It builds with
   `-Ribbon -RunTests`, compares the control ids of the part in the file with
   `src\ribbon\customUI14.xml`, opens the workbook in Excel and runs the callbacks of the tab that

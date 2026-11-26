@@ -9,13 +9,19 @@
     to it. The workbook's other parts, the VBA project included, are not
     touched. Running it twice leaves one part and one relationship.
 
+    A control whose image attribute names an icon gets that icon from
+    src\ribbon\icons\<name>.png: the script writes it to customUI/images,
+    adds the relationships of the part that point to it and makes sure the
+    package has the default content type of png.
+
     Close the workbook first: Excel locks the file while it is open.
 
 .PARAMETER Workbook
     The .xlsm to change.
 
 .PARAMETER Xml
-    The custom UI part. Defaults to src\ribbon\customUI14.xml.
+    The custom UI part. Defaults to src\ribbon\customUI14.xml. Its icons are
+    read from the icons folder next to it.
 
 .EXAMPLE
     powershell -ExecutionPolicy Bypass -File tools\Add-RibbonTab.ps1 -Workbook dist\K-FRTB-ASA.xlsm
@@ -38,7 +44,25 @@ if (-not $Xml) { $Xml = Join-Path (Split-Path -Parent $PSScriptRoot) 'src\ribbon
 if (-not (Test-Path -LiteralPath $Workbook)) { throw "Workbook not found: $Workbook" }
 if (-not (Test-Path -LiteralPath $Xml)) { throw "Custom UI part not found: $Xml" }
 $Workbook = (Resolve-Path -LiteralPath $Workbook).Path
-$bytes = [System.IO.File]::ReadAllBytes((Resolve-Path -LiteralPath $Xml).Path)
+$Xml = (Resolve-Path -LiteralPath $Xml).Path
+$bytes = [System.IO.File]::ReadAllBytes($Xml)
+
+# The icons the part names: the value of every image attribute is a
+# relationship id and the name of a png in the icons folder next to the part
+$partDocument = New-Object System.Xml.XmlDocument
+$partDocument.LoadXml([System.Text.Encoding]::UTF8.GetString($bytes))
+$icons = @()
+$seen = @{}
+foreach ($node in $partDocument.SelectNodes('//*[@image]')) {
+    $name = [string]$node.GetAttribute('image')
+    if ($name -notmatch '^[A-Za-z0-9_-]+$') { throw "Icon name not allowed: $name" }
+    $file = Join-Path (Join-Path (Split-Path -Parent $Xml) 'icons') "$name.png"
+    if (-not (Test-Path -LiteralPath $file)) { throw "Icon not found: $file" }
+    if (-not $seen.ContainsKey($name)) {
+        $seen[$name] = $true
+        $icons += [pscustomobject]@{ Name = $name; Path = $file }
+    }
+}
 
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -64,6 +88,19 @@ $archive = [System.IO.Compression.ZipFile]::Open($Workbook, [System.IO.Compressi
 try {
     Write-Entry $archive $partName $bytes
 
+    # The icons and the relationships of the part that point to them
+    if ($icons.Count -gt 0) {
+        $imageType = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'
+        $partRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' + "`n" +
+                    '<Relationships xmlns="' + $relationshipNamespace + '">'
+        foreach ($icon in $icons) {
+            Write-Entry $archive "customUI/images/$($icon.Name).png" ([System.IO.File]::ReadAllBytes($icon.Path))
+            $partRels += '<Relationship Id="' + $icon.Name + '" Type="' + $imageType + '" Target="images/' + $icon.Name + '.png"/>'
+        }
+        $partRels += '</Relationships>'
+        Write-Entry $archive 'customUI/_rels/customUI14.xml.rels' ((New-Object System.Text.UTF8Encoding($false)).GetBytes($partRels))
+    }
+
     # The package relationship that points to the part
     $relsText = Read-Entry $archive '_rels/.rels'
     if ($null -eq $relsText) { throw 'The workbook has no _rels/.rels part: it is not an Office package.' }
@@ -88,20 +125,28 @@ try {
         Write-Entry $archive '_rels/.rels' $buffer.ToArray()
     }
 
-    # An xml part needs the default content type of the extension
+    # A part needs the default content type of its extension: xml for the part, png for the icons
     $typesText = Read-Entry $archive '[Content_Types].xml'
     if ($null -eq $typesText) { throw 'The workbook has no [Content_Types].xml part: it is not an Office package.' }
     $types = New-Object System.Xml.XmlDocument
     $types.LoadXml($typesText)
-    $hasXml = $false
-    foreach ($node in $types.DocumentElement.ChildNodes) {
-        if ($node -is [System.Xml.XmlElement] -and $node.LocalName -eq 'Default' -and $node.GetAttribute('Extension') -eq 'xml') { $hasXml = $true }
+    $wanted = @(@{ Extension = 'xml'; ContentType = 'application/xml' })
+    if ($icons.Count -gt 0) { $wanted += @{ Extension = 'png'; ContentType = 'image/png' } }
+    $changed = $false
+    foreach ($default in $wanted) {
+        $has = $false
+        foreach ($node in $types.DocumentElement.ChildNodes) {
+            if ($node -is [System.Xml.XmlElement] -and $node.LocalName -eq 'Default' -and $node.GetAttribute('Extension') -eq $default.Extension) { $has = $true }
+        }
+        if (-not $has) {
+            $node = $types.CreateElement('Default', $contentTypesNamespace)
+            $node.SetAttribute('Extension', $default.Extension)
+            $node.SetAttribute('ContentType', $default.ContentType)
+            [void]$types.DocumentElement.PrependChild($node)
+            $changed = $true
+        }
     }
-    if (-not $hasXml) {
-        $node = $types.CreateElement('Default', $contentTypesNamespace)
-        $node.SetAttribute('Extension', 'xml')
-        $node.SetAttribute('ContentType', 'application/xml')
-        [void]$types.DocumentElement.PrependChild($node)
+    if ($changed) {
         $settings = New-Object System.Xml.XmlWriterSettings
         $settings.Encoding = New-Object System.Text.UTF8Encoding($false)
         $buffer = New-Object System.IO.MemoryStream

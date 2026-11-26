@@ -23,6 +23,25 @@ the custom UI part, this table and `M_Main` disagree.
 Two more callbacks serve the tab: `Ribbon_OnLoad` keeps the ribbon object, and
 `Ribbon_IsIdle` and `Ribbon_NavShown` return a state without changing anything.
 
+## Icons
+
+Each control has an icon of its own, in one style: a navy rounded tile
+(`#1F3864`, the color of the workbook's headers) with a white glyph, which reads
+on a light and on a dark ribbon. The `image` attribute of a control names the
+icon, and `tests/test_ribbon.py` fails when the part, this table and the files
+disagree.
+
+| Id | Image | Glyph | Files in `src/ribbon/icons` |
+| --- | --- | --- | --- |
+| `btnRun` | `run` | a play triangle | `run.svg`, `run.png` |
+| `btnClear` | `clear` | an eraser over a line | `clear.svg`, `clear.png` |
+| `btnTest` | `test` | a checklist with three ticks | `test.svg`, `test.png` |
+| `tglNav` | `nav` | a window with its column of links | `nav.svg`, `nav.png` |
+
+The `.svg` is the source and the `.png`, 64 by 64 pixels with a transparent
+background, is what the workbook carries; Excel scales it to the size of the
+screen. To change an icon, edit the `.svg` and render it again at 64 px.
+
 ## States
 
 - **Busy:** `M_Main` marks a run as busy when it starts and idle when it ends,
@@ -39,6 +58,9 @@ Two more callbacks serve the tab: `Ribbon_OnLoad` keeps the ribbon object, and
 
 `tools\Add-RibbonTab.ps1` opens the saved `.xlsm` as a zip package and:
 - writes `customUI/customUI14.xml`;
+- writes each icon the part names to `customUI/images/` and the relationships
+  of the part that point to them to `customUI/_rels/customUI14.xml.rels`, and
+  makes sure `[Content_Types].xml` has the default content type of `png`;
 - adds one relationship of type
   `http://schemas.microsoft.com/office/2007/relationships/ui/extensibility`
   to `_rels/.rels`, unless one exists;
@@ -63,9 +85,9 @@ runs most of this itself, in a stage after the builds:
 
 | Result | What it shows |
 | --- | --- |
-| `BUILD_RIBBON` | `Build-Workbook.ps1 -Ribbon -RunTests` exits 0, and the file carries the part with the control ids of `src\ribbon\customUI14.xml`, the relationship and the VBA project |
+| `BUILD_RIBBON` | `Build-Workbook.ps1 -Ribbon -RunTests` exits 0, and the file carries the part with the control ids of `src\ribbon\customUI14.xml`, its four icons, the relationship and the VBA project |
 | `RIBBON_CALLBACKS` | In Excel, `Ribbon_ToggleNav` hides and shows the navigation bar and `Ribbon_Clear` changes `Results`; the callbacks ignore their control, so the check passes the workbook in its place |
-| `RIBBON_KEPT_BY_EXCEL` | After Excel opened and saved the workbook, the file still carries the part, its relationship and the VBA project |
+| `RIBBON_KEPT_BY_EXCEL` | After Excel opened and saved the workbook, the file still carries the part, its icons, its relationship and the VBA project |
 | `RIBBON_ROUND_TRIP` | The exported modules of the workbook with the tab equal the source |
 | `RIBBON_SYNC` | The modules synchronize into a copy, and the part is still there |
 | `RIBBON_TAB_SHOWN` | Always `NOT_RUN`: the tab on the screen, the enabled state while a run is busy and a click on each command need a person |
