@@ -7,6 +7,13 @@ Unreleased describe integrated work, not a published version.
 
 ### Added
 
+- Launchers for the workbook and the checks. `tools\Sync-FRTB-VBA.cmd`, started without a
+  workbook, builds a fresh development workbook from the template as
+  `test-results\K-FRTB-ASA-Development.xlsm`; with a workbook it takes `P` or `D` as a second
+  argument, or asks, and passes the mode to the script. `tools\Verify-FRTB-Branch.cmd` takes a
+  branch and `quick`, or asks for them, and runs `Check-FRTB-Excel.ps1`. Tests pin both launchers
+  (#386).
+
 - A workflow that runs the unattended Excel check on a self-hosted runner
   (`.github/workflows/excel-check.yml`). A push to `main` or to a `release/**`
   branch runs the quick profile, and a manual run can ask for the full one; the

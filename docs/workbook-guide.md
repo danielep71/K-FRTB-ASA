@@ -135,9 +135,15 @@ calculation settings as they are. It needs the same Trust Center setting as the 
 workbook in Excel first.
 
 * **From the repository checkout:** drag the `.xlsm` onto
-  `tools\Sync-FRTB-VBA.cmd`. It asks which workbook you are updating:
+  `tools\Sync-FRTB-VBA.cmd`, or pass its path. It asks which workbook you are
+  updating, or takes the answer as a second argument (`P` or `D`):
   * **P**roduction imports `src\modules`;
   * **D**evelopment also imports `tests\modules`.
+* **A fresh development workbook:** double-click `tools\Sync-FRTB-VBA.cmd`
+  without a workbook. It builds one from the template, with the modules of
+  `src\modules` and `tests\modules`, as `test-results\K-FRTB-ASA-Development.xlsm`,
+  and replaces the one it built last. The folder is ignored by Git. Open it, run
+  **Debug → Compile VBAProject**, then the regression test.
 * **From a downloads folder:** drag the `.xlsm` onto
   `tools\Sync-FRTB-VBA-Downloads.cmd`. It asks for the folder, by default
   `%USERPROFILE%\Downloads`, and imports only the modules found there. The

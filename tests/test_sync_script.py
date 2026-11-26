@@ -183,6 +183,7 @@ def test_launchers_call_existing_scripts():
         ("Sync-FRTB-VBA.cmd", "Sync-FRTB-VBA.ps1"),
         ("Sync-FRTB-VBA-Downloads.cmd", "Sync-FRTB-VBA.ps1"),
         ("Build-Workbook.cmd", "Build-Workbook.ps1"),
+        ("Verify-FRTB-Branch.cmd", "Check-FRTB-Excel.ps1"),
     ]:
         text = (REPO_ROOT / "tools" / launcher).read_text(encoding="ascii")
         assert f"%~dp0{script}" in text
@@ -193,10 +194,29 @@ def test_launchers_never_echo_a_path_directly():
     # A path may contain & | < > or parentheses; expanded into an echo line
     # with %VAR%, cmd.exe would run the rest as a command. Paths go through
     # the :echovar helper, which inserts the value with delayed expansion.
-    path_variables = ("SCRIPT", "WORKBOOK", "SOURCE", "REPO_ROOT", "OUTPUT", "DEFAULT_SOURCE")
-    for launcher in ("Sync-FRTB-VBA.cmd", "Sync-FRTB-VBA-Downloads.cmd", "Build-Workbook.cmd"):
+    path_variables = ("SCRIPT", "WORKBOOK", "SOURCE", "REPO_ROOT", "OUTPUT", "DEFAULT_SOURCE", "BUILD_SCRIPT", "FRESH",
+                      "BRANCH", "MODE")
+    launchers = ("Sync-FRTB-VBA.cmd", "Sync-FRTB-VBA-Downloads.cmd", "Build-Workbook.cmd", "Verify-FRTB-Branch.cmd")
+    for launcher in launchers:
         lines = (REPO_ROOT / "tools" / launcher).read_text(encoding="ascii").splitlines()
         for line in lines:
             if line.strip().lower().startswith("echo"):
                 assert not any(f"%{name}%" in line for name in path_variables), (launcher, line)
         assert "setlocal EnableDelayedExpansion" in lines and "echo(  !%~1!" in lines, launcher
+
+
+def test_the_sync_launcher_builds_a_development_workbook_without_one_and_asks_the_mode_with_one():
+    text = (REPO_ROOT / "tools" / "Sync-FRTB-VBA.cmd").read_text(encoding="ascii")
+    # Without a workbook: a development workbook from the template, in the ignored test-results folder
+    assert "if not defined WORKBOOK goto :fresh" in text
+    assert 'set "FRESH=%CD%\\test-results\\K-FRTB-ASA-Development.xlsm"' in text
+    assert '-File "%BUILD_SCRIPT%" -OutputPath "%FRESH%" -Force' in text
+    assert "-Production" not in text.split(":fresh", 1)[1]
+    # With one: the mode comes from the second argument or from a question, and goes to the script
+    assert 'set "MODE=%~2"' in text and 'set /p "MODE=' in text
+    assert 'set "MODE=%MODE:"=%"' in text
+    for mode in ("Production", "Development"):
+        assert f'set "MODE_ARG=-Mode {mode}"' in text
+    assert '-RepoRoot "%REPO_ROOT%" %MODE_ARG%' in text
+    # A mode that is neither stops before anything is changed
+    assert "CANCELLED: the mode must be P or D" in text
