@@ -174,3 +174,17 @@ def test_the_icons_share_one_style():
         svg = (ICON_DIR / f"{name}.svg").read_text(encoding="utf-8")
         assert re.search(r'<rect x="1.5" y="1.5" width="29" height="29" rx="6" fill="#1F3864"/>', svg), name
         assert "#FFFFFF" in svg and 'viewBox="0 0 32 32"' in svg, name
+
+
+def test_the_toggle_hides_column_a_with_the_bar_and_the_bar_is_rebuilt_with_it_shown():
+    setup = SETUP.read_text(encoding="cp1252")
+    toggle = setup.split("Public Sub SetNavigationVisible", 1)[1].split("End Sub", 1)[0]
+    assert "CurrentSheet.Shapes(ShapeIndex).Visible = shown" in toggle
+    assert "CurrentSheet.Columns(1).Hidden = Not shown" in toggle
+    # A hidden column has no width to place the bar by
+    bar = setup.split("Private Sub AddNavigationBar", 1)[1].split("End Sub", 1)[0]
+    assert bar.index("ws.Columns(1).Hidden = False") < bar.index("BarWidth = ws.Columns(1).Width - 12")
+    # The acceptance check toggles the bar and reads column A and the shapes of every sheet
+    acceptance = (REPO_ROOT / "tests" / "modules" / "TEST_Acceptance.bas").read_text(encoding="cp1252")
+    check = acceptance.split("Private Function CheckNavigation", 1)[1].split("End Function", 1)[0]
+    assert "SetNavigationVisible (ToggleStep = 1)" in check and "Columns(1).Hidden" in check

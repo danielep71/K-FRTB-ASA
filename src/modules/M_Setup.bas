@@ -2456,7 +2456,7 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
 '                       SHOW OR HIDE THE NAVIGATION BAR
 '------------------------------------------------------------------------------
 ' PURPOSE
-'   Shows or hides the navigation bar of every sheet.
+'   Shows or hides the navigation bar of every sheet, with column A where it sits.
 '
 ' WHY THIS EXISTS
 '   The ribbon's toggle calls it (#353).
@@ -2470,7 +2470,8 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
 '
 ' BEHAVIOR
 '   Opens a write window, then for each managed sheet that exists sets the visibility of
-'   every shape whose name starts with "Nav", then closes the write window.
+'   every shape whose name starts with "Nav" and hides column A, or shows it again, with
+'   them, then closes the write window.
 '
 ' ERROR POLICY
 '   Errors are ignored (On Error Resume Next) while the shapes are set.
@@ -2479,10 +2480,12 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
 '   BeginWrite, EndWrite, GetSheet, SheetExists (CORE_Util); ManagedSheets (CORE_Config).
 '
 ' NOTES
-'   A shape is locked on a protected sheet, hence the write window.
+'   A shape and a column are locked on a protected sheet, hence the write window. Column A
+'   is the black column the bar sits in: hidden, the sheet starts at column B and no empty
+'   black strip is left. Showing it again gives back the width it had.
 '
 ' UPDATED
-'   2026-11-20
+'   2026-11-26
 '------------------------------------------------------------------------------
 
 '------------------------------------------------------------------------------
@@ -2506,7 +2509,7 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
 '------------------------------------------------------------------------------
     'Ignore errors from the host
         On Error Resume Next
-    'Set the visibility of the navigation shapes of each managed sheet
+    'Set the visibility of the navigation shapes of each managed sheet and hide column A with them
         SheetNames = ManagedSheets()
         For Index = LBound(SheetNames) To UBound(SheetNames)
             If SheetExists(CStr(SheetNames(Index))) Then
@@ -2516,6 +2519,7 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
                         CurrentSheet.Shapes(ShapeIndex).Visible = shown
                     End If
                 Next ShapeIndex
+                CurrentSheet.Columns(1).Hidden = Not shown
             End If
         Next Index
     'Restore normal error handling
@@ -2803,6 +2807,8 @@ Private Sub AddNavigationBar(ByVal ws As Object)
         On Error Resume Next
     'Remove the bar the sheet already has
         RemoveNavigation ws
+    'Show column A: a hidden column has no width to place the bar by
+        ws.Columns(1).Hidden = False
     'Place the bar in column A, below every frozen row
         BarLeft = ws.Cells(1, 1).Left + 6
         BarWidth = ws.Columns(1).Width - 12

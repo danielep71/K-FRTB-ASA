@@ -48,9 +48,13 @@ screen. To change an icon, edit the `.svg` and render it again at 64 px.
   also when it fails, and asks the ribbon to read its states again, so the
   three commands are disabled for the duration of a run.
 - **Navigation bar:** the toggle shows or hides every `Nav*` shape of every
-  sheet. Its state is read from the marker of `Home`, so a workbook saved with
-  the bar hidden opens with the toggle released. The write goes through a write
-  window, because the shapes are locked on a protected sheet (#349).
+  sheet and column A with them: column A is the black column the bar sits in,
+  and hidden it leaves no empty strip. Its state is read from the marker of
+  `Home`, so a workbook saved with the bar hidden opens with the toggle
+  released. The write goes through a write window, because the shapes and the
+  column are locked on a protected sheet (#349). The acceptance check
+  `NAVIGATION` toggles the bar and reads column A and the shapes of all 23
+  sheets after each call.
 - **Production build:** `-Production` leaves out `TEST_Regression`, so **Run
   regression test** has no macro there, as the sheet button has none.
 
