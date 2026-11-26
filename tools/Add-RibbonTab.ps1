@@ -52,12 +52,16 @@ $bytes = [System.IO.File]::ReadAllBytes($Xml)
 $partDocument = New-Object System.Xml.XmlDocument
 $partDocument.LoadXml([System.Text.Encoding]::UTF8.GetString($bytes))
 $icons = @()
+$seen = @{}
 foreach ($node in $partDocument.SelectNodes('//*[@image]')) {
     $name = [string]$node.GetAttribute('image')
     if ($name -notmatch '^[A-Za-z0-9_-]+$') { throw "Icon name not allowed: $name" }
     $file = Join-Path (Join-Path (Split-Path -Parent $Xml) 'icons') "$name.png"
     if (-not (Test-Path -LiteralPath $file)) { throw "Icon not found: $file" }
-    if ($icons.Name -notcontains $name) { $icons += [pscustomobject]@{ Name = $name; Path = $file } }
+    if (-not $seen.ContainsKey($name)) {
+        $seen[$name] = $true
+        $icons += [pscustomobject]@{ Name = $name; Path = $file }
+    }
 }
 
 Add-Type -AssemblyName System.IO.Compression
