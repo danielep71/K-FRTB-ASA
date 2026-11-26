@@ -1933,18 +1933,25 @@ Private Function CheckNavigation(ByRef detail As String) As String
 '     - column C of Home does not hold its name exactly once
 '   Then, for each sheet, compares the number of buttons with the number of
 '   buttons SheetButtons defines for it (none when it returns Empty).
+'   Last, calls SetNavigationVisible with True to start from the shown bar, then with
+'   False and with True again, as the ribbon's toggle does, and after each call records a
+'   problem for every sheet whose column A or whose Nav shapes disagree, or whose first
+'   button is not where it was, moved left by the width of column A while the bar is
+'   hidden, or whose column A is not LAYOUT_NAV_WIDTH wide when the bar is shown again.
+'   The bar is left shown.
 '
 ' ERROR POLICY
 '   None. An error raised by the sheet calls is caught by RunCheck.
 '
 ' DEPENDENCIES
-'   ManagedSheets, GetSheet, ShapeExists, SheetButtons, SH_HOME, mInExcel.
+'   ManagedSheets, GetSheet, ShapeExists, SheetButtons, SetNavigationVisible, SH_HOME,
+'   LAYOUT_NAV_WIDTH, mInExcel.
 '
 ' NOTES
 '   None
 '
 ' UPDATED
-'   2026-11-20
+'   2026-11-26
 '------------------------------------------------------------------------------
 
 '------------------------------------------------------------------------------
@@ -1959,6 +1966,10 @@ Private Function CheckNavigation(ByRef detail As String) As String
     Dim Problems                As String       'Problems found, each ending with a semicolon
     Dim SheetCount              As Long         'Number of managed sheets
     Dim SheetButtonList         As Variant      'Buttons the sheet is defined to have, or Empty
+    Dim ToggleStep              As Long         'Step of the toggle check: 0 hides the bar, 1 shows it
+    Dim ShapeIndex              As Long         'Shape being read
+    Dim NavWidth()              As Double       'Width of column A of each sheet before the toggle
+    Dim ButtonLeft()            As Double       'Left edge of the first button of each sheet before the toggle
 
 '------------------------------------------------------------------------------
 ' CHECK HOST
@@ -2024,11 +2035,60 @@ Private Function CheckNavigation(ByRef detail As String) As String
         Next SheetIndex
 
 '------------------------------------------------------------------------------
+' CHECK THE TOGGLE
+'------------------------------------------------------------------------------
+    'Show the bar first, so the baseline is its shown state whatever state the workbook was in,
+    'then hide it and show it again, as the ribbon's toggle does; after each call column A
+    'is hidden exactly while the bar is, every Nav shape follows, and shown again column A
+    'has the width it was built with
+        SetNavigationVisible True
+        ReDim NavWidth(LBound(SheetNames) To UBound(SheetNames))
+        ReDim ButtonLeft(LBound(SheetNames) To UBound(SheetNames))
+        For SheetIndex = LBound(SheetNames) To UBound(SheetNames)
+            Set ManagedSheet = GetSheet(CStr(SheetNames(SheetIndex)))
+            NavWidth(SheetIndex) = ManagedSheet.Columns(1).Width
+            If ManagedSheet.Buttons.Count > 0 Then ButtonLeft(SheetIndex) = ManagedSheet.Buttons(1).Left
+        Next SheetIndex
+        For ToggleStep = 0 To 1
+            SetNavigationVisible (ToggleStep = 1)
+            For SheetIndex = LBound(SheetNames) To UBound(SheetNames)
+                Set ManagedSheet = GetSheet(CStr(SheetNames(SheetIndex)))
+                If ManagedSheet.Columns(1).Hidden = (ToggleStep = 1) Then
+                    Problems = Problems & ManagedSheet.Name & " has column A " & _
+                        IIf(ToggleStep = 1, "hidden", "shown") & " while the bar is " & _
+                        IIf(ToggleStep = 1, "shown", "hidden") & "; "
+                End If
+                If ManagedSheet.Buttons.Count > 0 Then
+                    If Abs(ManagedSheet.Buttons(1).Left - (ButtonLeft(SheetIndex) - _
+                        IIf(ToggleStep = 0, NavWidth(SheetIndex), 0))) > 0.5 Then
+                        Problems = Problems & ManagedSheet.Name & " has its buttons off their place; "
+                    End If
+                End If
+                For ShapeIndex = 1 To ManagedSheet.Shapes.Count
+                    If Left$(ManagedSheet.Shapes(ShapeIndex).Name, 3) = "Nav" Then
+                        If ManagedSheet.Shapes(ShapeIndex).Visible <> (ToggleStep = 1) Then
+                            Problems = Problems & ManagedSheet.Name & " keeps " & _
+                                ManagedSheet.Shapes(ShapeIndex).Name & IIf(ToggleStep = 1, " hidden", " shown") & "; "
+                            Exit For
+                        End If
+                    End If
+                Next ShapeIndex
+                If ToggleStep = 1 Then
+                    If Abs(ManagedSheet.Columns(1).ColumnWidth - LAYOUT_NAV_WIDTH) > 0.5 Then
+                        Problems = Problems & ManagedSheet.Name & " has column A " & _
+                            ManagedSheet.Columns(1).ColumnWidth & " wide, not " & LAYOUT_NAV_WIDTH & "; "
+                    End If
+                End If
+            Next SheetIndex
+        Next ToggleStep
+
+'------------------------------------------------------------------------------
 ' RETURN VALUE
 '------------------------------------------------------------------------------
     'Return the problems, or the description of the bar on a pass
         detail = IIf(Problems = vbNullString, SheetCount & " sheets, each with a marker and " & _
-            (SheetCount - 1) & " links, all listed on Home; the buttons as set", Problems)
+            (SheetCount - 1) & " links, all listed on Home; the buttons as set; " & _
+            "the toggle hides and shows column A and the bar", Problems)
         CheckNavigation = IIf(Problems = vbNullString, "PASS", "FAIL")
 
 End Function

@@ -656,6 +656,12 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- The navigation bar toggle of the ribbon hides column A with the bar, and shows it again at the
+  width it had, and moves the sheet buttons by that width, because they do not follow the cells. It
+  hid the shapes of the links and left the black column in place, which is what #353 found on the
+  host. The acceptance check `NAVIGATION` toggles the bar and reads column A, every shape and the
+  first button of all sheets.
+
 - The round trip of the development workbook passes again (#374). `TEST_Numeric` had a trailing comment
   that touched its code, and the VBE puts a space before it on export, so the exported module
   differed from the source. The comment is spaced, and a test fails when one touches its code.
