@@ -62,7 +62,7 @@ Option Explicit
 '   RunFRTB, RunFRTB_Silent, ClearOutputs, LastRunStatus, OutSummaryValue.
 '   Ribbon_OnLoad, Ribbon_Run, Ribbon_Clear, Ribbon_Test, Ribbon_IsIdle,
 '   Ribbon_ToggleNav,
-'   Ribbon_NavShown: the callbacks of the FRTB-SA ribbon tab
+'   Ribbon_NavShown: the callbacks of the FRTB-ASA ribbon tab
 '   (src/ribbon/customUI14.xml,
 '   docs/ribbon.md). Each calls one procedure and holds no logic.
 '
@@ -94,7 +94,7 @@ Option Explicit
 '------------------------------------------------------------------------------
     Private mLastStatus As String   'OK or the error of the last run
     Private mBusy       As Boolean  'True while a run is in progress; the ribbon disables its commands
-    Private mRibbon     As Object   'IRibbonUI of the FRTB-SA tab, set by Ribbon_OnLoad
+    Private mRibbon     As Object   'IRibbonUI of the FRTB-ASA tab, set by Ribbon_OnLoad
 
 
 '
@@ -451,7 +451,7 @@ Public Sub Ribbon_OnLoad(ByVal ribbon As Object)
 '   Keeps the ribbon object so that the module can refresh it.
 '
 ' WHY THIS EXISTS
-'   The FRTB-SA ribbon tab (src/ribbon/customUI14.xml, docs/ribbon.md) calls
+'   The FRTB-ASA ribbon tab (src/ribbon/customUI14.xml, docs/ribbon.md) calls
 '   this procedure by name; it holds no logic.
 '
 ' INPUTS
@@ -494,7 +494,7 @@ Public Sub Ribbon_Run(ByVal control As Object)
 '   Ribbon callback of the Run command.
 '
 ' WHY THIS EXISTS
-'   The FRTB-SA ribbon tab (src/ribbon/customUI14.xml, docs/ribbon.md) calls
+'   The FRTB-ASA ribbon tab (src/ribbon/customUI14.xml, docs/ribbon.md) calls
 '   this procedure by name; it holds no logic.
 '
 ' INPUTS
@@ -537,7 +537,7 @@ Public Sub Ribbon_Clear(ByVal control As Object)
 '   Ribbon callback of the Clear outputs command.
 '
 ' WHY THIS EXISTS
-'   The FRTB-SA ribbon tab (src/ribbon/customUI14.xml, docs/ribbon.md) calls
+'   The FRTB-ASA ribbon tab (src/ribbon/customUI14.xml, docs/ribbon.md) calls
 '   this procedure by name; it holds no logic.
 '
 ' INPUTS
@@ -580,7 +580,7 @@ Public Sub Ribbon_Test(ByVal control As Object)
 '   Ribbon callback of the Test command.
 '
 ' WHY THIS EXISTS
-'   The FRTB-SA ribbon tab (src/ribbon/customUI14.xml, docs/ribbon.md) calls
+'   The FRTB-ASA ribbon tab (src/ribbon/customUI14.xml, docs/ribbon.md) calls
 '   this procedure by name; it holds no logic.
 '
 ' INPUTS
@@ -623,7 +623,7 @@ Public Sub Ribbon_IsIdle(ByVal control As Object, ByRef returnedVal As Variant)
 '   Ribbon callback that enables a command only when no run is in progress.
 '
 ' WHY THIS EXISTS
-'   The FRTB-SA ribbon tab (src/ribbon/customUI14.xml, docs/ribbon.md) calls
+'   The FRTB-ASA ribbon tab (src/ribbon/customUI14.xml, docs/ribbon.md) calls
 '   this procedure by name; it holds no logic.
 '
 ' INPUTS
@@ -666,7 +666,7 @@ Public Sub Ribbon_ToggleNav(ByVal control As Object, ByVal pressed As Boolean)
 '   Ribbon callback of the navigation bar toggle.
 '
 ' WHY THIS EXISTS
-'   The FRTB-SA ribbon tab (src/ribbon/customUI14.xml, docs/ribbon.md) calls
+'   The FRTB-ASA ribbon tab (src/ribbon/customUI14.xml, docs/ribbon.md) calls
 '   this procedure by name; it holds no logic.
 '
 ' INPUTS
@@ -709,7 +709,7 @@ Public Sub Ribbon_NavShown(ByVal control As Object, ByRef returnedVal As Variant
 '   Ribbon callback that reports whether the navigation bar is shown.
 '
 ' WHY THIS EXISTS
-'   The FRTB-SA ribbon tab (src/ribbon/customUI14.xml, docs/ribbon.md) calls
+'   The FRTB-ASA ribbon tab (src/ribbon/customUI14.xml, docs/ribbon.md) calls
 '   this procedure by name; it holds no logic.
 '
 ' INPUTS

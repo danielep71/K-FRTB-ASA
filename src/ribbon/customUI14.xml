@@ -2,7 +2,7 @@
 <customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="Ribbon_OnLoad">
   <ribbon>
     <tabs>
-      <tab id="tabFrtbSa" label="FRTB-SA">
+      <tab id="tabFrtbAsa" label="FRTB-ASA">
         <group id="grpRun" label="Run">
           <button id="btnRun" label="Run FRTB-SA" size="large" imageMso="MacroPlay"
                   onAction="Ribbon_Run" getEnabled="Ribbon_IsIdle"

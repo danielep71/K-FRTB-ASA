@@ -1,6 +1,6 @@
 # 🎀 Ribbon tab
 
-The workbook can carry an **FRTB-SA** ribbon tab with the commands of the
+The workbook can carry an **FRTB-ASA** ribbon tab with the commands of the
 sheet buttons (#353). The tab is optional: the buttons stay on the sheets, so a
 workbook still works where a policy removes custom UI. Excel's object model
 saves no custom UI part, so `tools\Build-Workbook.ps1 -Ribbon` adds
@@ -71,5 +71,5 @@ runs most of this itself, in a stage after the builds:
 | `RIBBON_TAB_SHOWN` | Always `NOT_RUN`: the tab on the screen, the enabled state while a run is busy and a click on each command need a person |
 
 What stays with a person: build with `-Ribbon`, open the file, look at the
-**FRTB-SA** tab, click each command once and watch the three commands go
+**FRTB-ASA** tab, click each command once and watch the three commands go
 disabled during a run.

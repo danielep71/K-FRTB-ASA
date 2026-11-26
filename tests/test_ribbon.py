@@ -1,4 +1,4 @@
-"""The FRTB-SA ribbon tab: its custom UI part, its contract and its callbacks (#353)."""
+"""The FRTB-ASA ribbon tab: its custom UI part, its contract and its callbacks (#353)."""
 
 from __future__ import annotations
 
@@ -123,3 +123,12 @@ def test_the_build_script_adds_the_tab_only_on_request_after_the_save():
     assert "[switch]$Ribbon" in build and "-Template saves a macro-free template" in build
     assert build.index("$workbook.SaveAs($OutputPath, 52)") < build.index("Join-Path $PSScriptRoot 'Add-RibbonTab.ps1'")
     assert "if ($Ribbon -and $exitCode -eq 0)" in build
+
+
+def test_the_tab_is_called_frtb_asa_in_the_part_and_in_the_documents():
+    tabs = ET.parse(PART).getroot().findall(f".//{NS}tab")
+    assert [tab.get("label") for tab in tabs] == ["FRTB-ASA"]
+    for document in (CONTRACT, REPO_ROOT / "docs" / "workbook-guide.md"):
+        text = document.read_text(encoding="utf-8")
+        assert "**FRTB-ASA** tab" in text or "**FRTB-ASA** ribbon tab" in text, document.name
+        assert "**FRTB-SA** tab" not in text and "**FRTB-SA** ribbon tab" not in text, document.name
