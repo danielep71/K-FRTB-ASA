@@ -631,6 +631,10 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- The round trip of the development workbook passes again (#374). `TEST_Numeric` had a trailing comment
+  that touched its code, and the VBE puts a space before it on export, so the exported module
+  differed from the source. The comment is spaced, and a test fails when one touches its code.
+
 - The duplicate-key rule no longer freezes Excel (#368). `M_Setup.LocalFormula` translated the
   formula in the last cell of the sheet, which stretched the used range to the last row and column, so
   the acceptance checks that walk `UsedRange` cell by cell did not end. It now uses `BH1` and reads the

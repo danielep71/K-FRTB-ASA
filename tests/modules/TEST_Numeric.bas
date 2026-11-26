@@ -240,7 +240,7 @@ Private Sub AssertInvalidRequired(ByVal item As Variant)
 '------------------------------------------------------------------------------
     Const PROC_NAME             As String = "TEST_Numeric.AssertInvalidRequired"
 
-    Dim KeyValues               As New Collection'Fixture with one key
+    Dim KeyValues               As New Collection 'Fixture with one key
     Dim ParsedValue             As Double        'Result of the read
     Dim CapturedError           As Long          'Error number of the read
     Dim ErrorDetail             As String        'Error description of the read
