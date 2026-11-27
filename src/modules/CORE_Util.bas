@@ -290,7 +290,7 @@ Public Sub ClearTableArea(ByVal ws As Object)
 '                             CLEAR THE TABLE AREA
 '------------------------------------------------------------------------------
 ' PURPOSE
-'   Clears everything from the table header row down, keeping the banner rows.
+'   Clears everything from the table header row down, keeping the banner rows and column A.
 '
 ' WHY THIS EXISTS
 '   Clear resets the cells to the Normal style, Arial at the bottom of the cell, while
@@ -304,8 +304,8 @@ Public Sub ClearTableArea(ByVal ws As Object)
 '   Nothing
 '
 ' BEHAVIOR
-'   Clears columns 1 to 60 from LAYOUT_HEADER_ROW to the last row, then sets the font
-'   name to FONT_NAME and the vertical alignment to center for the same columns.
+'   Clears columns 2 to 60 from LAYOUT_HEADER_ROW to the last row, then sets the font
+'   name to FONT_NAME and the vertical alignment to center for columns 1 to 60.
 '
 ' ERROR POLICY
 '   Restoring the font and the alignment ignores errors from the host (On Error Resume
@@ -315,17 +315,19 @@ Public Sub ClearTableArea(ByVal ws As Object)
 '   LAYOUT_HEADER_ROW, FONT_NAME (CORE_Config)
 '
 ' NOTES
-'   The vertical alignment value -4108 is xlCenter.
+'   The vertical alignment value -4108 is xlCenter. Column A is the black column of the
+'   navigation bar and holds no data, so Clear must not reach it: it would leave the bar on
+'   white below the banner, on every output sheet after a run.
 '
 ' UPDATED
-'   2026-11-20
+'   2026-11-27
 '------------------------------------------------------------------------------
 
 '------------------------------------------------------------------------------
 ' CLEAR CELLS
 '------------------------------------------------------------------------------
-    'Clear the cells from the header row down, in the first 60 columns
-        ws.Range(ws.Cells(LAYOUT_HEADER_ROW, 1), ws.Cells(ws.Rows.Count, 60)).Clear
+    'Clear the cells from the header row down, in columns 2 to 60: column A keeps its fill
+        ws.Range(ws.Cells(LAYOUT_HEADER_ROW, 2), ws.Cells(ws.Rows.Count, 60)).Clear
 
 '------------------------------------------------------------------------------
 ' RESTORE FORMAT
