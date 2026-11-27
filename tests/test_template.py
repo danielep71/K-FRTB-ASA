@@ -376,7 +376,9 @@ def test_the_normal_style_is_aptos_11_and_the_text_sheets_start_at_46_points():
     first row of text of Home and README is 46 pt; row 4 stays the thin spacer on every sheet."""
     with zipfile.ZipFile(build_template.TEMPLATE) as archive:
         styles = archive.read("xl/styles.xml").decode("utf-8")
-        first_font = re.search(r"<fonts[^>]*>\s*<font>(.*?)</font>", styles, re.S).group(1)
+        match = re.search(r"<fonts[^>]*>\s*<font>(.*?)</font>", styles, re.S)
+        assert match is not None
+        first_font = match.group(1)
         assert 'val="Aptos"' in first_font and '<sz val="11"' in first_font
         for part in archive.namelist():
             if part.startswith("xl/worksheets/sheet"):
