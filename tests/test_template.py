@@ -369,3 +369,20 @@ def test_a_sheet_the_build_made_is_never_taken_for_a_blank_default_sheet():
     body = text.split("Private Sub RemoveDefaultSheets", 1)[1].split("End Sub", 1)[0]
     assert "IsBlank(CurrentSheet.Cells(1, LAYOUT_FIRST_COL).Value)" in body
     assert "IsBlank(CurrentSheet.Cells(1, 2).Value)" in body
+
+
+def test_the_normal_style_is_aptos_11_and_the_text_sheets_start_at_46_points():
+    """The Normal style, which empty cells and new sheets take, is Aptos 11 pt with a 15 pt default row; the
+    first row of text of Home and README is 46 pt; row 4 stays the thin spacer on every sheet."""
+    with zipfile.ZipFile(build_template.TEMPLATE) as archive:
+        styles = archive.read("xl/styles.xml").decode("utf-8")
+        match = re.search(r"<fonts[^>]*>\s*<font>(.*?)</font>", styles, re.S)
+        assert match is not None
+        first_font = match.group(1)
+        assert 'val="Aptos"' in first_font and '<sz val="11"' in first_font
+        for part in archive.namelist():
+            if part.startswith("xl/worksheets/sheet"):
+                assert 'defaultRowHeight="15"' in archive.read(part).decode("utf-8"), part
+    wb = openpyxl.load_workbook(build_template.TEMPLATE)
+    assert wb["Home"].row_dimensions[6].height == 46 and wb["README"].row_dimensions[6].height == 46
+    assert all(round(ws.row_dimensions[4].height, 2) == 9.95 for ws in wb)

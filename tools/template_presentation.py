@@ -104,6 +104,18 @@ def _lock_structure(book: ET.Element) -> None:
     lock.set("lockStructure", "1")
 
 
+def _normal_font(styles: ET.Element) -> None:
+    """The Normal style is Aptos 11 pt, as the workbook's other text; the headless build leaves it Arial 10 pt."""
+    fonts = styles.find(_tag("fonts"))
+    assert fonts is not None  # required part of styles.xml
+    normal = fonts[0]
+    for child in list(normal):
+        normal.remove(child)
+    ET.SubElement(normal, _tag("sz"), val="11")
+    ET.SubElement(normal, _tag("name"), val="Aptos")
+    ET.SubElement(normal, _tag("family"), val="2")
+
+
 def normalize(path: Path) -> None:
     """Restore presentation only; never change cell values or formulas."""
     palette = _palette()
@@ -111,6 +123,7 @@ def normalize(path: Path) -> None:
         parts = {item.filename: archive.read(item.filename) for item in archive.infolist()}
     book = ET.fromstring(parts["xl/workbook.xml"])
     styles = ET.fromstring(parts["xl/styles.xml"])
+    _normal_font(styles)
     relations = {r.attrib["Id"]: r.attrib["Target"] for r in ET.fromstring(parts["xl/_rels/workbook.xml.rels"])}
     names = _child(book, "definedNames")
     for defined in list(names):
@@ -126,6 +139,9 @@ def normalize(path: Path) -> None:
         if name == "README":
             _guide_borders(root, styles)
         _allow_input_actions(root, name)
+        # The default row height follows the Normal style: Aptos 11 pt is 15 pt high, Arial 10 pt 12.8
+        for default in root.findall(_tag("sheetFormatPr")):
+            default.set("defaultRowHeight", "15")
         props = root.find(_tag("sheetPr"))
         if props is None:
             props = ET.Element(_tag("sheetPr"))

@@ -2170,6 +2170,8 @@ Private Sub BuildReadme()
         RowIndex = WriteGuideRows(ReadmeSheet, RowIndex + 1, Array( _
             "Where is a sheet", "Home lists every sheet with its role and links to it. On every other sheet the bar in column A does the same.", _
             "Tab colors", "Navy: Home and README. Gold: inputs and parameters (Control, In_*, P_*); parameter codes in column C are read by the engine, and only cream cells are meant to be changed. Blue: outputs (Results, Out_*, Log). Green: Test_Expected."))
+    'Give the first row of text the height Home has, whatever it wraps to
+        ReadmeSheet.Rows(LAYOUT_FIRST_DATA_ROW).RowHeight = LAYOUT_LEAD_ROW_HEIGHT
 
 End Sub
 
@@ -2375,6 +2377,8 @@ Private Sub BuildHome()
             PutRow HomeSheet, FirstRow + Index - 1, Array(Entry(1), Entry(2), Entry(3))
         Next Index
         FormatDataRows HomeSheet, FirstRow, FirstRow + NAV_COUNT - 1, 3, 0, "", False
+    'Give the first row of text the height README has, whatever it wraps to
+        HomeSheet.Rows(LAYOUT_FIRST_DATA_ROW).RowHeight = LAYOUT_LEAD_ROW_HEIGHT
 
 '------------------------------------------------------------------------------
 ' LINK THE SHEETS
