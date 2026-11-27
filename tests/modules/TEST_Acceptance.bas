@@ -717,19 +717,21 @@ Private Function CheckClearOutputs(ByRef detail As String) As String
 ' BEHAVIOR
 '   Runs the calculation and records a problem when it did not end with OK. Calls
 '   ClearOutputs and checks the placeholder of Results, Out_Summary, Out_Class,
-'   Out_Buckets, Out_DRC and Log.
+'   Out_Buckets, Out_DRC and Log, and that column A of each is still the black of the
+'   brand bar below the banner, where the navigation bar sits.
 '
 ' ERROR POLICY
 '   None. An error raised by the run or by Clear outputs is caught by RunCheck.
 '
 ' DEPENDENCIES
-'   RunFRTB_Silent, LastRunStatus, ClearOutputs, PlaceholderProblems.
+'   RunFRTB_Silent, LastRunStatus, ClearOutputs, PlaceholderProblems, GetSheet,
+'   LAYOUT_FIRST_DATA_ROW, COLOR_BRAND_BAR.
 '
 ' NOTES
 '   None
 '
 ' UPDATED
-'   2026-11-20
+'   2026-11-27
 '------------------------------------------------------------------------------
 
 '------------------------------------------------------------------------------
@@ -738,6 +740,7 @@ Private Function CheckClearOutputs(ByRef detail As String) As String
     Const PROC_NAME             As String = "TEST_Acceptance.CheckClearOutputs"
 
     Dim Problems                As String       'Problems found, each ending with a semicolon
+    Dim SheetName               As Variant      'Output sheet whose column A is read
 
 '------------------------------------------------------------------------------
 ' RUN AND CLEAR
@@ -762,11 +765,21 @@ Private Function CheckClearOutputs(ByRef detail As String) As String
         Problems = Problems & PlaceholderProblems(SH_LOG, CLEARED_NOTE, False)
 
 '------------------------------------------------------------------------------
+' CHECK COLUMN A
+'------------------------------------------------------------------------------
+    'Require column A to keep the black of the brand bar below the banner on each of them
+        For Each SheetName In Array(SH_RESULTS, SH_OUT_SUMMARY, SH_OUT_CLASS, SH_OUT_BUCKETS, SH_OUT_DRC, SH_LOG)
+            If GetSheet(CStr(SheetName)).Cells(LAYOUT_FIRST_DATA_ROW + 1, 1).Interior.Color <> COLOR_BRAND_BAR Then
+                Problems = Problems & CStr(SheetName) & " lost the black of column A; "
+            End If
+        Next SheetName
+
+'------------------------------------------------------------------------------
 ' RETURN VALUE
 '------------------------------------------------------------------------------
     'Return the problems, or the description of the empty state on a pass
         detail = IIf(Problems = vbNullString, _
-            "headers in row 5 and the note in row 6 on Results, the Out_* sheets and Log", Problems)
+            "headers in row 5 and the note in row 6 on Results, the Out_* sheets and Log; column A stays black", Problems)
         CheckClearOutputs = IIf(Problems = vbNullString, "PASS", "FAIL")
 
 End Function

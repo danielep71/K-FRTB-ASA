@@ -667,6 +667,12 @@ Unreleased describe integrated work, not a published version.
 
 ### Fixed
 
+- Column A, the black column of the navigation bar, stays black below the banner of the output
+  sheets. `ClearTableArea` cleared columns 1 to 60 from the header row down, and the engines call it
+  on every run and **Clear outputs** calls it too, so the bar was left on white on `Results`, the
+  `Out_*` sheets and `Log` after the first run. It now clears columns 2 to 60, and `CLEAR_OUTPUTS`
+  reads the fill of column A on all six sheets; the old code fails it in LibreOffice too.
+
 - The navigation bar toggle of the ribbon hides column A with the bar, and shows it again at the
   width it had, and moves the sheet buttons by that width, because they do not follow the cells. It
   hid the shapes of the links and left the black column in place, which is what #353 found on the
