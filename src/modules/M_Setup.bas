@@ -1734,12 +1734,13 @@ Private Sub AddButtonRow(ByVal ws As Object)
 '                        ADD THE BUTTON ROW OF A SHEET
 '------------------------------------------------------------------------------
 ' PURPOSE
-'   Adds the command buttons of a sheet as one row in its title bar, right-aligned to the
-'   bar and never over the title.
+'   Adds the command buttons of a sheet as one row of rounded rectangles in its title bar,
+'   right-aligned to the bar and never over the title.
 '
 ' WHY THIS EXISTS
 '   The buttons of a sheet come from SheetButtons and sit in one row of its title bar
-'   (#347).
+'   (#347). They are shapes with a macro assigned, as the sheet buttons of the shared
+'   toolkit are, so that they follow the cells and look like the rest of the workbook.
 '
 ' INPUTS
 '   ws
@@ -1750,23 +1751,27 @@ Private Sub AddButtonRow(ByVal ws As Object)
 '
 ' BEHAVIOR
 '   Reads the buttons of the sheet and removes the ones already there. A sheet without
-'   buttons ends there. Otherwise sizes each button from its caption (24 + 6.4 per
+'   buttons ends there. Otherwise sizes each button from its caption (24 + 7.2 per
 '   character, 6 between them), finds the right end of the title bar by walking back from
 '   column 60, and places the row so that it ends 8 points before that edge but never starts
-'   before the end of the title. Each button gets its caption, its macro (OnAction),
-'   free-floating placement and the workbook font.
+'   before the end of the title. Each button is a rounded rectangle named btn_ plus its
+'   macro, with its caption, its macro (OnAction) and placement xlMove, so that it follows
+'   the cells when column A is hidden. The command that runs the calculation is navy with
+'   white text; the others are light blue with navy text. Each has a navy line of 0.75
+'   points and Aptos 11 pt bold text.
 '
 ' ERROR POLICY
 '   Errors are ignored (On Error Resume Next).
 '
 ' DEPENDENCIES
-'   SheetButtons, RemoveButtons; FONT_NAME, COLOR_TITLE_BAR (CORE_Config).
+'   SheetButtons, RemoveButtons; FONT_NAME, COLOR_TITLE_BAR, COLOR_INPUT_HEADER,
+'   COLOR_TOTAL_FILL, COLOR_WHITE (CORE_Config).
 '
 ' NOTES
-'   Each button is Aptos 11 pt and 19.5 pt high.
+'   Each button is 19.5 pt high. A button clips its caption rather than wrapping it.
 '
 ' UPDATED
-'   2026-11-20
+'   2026-11-27
 '------------------------------------------------------------------------------
 
 '------------------------------------------------------------------------------
@@ -1784,6 +1789,7 @@ Private Sub AddButtonRow(ByVal ws As Object)
     Dim ColumnIndex             As Long         'Column being tested
     Dim Button                  As Object       'Button being added
     Dim ButtonWidths()          As Double       'Width of each button
+    Dim IsPrimary               As Boolean      'True for the button that runs the calculation
 
 '------------------------------------------------------------------------------
 ' PREPARE
@@ -1804,7 +1810,7 @@ Private Sub AddButtonRow(ByVal ws As Object)
         ButtonCount = UBound(ButtonDefs) - LBound(ButtonDefs) + 1
         ReDim ButtonWidths(0 To ButtonCount - 1)
         For Index = 0 To ButtonCount - 1
-            ButtonWidths(Index) = 24 + 6.4 * Len(CStr(ButtonDefs(LBound(ButtonDefs) + Index)(0)))
+            ButtonWidths(Index) = 24 + 7.2 * Len(CStr(ButtonDefs(LBound(ButtonDefs) + Index)(0)))
             TotalWidth = TotalWidth + ButtonWidths(Index) + IIf(Index < ButtonCount - 1, 6, 0)
         Next Index
     'Find the right end of the title bar, walking back from column 60
@@ -1823,16 +1829,32 @@ Private Sub AddButtonRow(ByVal ws As Object)
 '------------------------------------------------------------------------------
 ' ADD THE BUTTONS
 '------------------------------------------------------------------------------
-    'Add each button with its caption, macro and font
+    'Add each button as a rounded rectangle with its caption, macro and style
         For Index = 0 To ButtonCount - 1
             Set Button = Nothing
-            Set Button = ws.Buttons.Add(ButtonLeft, ws.Cells(2, 1).Top + 3.5, ButtonWidths(Index), 19.5)
+            Set Button = ws.Shapes.AddShape(5, ButtonLeft, ws.Cells(2, 1).Top + 3.5, ButtonWidths(Index), 19.5)  'msoShapeRoundedRectangle
             If Not Button Is Nothing Then
-                Button.Caption = CStr(ButtonDefs(LBound(ButtonDefs) + Index)(0))
+                IsPrimary = (CStr(ButtonDefs(LBound(ButtonDefs) + Index)(1)) = "RunFRTB")
+                Button.Name = "btn_" & CStr(ButtonDefs(LBound(ButtonDefs) + Index)(1))
                 Button.OnAction = CStr(ButtonDefs(LBound(ButtonDefs) + Index)(1))
-                Button.Placement = 3  'xlFreeFloating
-                Button.Font.Name = FONT_NAME
-                Button.Font.Size = 11
+                Button.Placement = 2  'xlMove: follows its cells and keeps its size
+                Button.Adjustments.Item(1) = 0.28
+                Button.Shadow.Visible = 0
+                Button.Fill.ForeColor.RGB = IIf(IsPrimary, COLOR_INPUT_HEADER, COLOR_TOTAL_FILL)
+                Button.Line.ForeColor.RGB = COLOR_INPUT_HEADER
+                Button.Line.Weight = 0.75
+                Button.TextFrame2.WordWrap = 0
+                Button.TextFrame2.MarginLeft = 5.67
+                Button.TextFrame2.MarginRight = 5.67
+                Button.TextFrame2.MarginTop = 0
+                Button.TextFrame2.MarginBottom = 0
+                Button.TextFrame2.VerticalAnchor = 3  'msoAnchorMiddle
+                Button.TextFrame2.TextRange.Text = CStr(ButtonDefs(LBound(ButtonDefs) + Index)(0))
+                Button.TextFrame2.TextRange.ParagraphFormat.Alignment = 2  'msoAlignCenter
+                Button.TextFrame2.TextRange.Font.Name = FONT_NAME
+                Button.TextFrame2.TextRange.Font.Size = 11
+                Button.TextFrame2.TextRange.Font.Bold = -1
+                Button.TextFrame2.TextRange.Font.Fill.ForeColor.RGB = IIf(IsPrimary, COLOR_WHITE, COLOR_INPUT_HEADER)
             End If
             ButtonLeft = ButtonLeft + ButtonWidths(Index) + 6
         Next Index
@@ -1924,7 +1946,8 @@ Private Sub RemoveButtons(ByVal ws As Object)
 '                        REMOVE THE BUTTONS OF A SHEET
 '------------------------------------------------------------------------------
 ' PURPOSE
-'   Deletes the buttons of a sheet.
+'   Deletes the buttons of a sheet: the shapes named btn_, and any form-control button
+'   that an older build left.
 '
 ' INPUTS
 '   ws
@@ -1934,14 +1957,22 @@ Private Sub RemoveButtons(ByVal ws As Object)
 '   Errors are ignored (On Error Resume Next).
 '
 ' UPDATED
-'   2026-11-20
+'   2026-11-27
 '------------------------------------------------------------------------------
+
+'------------------------------------------------------------------------------
+' DECLARE
+'------------------------------------------------------------------------------
+    Dim ShapeIndex              As Long         'Shape being tested, counted down
 
 '------------------------------------------------------------------------------
 ' REMOVE
 '------------------------------------------------------------------------------
-    'Delete the buttons; ignore a host that refuses
+    'Delete the button shapes and any form-control button; ignore a host that refuses
         On Error Resume Next
+        For ShapeIndex = ws.Shapes.Count To 1 Step -1
+            If Left$(ws.Shapes(ShapeIndex).Name, 4) = "btn_" Then ws.Shapes(ShapeIndex).Delete
+        Next ShapeIndex
         ws.Buttons.Delete
         On Error GoTo 0
 
@@ -2456,8 +2487,7 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
 '                       SHOW OR HIDE THE NAVIGATION BAR
 '------------------------------------------------------------------------------
 ' PURPOSE
-'   Shows or hides the navigation bar of every sheet, with column A where it sits, and
-'   keeps the buttons of the sheet where they were on the cells.
+'   Shows or hides the navigation bar of every sheet, with column A where it sits.
 '
 ' WHY THIS EXISTS
 '   The ribbon's toggle calls it (#353).
@@ -2472,10 +2502,9 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
 ' BEHAVIOR
 '   Opens a write window, then for each managed sheet that exists sets the visibility of
 '   every shape whose name starts with "Nav" and hides column A, or shows it again, with
-'   them. A sheet whose column A already has that state is left as it is. The buttons of a
-'   sheet do not follow the cells (they are free-floating), so they move left by the width
-'   of column A when it is hidden and right by that width when it is shown again. Then
-'   closes the write window.
+'   them; the buttons of a sheet move with their cells (xlMove), so they follow column A.
+'   Then closes the write window and gives the Saved flag of the workbook back, so that
+'   the toggle of a view is not a change that asks to be saved.
 '
 ' ERROR POLICY
 '   Errors are ignored (On Error Resume Next) while the shapes are set.
@@ -2486,12 +2515,11 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
 ' NOTES
 '   A shape and a column are locked on a protected sheet, hence the write window. Column A
 '   is the black column the bar sits in: hidden, the sheet starts at column B and no empty
-'   black strip is left. Showing it again gives back the width it had.
-'   A call that asks for the state a sheet already has changes nothing there, so a button
-'   is never moved twice.
+'   black strip is left. Showing it again gives back the width it had. The write window
+'   holds screen updating off, so the sheets do not flicker.
 '
 ' UPDATED
-'   2026-11-26
+'   2026-11-27
 '------------------------------------------------------------------------------
 
 '------------------------------------------------------------------------------
@@ -2503,13 +2531,13 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
     Dim Index                   As Long         'Loop counter
     Dim ShapeIndex              As Long         'Shape being set
     Dim CurrentSheet            As Object       'Sheet being set
-    Dim Offset                  As Double       'Width of column A in points, measured while it is shown
-    Dim ButtonIndex             As Long         'Button being moved
+    Dim WasSaved                As Boolean      'The Saved flag of the workbook before the toggle
 
 '------------------------------------------------------------------------------
 ' OPEN THE WRITE WINDOW
 '------------------------------------------------------------------------------
-    'Open the write window: a shape is locked on a protected sheet
+    'Keep the Saved flag, and open the write window: a shape is locked on a protected sheet
+        WasSaved = ThisWorkbook.Saved
         BeginWrite
 
 '------------------------------------------------------------------------------
@@ -2517,8 +2545,7 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
 '------------------------------------------------------------------------------
     'Ignore errors from the host
         On Error Resume Next
-    'Set the visibility of the navigation shapes of each managed sheet, hide column A with them
-    'and move the buttons by its width, measured while it is shown: before it is hidden, after it is shown
+    'Set the visibility of the navigation shapes of each managed sheet and hide column A with them
         SheetNames = ManagedSheets()
         For Index = LBound(SheetNames) To UBound(SheetNames)
             If SheetExists(CStr(SheetNames(Index))) Then
@@ -2528,15 +2555,7 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
                         CurrentSheet.Shapes(ShapeIndex).Visible = shown
                     End If
                 Next ShapeIndex
-                If CurrentSheet.Columns(1).Hidden = shown Then
-                    If Not shown Then Offset = CurrentSheet.Columns(1).Width
-                    CurrentSheet.Columns(1).Hidden = Not shown
-                    If shown Then Offset = CurrentSheet.Columns(1).Width
-                    For ButtonIndex = 1 To CurrentSheet.Buttons.Count
-                        CurrentSheet.Buttons(ButtonIndex).Left = CurrentSheet.Buttons(ButtonIndex).Left + _
-                            IIf(shown, Offset, -Offset)
-                    Next ButtonIndex
-                End If
+                CurrentSheet.Columns(1).Hidden = Not shown
             End If
         Next Index
     'Restore normal error handling
@@ -2545,8 +2564,9 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
 '------------------------------------------------------------------------------
 ' CLOSE THE WRITE WINDOW
 '------------------------------------------------------------------------------
-    'Close the write window
+    'Close the write window and give the Saved flag back
         EndWrite
+        ThisWorkbook.Saved = WasSaved
 
 End Sub
 

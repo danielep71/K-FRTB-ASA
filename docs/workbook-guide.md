@@ -273,13 +273,16 @@ bar, and one built before the bar existed has none until you run
 the links and the list on `Home` back in Excel.
 
 The command buttons follow the same pattern, in the title bar of the sheet they
-act on and in Aptos 11 pt: **Run FRTB-SA**, **Clear outputs** and **Run
+act on. Each is a rounded rectangle with its macro assigned, named `btn_` and
+the macro, in Aptos 11 pt bold: navy with white text for **Run FRTB-SA**, light
+blue with navy text for the others. It moves with its cells, so it follows the
+navigation bar when you hide it. They are **Run FRTB-SA**, **Clear outputs** and **Run
 regression test** on `Control`; **Run FRTB-SA** and **Clear outputs** on
 `Results`; **Clear outputs** on `Out_Summary`, `Out_RiskClass`, `Out_Buckets`,
 `Out_DRC` and `Log`; **Run regression test** on `Test_Expected`. `Load sample
 data` and `Reset parameters` have no button, because each overwrites what you
 typed; run them from the macro list. `NAVIGATION` also counts the buttons of
-every sheet.
+every sheet and toggles the bar to read where they sit.
 
 ### 🎀 Ribbon tab
 
