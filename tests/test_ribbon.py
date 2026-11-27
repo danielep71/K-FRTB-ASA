@@ -256,3 +256,22 @@ def test_the_title_bar_starts_in_the_gutter_and_column_a_stays_black():
     frame = setup.split("Private Sub ApplyFrame", 1)[1].split("End Sub", 1)[0]
     assert "ws.Cells(2, 1).Interior.Color = COLOR_BRAND_BAR" in frame
     assert "With ws.Range(ws.Cells(2, LAYOUT_FIRST_COL - 1), ws.Cells(2, lastCol))" in frame
+
+
+def test_the_toggle_sets_the_bar_in_one_call_and_names_it_as_the_bar_is_built():
+    setup = SETUP.read_text(encoding="cp1252")
+    toggle = setup.split("Public Sub SetNavigationVisible", 1)[1].split("End Sub", 1)[0]
+    # One call for the bar through a range of names, then the triangles; the loop is the fallback
+    assert "CurrentSheet.Shapes.Range(NavigationShapeNames(CurrentSheet)).Visible = shown" in toggle
+    assert toggle.index("Shapes.Range(") < toggle.index("For ShapeIndex = 1 To CurrentSheet.Shapes.Count")
+    assert "CurrentSheet.Shapes(NAV_TOGGLE_HIDE).Visible = shown" in toggle
+    assert "CurrentSheet.Shapes(NAV_TOGGLE_SHOW).Visible = Not shown" in toggle
+    names = setup.split("Private Function NavigationShapeNames", 1)[1].split("End Function", 1)[0]
+    bar = setup.split("Private Sub AddNavigationBar", 1)[1].split("End Sub", 1)[0]
+    # The names are built as AddNavigationBar names the shapes it adds
+    assert '"NavSection_" & Replace(SectionName, " ", "_")' in names and '"NavSection_" & Replace(SectionName, " ", "_")' in bar
+    assert 'IIf(CStr(Entry(1)) = ws.Name, "Nav_Current", "Nav_" & CStr(Entry(1)))' in names
+    assert '"Nav_" & CStr(Entry(1)) & "_Mark"' in names and '"Nav_" & CStr(Entry(1)) & "_Mark"' in bar
+    assert 'NavShape.Name = IIf(IsCurrent, "Nav_Current", "Nav_" & CStr(Entry(1)))' in bar
+    # The triangle sits 2 px (1.5 pt) further right than the first version
+    assert "ws.Cells(1, 2).Left + 2.625" in bar
