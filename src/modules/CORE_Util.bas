@@ -103,6 +103,9 @@ Option Private Module
     Private mWriteDepth             As Long         'Open write windows; the sheets are unprotected above 0
     Private mScreenHeld             As Boolean      'True while the outermost write window holds screen updating off
     Private mScreenBeforeWrite      As Boolean      'ScreenUpdating before the outermost write window opened
+    Private mUiOnlyRefused          As Boolean      'True once a host took UserInterfaceOnly and did not keep it
+    Private mHostRead               As Boolean      'True once KeepsInterfaceOnly has read the host
+    Private mHostKnowsMode          As Boolean      'True when the host answers ProtectionMode
 
 
 '
@@ -3325,12 +3328,12 @@ Public Sub BeginWrite()
 '                             OPEN A WRITE WINDOW
 '------------------------------------------------------------------------------
 ' PURPOSE
-'   Opens a write window: the sheets and the workbook structure lose their protection
+'   Opens a write window: a command may write to locked cells and to the workbook structure
 '   until the outermost window closes.
 '
 ' WHY THIS EXISTS
 '   The sheets and the workbook structure are protected, and a command that writes to
-'   locked cells needs them unprotected (#349).
+'   locked cells needs them open to it (#349).
 '
 ' INPUTS
 '   None
@@ -3339,11 +3342,12 @@ Public Sub BeginWrite()
 '   Nothing
 '
 ' BEHAVIOR
-'   At the outermost level, turns screen updating off, so that the sheets do not flicker as
-'   they are unprotected and protected again, then unprotects through SetProtection with
-'   errors suppressed and keeps the error. When that failed, protects again what the call
-'   removed, gives screen updating back and raises the kept error. Then adds 1 to the depth
-'   of open windows.
+'   At the outermost level, turns screen updating off, then opens the way through
+'   SetProtection with errors suppressed and keeps the error. In Excel that protects each
+'   sheet for the interface only, once (a sheet already protected that way is left alone),
+'   and unprotects the workbook structure; elsewhere it unprotects the sheets and the
+'   structure. When that failed, protects again what the call removed, gives screen
+'   updating back and raises the kept error. Then adds 1 to the depth of open windows.
 '
 ' ERROR POLICY
 '   Raises the error of SetProtection, naming the sheets, when one of them or the
@@ -3353,8 +3357,11 @@ Public Sub BeginWrite()
 '   SetProtection
 '
 ' NOTES
-'   Windows can nest; only the first one unprotects and holds screen updating off. A caller
-'   that turned it off before, as a run does, finds it off when the window closes.
+'   Windows can nest; only the first one opens the way and holds screen updating off. A
+'   caller that turned it off before, as a run does, finds it off when the window closes.
+'   Protection for the interface only is not saved in the file and is lost when the
+'   workbook closes: the first window of a session applies it again, which takes a moment;
+'   after that a window costs only the structure.
 '
 ' UPDATED
 '   2026-11-27
@@ -3419,8 +3426,9 @@ Public Sub EndWrite()
 '
 ' BEHAVIOR
 '   Subtracts 1 from the depth of open windows when it is above 0. When the depth is
-'   then 0, protects through SetProtection and gives screen updating back the value it
-'   had before the window opened.
+'   then 0, closes the way through SetProtection (in Excel only the workbook structure is
+'   protected again: the sheets stay protected for the interface only) and gives screen
+'   updating back the value it had before the window opened.
 '
 ' ERROR POLICY
 '   Never raises: the errors of SetProtection are ignored (On Error Resume Next).
@@ -3505,7 +3513,7 @@ Private Sub SetProtection(ByVal turnOn As Boolean)
 '------------------------------------------------------------------------------
 ' PURPOSE
 '   Protects or unprotects every managed sheet and the workbook structure, all without a
-'   password.
+'   password; in Excel the sheets are protected for the interface only.
 '
 ' WHY THIS EXISTS
 '   BeginWrite and EndWrite open and close the write windows through it.
@@ -3518,12 +3526,17 @@ Private Sub SetProtection(ByVal turnOn As Boolean)
 '   Nothing
 '
 ' BEHAVIOR
-'   For each sheet of ManagedSheets that exists:
+'   In Excel, for each sheet of ManagedSheets that exists, when turning off: leaves it alone
+'   when it is protected for the interface only; otherwise unprotects it, unlocks its input
+'   cells and protects it for the interface only, so that a macro writes to it and the user
+'   interface still cannot. A sheet is protected that way once a session, and turning on
+'   leaves the sheets as they are. Elsewhere, for each sheet:
 '     - unprotects it when protected
 '     - when turning on, unlocks its input cells and protects it
 '     - records the sheet when an error occurred or, when turning off, when it is
 '       still protected
-'   Then does the same for the workbook structure and raises when anything was recorded.
+'   Then does the same for the workbook structure, in every host, and raises when anything
+'   was recorded.
 '
 ' ERROR POLICY
 '   Raises vbObjectError + ERR_APP, with the source "CORE_Util", naming the sheets, and
@@ -3531,14 +3544,17 @@ Private Sub SetProtection(ByVal turnOn As Boolean)
 '   are collected, not raised one by one.
 '
 ' DEPENDENCIES
-'   ManagedSheets (CORE_Config), SheetExists, GetSheet, UnlockInputCells, ProtectSheet
+'   ManagedSheets (CORE_Config), SheetExists, GetSheet, UnlockInputCells, ProtectSheet,
+'   KeepsInterfaceOnly
 '
 ' NOTES
 '   The message asks to remove the password (Review > Unprotect Sheet or Protect
-'   Workbook) and run again: the workbook itself needs no password.
+'   Workbook) and run again: the workbook itself needs no password. Protection for the
+'   interface only is not saved in the file: a workbook opens protected as before, and
+'   its first window protects it that way again.
 '
 ' UPDATED
-'   2026-11-20
+'   2026-11-27
 '------------------------------------------------------------------------------
 
 '------------------------------------------------------------------------------
@@ -3567,17 +3583,41 @@ Private Sub SetProtection(ByVal turnOn As Boolean)
                 Set TargetSheet = GetSheet(CStr(SheetNames(SheetIndex)))
                 On Error Resume Next
                 Err.Clear
-                ' An empty password never prompts
-                If TargetSheet.ProtectContents Then TargetSheet.Unprotect ""
-                If turnOn And Err.Number = 0 Then
-                    UnlockInputCells TargetSheet
-                    ProtectSheet TargetSheet
-                End If
-                If Err.Number <> 0 Then
-                    BlockedNames = BlockedNames & IIf(BlockedNames = vbNullString, "", ", ") & TargetSheet.Name
-                ElseIf Not turnOn Then
-                    If TargetSheet.ProtectContents Then
+                If KeepsInterfaceOnly() Then
+                    ' Protect for the interface only, once: a macro writes to the sheet, the user cannot
+                    If Not turnOn Then
+                        If Not (TargetSheet.ProtectContents And TargetSheet.ProtectionMode) Then
+                            ' An empty password never prompts
+                            If TargetSheet.ProtectContents Then TargetSheet.Unprotect ""
+                            If Err.Number = 0 Then
+                                UnlockInputCells TargetSheet
+                                ProtectSheet TargetSheet
+                            End If
+                            ' A host that takes the option and does not keep it: open the sheet, and use the old way from now on
+                            If Err.Number = 0 Then
+                                If Not TargetSheet.ProtectionMode Then
+                                    TargetSheet.Unprotect ""
+                                    mUiOnlyRefused = True
+                                End If
+                            End If
+                        End If
+                    End If
+                    If Err.Number <> 0 Then
                         BlockedNames = BlockedNames & IIf(BlockedNames = vbNullString, "", ", ") & TargetSheet.Name
+                    End If
+                Else
+                    ' An empty password never prompts
+                    If TargetSheet.ProtectContents Then TargetSheet.Unprotect ""
+                    If turnOn And Err.Number = 0 Then
+                        UnlockInputCells TargetSheet
+                        ProtectSheet TargetSheet
+                    End If
+                    If Err.Number <> 0 Then
+                        BlockedNames = BlockedNames & IIf(BlockedNames = vbNullString, "", ", ") & TargetSheet.Name
+                    ElseIf Not turnOn Then
+                        If TargetSheet.ProtectContents Then
+                            BlockedNames = BlockedNames & IIf(BlockedNames = vbNullString, "", ", ") & TargetSheet.Name
+                        End If
                     End If
                 End If
                 On Error GoTo 0
@@ -3708,7 +3748,7 @@ Private Sub ProtectSheet(ByVal ws As Object)
 ' PURPOSE
 '   Protects a sheet without a password: the input sheets accept inserted rows, sorting
 '   and the autofilter on their unlocked cells; every other sheet is protected
-'   completely.
+'   completely. In Excel the protection is for the interface only: a macro can still write.
 '
 ' INPUTS
 '   ws
@@ -3717,15 +3757,28 @@ Private Sub ProtectSheet(ByVal ws As Object)
 ' ERROR POLICY
 '   Not handled here; the caller (SetProtection) runs it with errors suppressed.
 '
+' DEPENDENCIES
+'   KeepsInterfaceOnly
+'
+' NOTES
+'   UserInterfaceOnly is set in Excel only: the other hosts do not take it.
+'
 ' UPDATED
-'   2026-11-20
+'   2026-11-27
 '------------------------------------------------------------------------------
 
 '------------------------------------------------------------------------------
 ' PROTECT
 '------------------------------------------------------------------------------
-    'Protect the sheet, allowing rows, sorting and filtering on the In_ sheets
-        If Left$(ws.Name, 3) = "In_" Then
+    'Protect the sheet, allowing rows, sorting and filtering on the In_ sheets, for the interface only in Excel
+        If KeepsInterfaceOnly() Then
+            If Left$(ws.Name, 3) = "In_" Then
+                ws.Protect DrawingObjects:=True, Contents:=True, Scenarios:=True, UserInterfaceOnly:=True, _
+                    AllowInsertingRows:=True, AllowSorting:=True, AllowFiltering:=True
+            Else
+                ws.Protect DrawingObjects:=True, Contents:=True, Scenarios:=True, UserInterfaceOnly:=True
+            End If
+        ElseIf Left$(ws.Name, 3) = "In_" Then
             ws.Protect DrawingObjects:=True, Contents:=True, Scenarios:=True, _
                 AllowInsertingRows:=True, AllowSorting:=True, AllowFiltering:=True
         Else
@@ -3733,3 +3786,67 @@ Private Sub ProtectSheet(ByVal ws As Object)
         End If
 
 End Sub
+
+Private Function KeepsInterfaceOnly() As Boolean
+
+'
+'------------------------------------------------------------------------------
+'               TELL A HOST THAT PROTECTS FOR THE INTERFACE ONLY
+'------------------------------------------------------------------------------
+' PURPOSE
+'   Returns True when the host protects a sheet for the interface only: Excel.
+'
+' WHY THIS EXISTS
+'   Protection for the interface only is an Excel feature; the LibreOffice tests run the same
+'   modules with the sheets unprotected and protected again around each write window. The
+'   name LibreOffice gives its application is Excel's, so the host is told by the feature.
+'
+' INPUTS
+'   None
+'
+' RETURNS
+'   True when a sheet answers ProtectionMode and no sheet has refused to keep the option.
+'
+' BEHAVIOR
+'   Reads ProtectionMode of the first sheet once and keeps the answer in the module's state;
+'   SetProtection turns the answer to False when a sheet protected for the interface only does
+'   not report it.
+'
+' ERROR POLICY
+'   An error reading the property counts as another host (On Error Resume Next).
+'
+' DEPENDENCIES
+'   None
+'
+' NOTES
+'   None
+'
+' UPDATED
+'   2026-11-27
+'------------------------------------------------------------------------------
+
+'------------------------------------------------------------------------------
+' DECLARE
+'------------------------------------------------------------------------------
+    Dim Mode                    As Variant      'ProtectionMode of the first sheet, read to test the host
+
+'------------------------------------------------------------------------------
+' READ THE HOST
+'------------------------------------------------------------------------------
+    'Read the property the first time: a host that does not know it protects the old way
+        If Not mHostRead Then
+            On Error Resume Next
+            Mode = ThisWorkbook.Worksheets(1).ProtectionMode
+            mHostKnowsMode = (Err.Number = 0 And VarType(Mode) = vbBoolean)
+            Err.Clear
+            On Error GoTo 0
+            mHostRead = True
+        End If
+
+'------------------------------------------------------------------------------
+' RETURN VALUE
+'------------------------------------------------------------------------------
+    'Return the answer
+        KeepsInterfaceOnly = mHostKnowsMode And Not mUiOnlyRefused
+
+End Function

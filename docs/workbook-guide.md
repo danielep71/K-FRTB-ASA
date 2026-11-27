@@ -346,11 +346,18 @@ or changed by accident. It is not a security control: anyone can remove it.
 | Workbook structure | Locked: a sheet cannot be added, deleted, renamed or moved |
 
 To change something locked, use **Review > Unprotect Sheet** or **Protect
-Workbook**; no password is asked. The commands (**Run FRTB-SA**, **Clear
-outputs**, **Run regression test**, **Load sample data**, **Reset
-parameters**, the build and the sync) lift the protection while they write and
-put it back afterwards, also when they fail, so a protected workbook runs
-without unprotecting anything. A workbook made before the protection, or updated by the sync,
+Workbook**; no password is asked. In Excel the sheets are protected **for the
+interface only**: you cannot change a locked cell, and a command can. The
+first command of a session (**Run FRTB-SA**, **Clear outputs**, **Run
+regression test**, **Load sample data**, **Reset parameters**, the build, the
+sync, the navigation toggle) protects each sheet that way, which takes a
+moment because Excel does not save the option in the file; after that a
+command opens only the workbook structure for the time it writes, and the
+toggle of the bar takes a fraction of a second. A workbook opens protected as
+before, also when a command failed, so a protected workbook runs without
+unprotecting anything. A host that does not keep the option (the LibreOffice
+runs of the tests) unprotects the sheets for each command and protects them
+again. A workbook made before the protection, or updated by the sync,
 has every cell locked: its first command unlocks the cells in the input fill
 on `Control`, the input sheets and the `P_*` sheets and then protects it. If you protect a sheet or the workbook with a
 password of your own, a command stops with a message that names the sheets:

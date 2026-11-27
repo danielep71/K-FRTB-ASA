@@ -181,6 +181,17 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- In Excel the sheets are protected for the interface only (`Protect UserInterfaceOnly:=True`): the
+  user still cannot change a locked cell, and a macro writes without unprotecting anything. A write
+  window used to unprotect and protect 23 sheets, which is most of the time the navigation toggle
+  took. The first window of a session protects each sheet that way (Excel does not save the option, so
+  a workbook opens protected as before), and a window after it opens only the workbook structure. A
+  host that does not keep the option, such as LibreOffice, still unprotects and protects around each
+  window: `KeepsInterfaceOnly` tells the host by reading `ProtectionMode` back, not by the name, which
+  LibreOffice gives as Excel's. `PROTECTION` now requires `ProtectionMode` on every sheet and a
+  script's write to a header to be accepted, where it required it refused, and
+  `Test_TimeNavigationToggle` reports the first and the second window and toggle (#349, #353).
+
 - The Normal style of the template is Aptos 11 pt with a 15 pt default row (it was Arial 10 pt and
   12.8 pt, the headless build's), so an empty cell, a new sheet and a row without a height of its
   own take the workbook's font. The first row of text of `Home` and `README` is 46 pt

@@ -207,23 +207,23 @@ Public Sub Test_TimeNavigationToggle()
 '                        TIME THE NAVIGATION BAR TOGGLE
 '------------------------------------------------------------------------------
 ' PURPOSE
-'   Times an empty write window, the toggle that hides the navigation bar and the one that
-'   shows it, and reports the three times in a message.
+'   Times an empty write window twice and the two toggles of the navigation bar twice, and
+'   reports the six times in a message.
 '
 ' WHY THIS EXISTS
-'   The toggle takes a moment on 23 sheets. The write window, which unprotects and protects
-'   every sheet, is separate from the shapes and the columns, so the difference between the
-'   toggle and the empty window shows which of the two takes the time (#353).
+'   The first write window of a session protects the sheets for the interface only, which
+'   takes a moment; later ones do not. Timing the same steps twice shows that first cost
+'   apart from the cost of the shapes and the columns (#353).
 '
 ' INPUTS
 '   None
 '
 ' RETURNS
-'   Nothing. A message gives the three times in seconds.
+'   Nothing. A message gives the six times in seconds.
 '
 ' BEHAVIOR
-'   Opens and closes a write window and times it, then calls SetNavigationVisible with False
-'   and with True and times each call. The bar is left shown.
+'   Opens and closes a write window twice and times each, then calls SetNavigationVisible with
+'   False and with True and times each call, and does it once more. The bar is left shown.
 '
 ' ERROR POLICY
 '   None. An error stops the macro.
@@ -232,8 +232,9 @@ Public Sub Test_TimeNavigationToggle()
 '   BeginWrite, EndWrite (CORE_Util); SetNavigationVisible (M_Setup).
 '
 ' NOTES
-'   Excel only; the shapes and the columns are the ones of Excel. Run it on the workbook as
-'   it is: it changes only the state of the bar, which it leaves shown.
+'   Excel only; the shapes and the columns are the ones of Excel. Run it on a workbook just
+'   opened, so that the first window is the first of the session, and again to see the
+'   steady state. It changes only the state of the bar, which it leaves shown.
 '
 ' UPDATED
 '   2026-11-27
@@ -245,33 +246,46 @@ Public Sub Test_TimeNavigationToggle()
     Const PROC_NAME             As String = "TEST_Acceptance.Test_TimeNavigationToggle"
 
     Dim Started                 As Double       'Timer when a step started
-    Dim WindowSeconds           As Double       'Seconds of an empty write window
-    Dim HideSeconds             As Double       'Seconds of the toggle that hides the bar
-    Dim ShowSeconds             As Double       'Seconds of the toggle that shows it
+    Dim FirstWindow             As Double       'Seconds of the first empty write window
+    Dim SecondWindow            As Double       'Seconds of the second empty write window
+    Dim HideFirst               As Double       'Seconds of the first toggle that hides the bar
+    Dim ShowFirst               As Double       'Seconds of the first toggle that shows it
+    Dim HideSecond              As Double       'Seconds of the second toggle that hides the bar
+    Dim ShowSecond              As Double       'Seconds of the second toggle that shows it
 
 '------------------------------------------------------------------------------
 ' TIME THE STEPS
 '------------------------------------------------------------------------------
-    'Time an empty write window: the sheets unprotected and protected again, nothing else
+    'Time two empty write windows: the first of a session, then one with the sheets already protected
         Started = Timer
         BeginWrite
         EndWrite
-        WindowSeconds = Timer - Started
-    'Time the toggle that hides the bar, then the one that shows it
+        FirstWindow = Timer - Started
+        Started = Timer
+        BeginWrite
+        EndWrite
+        SecondWindow = Timer - Started
+    'Time the toggle that hides the bar and the one that shows it, twice
         Started = Timer
         SetNavigationVisible False
-        HideSeconds = Timer - Started
+        HideFirst = Timer - Started
         Started = Timer
         SetNavigationVisible True
-        ShowSeconds = Timer - Started
+        ShowFirst = Timer - Started
+        Started = Timer
+        SetNavigationVisible False
+        HideSecond = Timer - Started
+        Started = Timer
+        SetNavigationVisible True
+        ShowSecond = Timer - Started
 
 '------------------------------------------------------------------------------
 ' REPORT
 '------------------------------------------------------------------------------
-    'Report the three times
-        MsgBox "Empty write window: " & Round(WindowSeconds, 2) & " s" & vbCrLf & _
-            "Hide the bar: " & Round(HideSeconds, 2) & " s" & vbCrLf & _
-            "Show the bar: " & Round(ShowSeconds, 2) & " s", vbInformation
+    'Report the six times
+        MsgBox "Empty write window, first and second: " & Round(FirstWindow, 2) & " s, " & Round(SecondWindow, 2) & " s" & _
+            vbCrLf & "Hide the bar, first and second: " & Round(HideFirst, 2) & " s, " & Round(HideSecond, 2) & " s" & _
+            vbCrLf & "Show the bar, first and second: " & Round(ShowFirst, 2) & " s, " & Round(ShowSecond, 2) & " s", vbInformation
 
 End Sub
 
@@ -2372,22 +2386,23 @@ Private Function CheckProtection(ByRef detail As String) As String
 '   For each cell of the used range, counts the cells whose locked state equals
 '   whether they have the input fill (COLOR_INPUT_CELL), names the first ones up
 '   to MAX_LISTED, and counts the unlocked cells. Then records a problem when the
-'   workbook structure is not protected, when a write to the header of Out_Summary
-'   is not refused, or when a write to the first data cell of In_Delta is
-'   refused.
+'   workbook structure is not protected, when a sheet is not protected for the
+'   interface only after a write window (ProtectionMode), when a write to the
+'   header of Out_Summary is refused, or when a write to the first data cell of
+'   In_Delta is refused: a script writes, the user interface cannot.
 '
 ' ERROR POLICY
 '   None. An error raised by the sheet calls is caught by RunCheck.
 '
 ' DEPENDENCIES
-'   ManagedSheets, GetSheet, TableCell, WriteRefused, COLOR_INPUT_CELL,
-'   MAX_LISTED, mInExcel.
+'   ManagedSheets, GetSheet, TableCell, WriteRefused, BeginWrite, EndWrite,
+'   COLOR_INPUT_CELL, MAX_LISTED, mInExcel.
 '
 ' NOTES
 '   None
 '
 ' UPDATED
-'   2026-11-20
+'   2026-11-27
 '------------------------------------------------------------------------------
 
 '------------------------------------------------------------------------------
@@ -2455,9 +2470,18 @@ Private Function CheckProtection(ByRef detail As String) As String
         If Not ThisWorkbook.ProtectStructure Then
             Problems = Problems & "the workbook structure is not protected; "
         End If
-    'Require a script's write to a header to be refused
-        If Not WriteRefused(GetSheet(SH_OUT_SUMMARY).Cells(LAYOUT_HEADER_ROW, LAYOUT_FIRST_COL)) Then
-            Problems = Problems & "a header on Out_Summary accepted a script's write; "
+    'Require every sheet to be protected for the interface only after a write window, so that a
+    'script writes to a header while the user interface cannot
+        BeginWrite
+        EndWrite
+        For SheetIndex = LBound(SheetNames) To UBound(SheetNames)
+            Set ManagedSheet = GetSheet(CStr(SheetNames(SheetIndex)))
+            If Not (ManagedSheet.ProtectContents And ManagedSheet.ProtectionMode) Then
+                Problems = Problems & ManagedSheet.Name & " is not protected for the interface only; "
+            End If
+        Next SheetIndex
+        If WriteRefused(GetSheet(SH_OUT_SUMMARY).Cells(LAYOUT_HEADER_ROW, LAYOUT_FIRST_COL)) Then
+            Problems = Problems & "a header on Out_Summary refused a script's write; "
         End If
     'Require a script's write to an input cell to be accepted
         If WriteRefused(TableCell(GetSheet(SH_IN_DELTA), LAYOUT_FIRST_DATA_ROW, 1)) Then
@@ -2471,7 +2495,8 @@ Private Function CheckProtection(ByRef detail As String) As String
         detail = IIf(Problems = vbNullString, _
             (UBound(SheetNames) - LBound(SheetNames) + 1) & _
             " sheets and the structure protected without a password; " & _
-            UnlockedCount & " unlocked cells, all in the input fill; a script's write to a header is refused", _
+            UnlockedCount & " unlocked cells, all in the input fill; protected for the interface only: a script writes to " & _
+            "a header, the user interface cannot", _
             Problems)
         CheckProtection = IIf(Problems = vbNullString, "PASS", "FAIL")
 
