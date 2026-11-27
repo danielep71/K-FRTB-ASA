@@ -775,8 +775,9 @@ Private Sub ApplyFrame( _
 '     - writes the product name, the title and the subtitle
 '     - sets the font, the width of columns A and B and the black fill of column A, where
 '       the navigation bar sits (#347)
-'     - colors and sizes the brand bar (row 1), the title bar (row 2) and the subtitle (row
-'       3)
+'     - colors and sizes the brand bar (row 1), the title bar (row 2, from column C: columns A
+'       and B stay black) and the subtitle (row 3), and aligns the product name and the title
+'       to the left of column C with no indent
 '     - sets the heights of rows 1 to 4
 '     - sets the page setup: A4 landscape, one page wide, margins, footer and the title rows
 '       that repeat
@@ -825,13 +826,18 @@ Private Sub ApplyFrame( _
             .Font.Color = COLOR_BRAND_TEXT
         End With
         ws.Cells(1, LAYOUT_FIRST_COL).Font.Size = 14
-    'Color the title bar and size the title
-        With ws.Range(ws.Cells(2, 1), ws.Cells(2, lastCol))
+    'Keep the bar and the gutter black on the title row, and color the title bar from the first table column
+        ws.Range(ws.Cells(2, 1), ws.Cells(2, LAYOUT_FIRST_COL - 1)).Interior.Color = COLOR_BRAND_BAR
+        With ws.Range(ws.Cells(2, LAYOUT_FIRST_COL), ws.Cells(2, lastCol))
             .Interior.Color = COLOR_TITLE_BAR
             .Font.Color = COLOR_WHITE
         End With
+    'Size the title
         ws.Cells(2, LAYOUT_FIRST_COL).Font.Size = 18
         ws.Cells(2, LAYOUT_FIRST_COL).Font.Bold = True
+    'Align the product name and the title to the left edge of the column, without an indent
+        ws.Range(ws.Cells(1, LAYOUT_FIRST_COL), ws.Cells(2, LAYOUT_FIRST_COL)).HorizontalAlignment = -4131  'xlLeft
+        ws.Range(ws.Cells(1, LAYOUT_FIRST_COL), ws.Cells(2, LAYOUT_FIRST_COL)).IndentLevel = 0
     'Style the subtitle
         With ws.Cells(LAYOUT_SUBTITLE_ROW, LAYOUT_FIRST_COL).Font
             .Italic = True
@@ -1986,12 +1992,11 @@ Private Sub ApplyWindowSettings()
 '------------------------------------------------------------------------------
 ' PURPOSE
 '   Hides the gridlines and freezes the panes below the table header on every managed sheet,
-'   with columns A and B frozen at least, so the navigation bar stays in view.
+'   with columns A and B frozen and no other, so the navigation bar stays in view.
 '
 ' WHY THIS EXISTS
-'   Needs each sheet to be active once. The wide input, output and Log sheets also keep
-'   their key columns in view; every other sheet freezes the bar and its gutter (columns A
-'   and B) and the rows above its table.
+'   Needs each sheet to be active once. Every sheet freezes the bar and its gutter (columns
+'   A and B) and the rows above its table, and nothing else.
 '
 ' INPUTS
 '   None
@@ -2002,8 +2007,7 @@ Private Sub ApplyWindowSettings()
 ' BEHAVIOR
 '   For each managed sheet: activates it, hides the gridlines, removes the panes and freezes
 '   new ones:
-'     - In_*, Out_* and Log: the rows above the first data row and the columns up to the
-'       first table column
+'     - In_*, Out_* and Log: the rows above the first data row and columns A and B
 '     - Results: the rows above the first data row and columns A and B
 '     - Control, the test sheet and the P_* sheets: rows 1 to 6, the header row and the row
 '       below it, and columns A and B
@@ -2050,7 +2054,7 @@ Private Sub ApplyWindowSettings()
             Application.ActiveWindow.DisplayGridlines = False
             Application.ActiveWindow.FreezePanes = False
             If Left$(CurrentSheet.Name, 3) = "In_" Or Left$(CurrentSheet.Name, 4) = "Out_" Or CurrentSheet.Name = SH_LOG Then
-                CurrentSheet.Cells(LAYOUT_FIRST_DATA_ROW, LAYOUT_FIRST_COL + 1).Select
+                CurrentSheet.Cells(LAYOUT_FIRST_DATA_ROW, LAYOUT_FIRST_COL).Select
                 Application.ActiveWindow.FreezePanes = True
             ElseIf CurrentSheet.Name = SH_RESULTS Then
                 CurrentSheet.Cells(LAYOUT_FIRST_DATA_ROW, LAYOUT_FIRST_COL).Select
