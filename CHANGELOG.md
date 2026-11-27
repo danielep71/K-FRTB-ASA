@@ -181,6 +181,13 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The sheet frame follows the shared toolkit's workbook. Column A is 18 wide (was 22) and column B a
+  gutter 2 wide (was 4); the product name and the title of the sheet sit in column C, with the
+  subtitle and the tables, where they were in column B. Columns A and B are frozen on every sheet,
+  and columns A to C on the input, output and Log sheets as before, so the navigation bar stays in
+  view when a wide sheet scrolls sideways: the sheets that froze rows only now freeze the two columns
+  as well. The committed template, the acceptance data and the tests follow (#353).
+
 - The sheet command buttons are rounded rectangles with their macro assigned, named `btn_` and the
   macro, in the style of the shared toolkit's: navy with white text for **Run FRTB-SA**, light blue
   with a navy line and navy text for **Clear outputs** and **Run regression test**, Aptos 11 pt

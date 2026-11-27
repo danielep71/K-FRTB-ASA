@@ -39,8 +39,9 @@ def test_template_saved_presentation():
         assert ws.sheet_properties.tabColor is not None, ws.title
         assert ws.sheet_properties.tabColor.rgb == expected_tab, ws.title
         wide = ws.title.startswith(("In_", "Out_")) or ws.title == "Log"
-        expected_freeze = ("A4" if ws.title in ("README", "Home") else "D6" if wide else "A6" if ws.title == "Results"
-                           else "A7")
+        # Columns A and B stay in view on every sheet; the wide tables keep their key columns too
+        expected_freeze = ("C4" if ws.title in ("README", "Home") else "D6" if wide else "C6" if ws.title == "Results"
+                           else "C7")
         assert ws.freeze_panes == expected_freeze, ws.title
         assert ws.page_setup.orientation == "landscape", ws.title
         assert ws.page_setup.fitToWidth == 1 and ws.page_setup.fitToHeight == 0
@@ -56,7 +57,7 @@ def test_template_saved_presentation():
     assert wb["README"]["C6"].border.top.style == "thin"
     assert wb["README"]["C6"].border.right.style == "dashed"
     assert wb["README"]["D12"].border.bottom.style == "thin"
-    assert wb["In_Delta"]["B2"].value == "Delta sensitivities"
+    assert wb["In_Delta"]["C2"].value == "Delta sensitivities"
     assert wb["In_Delta"]["D5"].value == "Risk class"
     for name in ("Results", "Out_Summary", "Out_RiskClass", "Out_Buckets", "Out_DRC", "Log"):
         assert wb[name]["C5"].fill.fgColor.rgb == "FF1F3864", name  # the input navy (#206)
@@ -106,10 +107,14 @@ def test_home_lists_every_sheet_once_and_links_to_it():
 
 
 def test_every_sheet_leaves_room_for_the_navigation_bar():
-    """Column A is 22 wide and the brand and title bars start in it (#347)."""
+    """Column A is 18 wide, as the shared toolkit's, column B is a gutter 2 wide, and the brand and title bars
+    start in column A (#347). The product name and the title sit in column C with the subtitle and the tables."""
     wb = openpyxl.load_workbook(build_template.TEMPLATE)
     for ws in wb:
-        assert round(ws.column_dimensions["A"].width) == 23, ws.title      # 22 plus Excel's padding
+        assert round(ws.column_dimensions["A"].width) == 19, ws.title      # 18 plus Excel's padding
+        assert round(ws.column_dimensions["B"].width) == 3, ws.title       # 2 plus Excel's padding
+        assert ws["C1"].value == "K-FRTB-ASA" and ws["B1"].value is None, ws.title
+        assert ws["C2"].value and ws["B2"].value is None, ws.title
         assert ws["A1"].fill.fgColor.rgb == "FF000000", ws.title
         assert ws["A2"].fill.fgColor.rgb == "FF265A99", ws.title
 
@@ -257,7 +262,7 @@ def test_signature_detects_layout_changes(tmp_path):
         "height": (control, 'ht="26.1"', 'ht="40"'),
         "tab": (control, tab_color, '<tabColor rgb="FF00FF00"/>'),
         "gridlines": (control, 'showGridLines="0"', 'showGridLines="1"'),
-        "freeze": (control, 'topLeftCell="A7"', 'topLeftCell="A8"'),
+        "freeze": (control, 'topLeftCell="C7"', 'topLeftCell="C8"'),
         "print": (control, 'orientation="landscape"', 'orientation="portrait"'),
         "fill": ("xl/styles.xml", "FF265A99", "FF265A98"),
         "number_format": ("xl/styles.xml", 'formatCode="0.0##%"', 'formatCode="0.00%"'),
