@@ -1931,12 +1931,13 @@ Private Function CheckNavigation(ByRef detail As String) As String
 '     - it has no shape named Nav_Current
 '     - it has no shape named Nav_ plus the name of another sheet
 '     - column C of Home does not hold its name exactly once
-'   Then, for each sheet, compares the number of buttons with the number of
-'   buttons SheetButtons defines for it (none when it returns Empty).
+'   Then, for each sheet, compares the number of button shapes (named btn_) with the number
+'   of buttons SheetButtons defines for it (none when it returns Empty), and requires a
+'   shape named btn_ plus the macro for each of them.
 '   Last, calls SetNavigationVisible with True to start from the shown bar, then with
 '   False and with True again, as the ribbon's toggle does, and after each call records a
 '   problem for every sheet whose column A or whose Nav shapes disagree, or whose first
-'   button is not where it was, moved left by the width of column A while the bar is
+'   first button is not where it was, moved left by the width of column A while the bar is
 '   hidden, or whose column A is not LAYOUT_NAV_WIDTH wide when the bar is shown again.
 '   The bar is left shown.
 '
@@ -1970,6 +1971,7 @@ Private Function CheckNavigation(ByRef detail As String) As String
     Dim ShapeIndex              As Long         'Shape being read
     Dim NavWidth()              As Double       'Width of column A of each sheet before the toggle
     Dim ButtonLeft()            As Double       'Left edge of the first button of each sheet before the toggle
+    Dim ButtonShapes            As Long         'Shapes named btn_ on the sheet
 
 '------------------------------------------------------------------------------
 ' CHECK HOST
@@ -2028,10 +2030,20 @@ Private Function CheckNavigation(ByRef detail As String) As String
             Else
                 InnerIndex = UBound(SheetButtonList) - LBound(SheetButtonList) + 1
             End If
-            If ManagedSheet.Buttons.Count <> InnerIndex Then
-                Problems = Problems & ManagedSheet.Name & " has " & ManagedSheet.Buttons.Count & _
+            ButtonShapes = 0
+            For ShapeIndex = 1 To ManagedSheet.Shapes.Count
+                If Left$(ManagedSheet.Shapes(ShapeIndex).Name, 4) = "btn_" Then ButtonShapes = ButtonShapes + 1
+            Next ShapeIndex
+            If ButtonShapes <> InnerIndex Then
+                Problems = Problems & ManagedSheet.Name & " has " & ButtonShapes & _
                     " buttons, not " & InnerIndex & "; "
             End If
+            For ShapeIndex = 0 To InnerIndex - 1
+                If Not ShapeExists(ManagedSheet, "btn_" & CStr(SheetButtonList(LBound(SheetButtonList) + ShapeIndex)(1))) Then
+                    Problems = Problems & ManagedSheet.Name & " has no button for " & _
+                        CStr(SheetButtonList(LBound(SheetButtonList) + ShapeIndex)(1)) & "; "
+                End If
+            Next ShapeIndex
         Next SheetIndex
 
 '------------------------------------------------------------------------------
@@ -2047,7 +2059,10 @@ Private Function CheckNavigation(ByRef detail As String) As String
         For SheetIndex = LBound(SheetNames) To UBound(SheetNames)
             Set ManagedSheet = GetSheet(CStr(SheetNames(SheetIndex)))
             NavWidth(SheetIndex) = ManagedSheet.Columns(1).Width
-            If ManagedSheet.Buttons.Count > 0 Then ButtonLeft(SheetIndex) = ManagedSheet.Buttons(1).Left
+            SheetButtonList = SheetButtons(ManagedSheet.Name)
+            If Not IsEmpty(SheetButtonList) Then
+                ButtonLeft(SheetIndex) = ManagedSheet.Shapes("btn_" & CStr(SheetButtonList(LBound(SheetButtonList))(1))).Left
+            End If
         Next SheetIndex
         For ToggleStep = 0 To 1
             SetNavigationVisible (ToggleStep = 1)
@@ -2058,9 +2073,10 @@ Private Function CheckNavigation(ByRef detail As String) As String
                         IIf(ToggleStep = 1, "hidden", "shown") & " while the bar is " & _
                         IIf(ToggleStep = 1, "shown", "hidden") & "; "
                 End If
-                If ManagedSheet.Buttons.Count > 0 Then
-                    If Abs(ManagedSheet.Buttons(1).Left - (ButtonLeft(SheetIndex) - _
-                        IIf(ToggleStep = 0, NavWidth(SheetIndex), 0))) > 0.5 Then
+                SheetButtonList = SheetButtons(ManagedSheet.Name)
+                If Not IsEmpty(SheetButtonList) Then
+                    If Abs(ManagedSheet.Shapes("btn_" & CStr(SheetButtonList(LBound(SheetButtonList))(1))).Left - _
+                        (ButtonLeft(SheetIndex) - IIf(ToggleStep = 0, NavWidth(SheetIndex), 0))) > 0.5 Then
                         Problems = Problems & ManagedSheet.Name & " has its buttons off their place; "
                     End If
                 End If

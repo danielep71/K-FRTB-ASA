@@ -181,9 +181,9 @@ def test_the_toggle_hides_column_a_with_the_bar_and_the_bar_is_rebuilt_with_it_s
     toggle = setup.split("Public Sub SetNavigationVisible", 1)[1].split("End Sub", 1)[0]
     assert "CurrentSheet.Shapes(ShapeIndex).Visible = shown" in toggle
     assert "CurrentSheet.Columns(1).Hidden = Not shown" in toggle
-    # The free-floating buttons move by the width of column A, once per change of state
-    assert "If CurrentSheet.Columns(1).Hidden = shown Then" in toggle
-    assert "CurrentSheet.Buttons(ButtonIndex).Left = CurrentSheet.Buttons(ButtonIndex).Left + _" in toggle
+    # The buttons move with their cells, so the toggle moves none; it keeps the Saved flag
+    assert "Buttons" not in toggle and "Offset" not in toggle
+    assert "WasSaved = ThisWorkbook.Saved" in toggle and "ThisWorkbook.Saved = WasSaved" in toggle
     # A hidden column has no width to place the bar by
     bar = setup.split("Private Sub AddNavigationBar", 1)[1].split("End Sub", 1)[0]
     assert bar.index("ws.Columns(1).Hidden = False") < bar.index("BarWidth = ws.Columns(1).Width - 12")
@@ -193,3 +193,33 @@ def test_the_toggle_hides_column_a_with_the_bar_and_the_bar_is_rebuilt_with_it_s
     assert "SetNavigationVisible (ToggleStep = 1)" in check and "Columns(1).Hidden" in check
     # The baseline is the shown bar, whatever state the workbook was saved in
     assert check.index("SetNavigationVisible True") < check.index("NavWidth(SheetIndex) = ")
+
+
+def test_the_sheet_buttons_are_rounded_rectangles_that_move_with_their_cells():
+    setup = SETUP.read_text(encoding="cp1252")
+    row = setup.split("Private Sub AddButtonRow", 1)[1].split("End Sub", 1)[0]
+    # A shape, not a form control, named btn_ plus its macro, with the macro assigned
+    assert "ws.Shapes.AddShape(5," in row and "ws.Buttons.Add" not in row
+    assert 'Button.Name = "btn_" & ' in row and "Button.OnAction = " in row
+    # It follows its cells when column A is hidden, and keeps its size
+    assert "Button.Placement = 2" in row and "Placement = 3" not in row
+    # The toolkit's style: navy run command, light blue others, a navy line, Aptos 11 pt bold
+    assert 'IsPrimary = (CStr(ButtonDefs(LBound(ButtonDefs) + Index)(1)) = "RunFRTB")' in row
+    assert "IIf(IsPrimary, COLOR_INPUT_HEADER, COLOR_TOTAL_FILL)" in row
+    assert "IIf(IsPrimary, COLOR_WHITE, COLOR_INPUT_HEADER)" in row
+    assert "Button.Line.Weight = 0.75" in row and "Font.Size = 11" in row and "Font.Bold = -1" in row
+    # The shapes are removed by name before they are added again
+    removal = setup.split("Private Sub RemoveButtons", 1)[1].split("End Sub", 1)[0]
+    assert 'Left$(ws.Shapes(ShapeIndex).Name, 4) = "btn_"' in removal
+
+
+def test_the_write_window_holds_screen_updating_off_and_gives_it_back_once():
+    util = (REPO_ROOT / "src" / "modules" / "CORE_Util.bas").read_text(encoding="cp1252")
+    begin = util.split("Public Sub BeginWrite", 1)[1].split("End Sub", 1)[0]
+    end = util.split("Public Sub EndWrite", 1)[1].split("End Sub", 1)[0]
+    # Held before the protection is lifted, so that the unprotecting does not flicker either
+    assert begin.index("Application.ScreenUpdating = False") < begin.index("SetProtection False")
+    assert "mScreenBeforeWrite = Application.ScreenUpdating" in begin
+    # Given back after the protection returns, only when this window held it
+    assert end.index("SetProtection True") < end.index("Application.ScreenUpdating = mScreenBeforeWrite")
+    assert "If mScreenHeld Then" in end

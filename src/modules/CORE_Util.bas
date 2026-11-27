@@ -101,6 +101,8 @@ Option Private Module
     Private mErrorCount             As Long         'ERROR lines of the current run
     Private mWarningCount           As Long         'WARN lines of the current run
     Private mWriteDepth             As Long         'Open write windows; the sheets are unprotected above 0
+    Private mScreenHeld             As Boolean      'True while the outermost write window holds screen updating off
+    Private mScreenBeforeWrite      As Boolean      'ScreenUpdating before the outermost write window opened
 
 
 '
@@ -3335,9 +3337,11 @@ Public Sub BeginWrite()
 '   Nothing
 '
 ' BEHAVIOR
-'   At the outermost level, unprotects through SetProtection with errors suppressed and
-'   keeps the error. When that failed, protects again what the call removed and raises
-'   the kept error. Then adds 1 to the depth of open windows.
+'   At the outermost level, turns screen updating off, so that the sheets do not flicker as
+'   they are unprotected and protected again, then unprotects through SetProtection with
+'   errors suppressed and keeps the error. When that failed, protects again what the call
+'   removed, gives screen updating back and raises the kept error. Then adds 1 to the depth
+'   of open windows.
 '
 ' ERROR POLICY
 '   Raises the error of SetProtection, naming the sheets, when one of them or the
@@ -3347,10 +3351,11 @@ Public Sub BeginWrite()
 '   SetProtection
 '
 ' NOTES
-'   Windows can nest; only the first one unprotects.
+'   Windows can nest; only the first one unprotects and holds screen updating off. A caller
+'   that turned it off before, as a run does, finds it off when the window closes.
 '
 ' UPDATED
-'   2026-11-20
+'   2026-11-27
 '------------------------------------------------------------------------------
 
 '------------------------------------------------------------------------------
@@ -3365,15 +3370,22 @@ Public Sub BeginWrite()
 '------------------------------------------------------------------------------
 ' OPEN WINDOW
 '------------------------------------------------------------------------------
-    'At the outermost window, lift the protection and keep any error
+    'At the outermost window, hold the screen, lift the protection and keep any error
         If mWriteDepth = 0 Then
             On Error Resume Next
+            mScreenBeforeWrite = Application.ScreenUpdating
+            Application.ScreenUpdating = False
+            mScreenHeld = True
             SetProtection False
             ErrorNumber = Err.Number
             ErrorSource = Err.Source
             ErrorDescription = Err.Description
             ' Put back what this call removed
-            If ErrorNumber <> 0 Then SetProtection True
+            If ErrorNumber <> 0 Then
+                SetProtection True
+                Application.ScreenUpdating = mScreenBeforeWrite
+                mScreenHeld = False
+            End If
             On Error GoTo 0
             If ErrorNumber <> 0 Then Err.Raise ErrorNumber, ErrorSource, ErrorDescription
         End If
@@ -3405,7 +3417,8 @@ Public Sub EndWrite()
 '
 ' BEHAVIOR
 '   Subtracts 1 from the depth of open windows when it is above 0. When the depth is
-'   then 0, protects through SetProtection.
+'   then 0, protects through SetProtection and gives screen updating back the value it
+'   had before the window opened.
 '
 ' ERROR POLICY
 '   Never raises: the errors of SetProtection are ignored (On Error Resume Next).
@@ -3414,10 +3427,10 @@ Public Sub EndWrite()
 '   SetProtection
 '
 ' NOTES
-'   None
+'   Screen updating is touched only when an outermost window held it off.
 '
 ' UPDATED
-'   2026-11-20
+'   2026-11-27
 '------------------------------------------------------------------------------
 
 '------------------------------------------------------------------------------
@@ -3425,10 +3438,14 @@ Public Sub EndWrite()
 '------------------------------------------------------------------------------
     'Count the closed window
         If mWriteDepth > 0 Then mWriteDepth = mWriteDepth - 1
-    'With the outermost window, protect again, ignoring errors
+    'With the outermost window, protect again and give the screen back, ignoring errors
         If mWriteDepth = 0 Then
             On Error Resume Next
             SetProtection True
+            If mScreenHeld Then
+                Application.ScreenUpdating = mScreenBeforeWrite
+                mScreenHeld = False
+            End If
             On Error GoTo 0
         End If
 

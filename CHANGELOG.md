@@ -181,6 +181,17 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The sheet command buttons are rounded rectangles with their macro assigned, named `btn_` and the
+  macro, in the style of the shared toolkit's: navy with white text for **Run FRTB-SA**, light blue
+  with a navy line and navy text for **Clear outputs** and **Run regression test**, Aptos 11 pt
+  bold. They replace the form-control buttons, move with their cells (`xlMove`), and so follow
+  column A when the navigation bar is hidden, which `SetNavigationVisible` no longer does by hand.
+  `NAVIGATION` counts the `btn_` shapes (#353).
+- The write window (`BeginWrite` and `EndWrite`) holds screen updating off from the moment it
+  unprotects the sheets to the moment it protects them again, so **Clear outputs**, the navigation
+  toggle and every other command that writes no longer flicker. The navigation toggle gives the
+  `Saved` flag of the workbook back, as the shared toolkit's does.
+
 - The four test modules follow the house style for VBA, the last steps of #374: `TEST_Numeric` and
   `TEST_Regression`, `TEST_Acceptance` and `TEST_AcceptanceData`. They get the same header and
   documentation blocks, locals in PascalCase and `DECLARE` / task sections. `TEST_AcceptanceData` is
