@@ -203,7 +203,7 @@ def test_the_sheet_buttons_are_rounded_rectangles_that_move_with_their_cells():
     assert 'Button.Name = "btn_" & ' in row and "Button.OnAction = " in row
     # It follows its cells when column A is hidden, and keeps its size
     assert "Button.Placement = 2" in row and "Placement = 3" not in row
-    # The toolkit's style: navy run command, light blue others, a navy line, Aptos 11 pt bold
+    # The style: navy run command, light blue others, a navy line, Aptos 11 pt bold
     assert 'IsPrimary = (CStr(ButtonDefs(LBound(ButtonDefs) + Index)(1)) = "RunFRTB")' in row
     assert "IIf(IsPrimary, COLOR_INPUT_HEADER, COLOR_TOTAL_FILL)" in row
     assert "IIf(IsPrimary, COLOR_WHITE, COLOR_INPUT_HEADER)" in row

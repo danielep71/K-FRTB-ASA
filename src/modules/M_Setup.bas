@@ -703,7 +703,7 @@ Private Sub RemoveDefaultSheets()
 '
 ' BEHAVIOR
 '   Walks the worksheets from the last to the first. A sheet that is not managed and has A1,
-'   A2 and B1 blank is deleted. Sheets with content are never deleted.
+'   A2, B1 and C1 blank is deleted. Sheets with content are never deleted.
 '
 ' ERROR POLICY
 '   A sheet that cannot be deleted is skipped (On Error Resume Next).
@@ -728,7 +728,7 @@ Private Sub RemoveDefaultSheets()
             Set CurrentSheet = ThisWorkbook.Worksheets(Index)
             If Not IsManaged(CurrentSheet.Name) Then
                 If IsBlank(CurrentSheet.Cells(1, 1).Value) And IsBlank(CurrentSheet.Cells(2, 1).Value) And _
-                    IsBlank(CurrentSheet.Cells(1, 2).Value) Then
+                    IsBlank(CurrentSheet.Cells(1, 2).Value) And IsBlank(CurrentSheet.Cells(1, LAYOUT_FIRST_COL).Value) Then
                     On Error Resume Next
                     CurrentSheet.Delete
                     On Error GoTo 0
@@ -801,8 +801,8 @@ Private Sub ApplyFrame( _
 ' WRITE THE TEXTS
 '------------------------------------------------------------------------------
     'Write the product name, the sheet title and the subtitle
-        ws.Cells(1, 2).Value = APP_NAME
-        ws.Cells(2, 2).Value = SheetTitle(title)
+        ws.Cells(1, LAYOUT_FIRST_COL).Value = APP_NAME
+        ws.Cells(2, LAYOUT_FIRST_COL).Value = SheetTitle(title)
         ws.Cells(LAYOUT_SUBTITLE_ROW, LAYOUT_FIRST_COL).Value = subtitle
 
 '------------------------------------------------------------------------------
@@ -817,21 +817,21 @@ Private Sub ApplyFrame( _
     'Set the width of column A and fill it black: the navigation bar sits there (#347)
         ws.Columns(1).ColumnWidth = LAYOUT_NAV_WIDTH
         ws.Columns(1).Interior.Color = COLOR_BRAND_BAR
-    'Set the width of column B
-        ws.Columns(2).ColumnWidth = 4
+    'Set the width of column B, the gutter between the bar and the table
+        ws.Columns(2).ColumnWidth = LAYOUT_GUTTER_WIDTH
     'Color the brand bar and size the product name
         With ws.Range(ws.Cells(1, 1), ws.Cells(1, lastCol))
             .Interior.Color = COLOR_BRAND_BAR
             .Font.Color = COLOR_BRAND_TEXT
         End With
-        ws.Cells(1, 2).Font.Size = 14
+        ws.Cells(1, LAYOUT_FIRST_COL).Font.Size = 14
     'Color the title bar and size the title
         With ws.Range(ws.Cells(2, 1), ws.Cells(2, lastCol))
             .Interior.Color = COLOR_TITLE_BAR
             .Font.Color = COLOR_WHITE
         End With
-        ws.Cells(2, 2).Font.Size = 18
-        ws.Cells(2, 2).Font.Bold = True
+        ws.Cells(2, LAYOUT_FIRST_COL).Font.Size = 18
+        ws.Cells(2, LAYOUT_FIRST_COL).Font.Bold = True
     'Style the subtitle
         With ws.Cells(LAYOUT_SUBTITLE_ROW, LAYOUT_FIRST_COL).Font
             .Italic = True
@@ -1739,8 +1739,8 @@ Private Sub AddButtonRow(ByVal ws As Object)
 '
 ' WHY THIS EXISTS
 '   The buttons of a sheet come from SheetButtons and sit in one row of its title bar
-'   (#347). They are shapes with a macro assigned, as the sheet buttons of the shared
-'   toolkit are, so that they follow the cells and look like the rest of the workbook.
+'   (#347). They are shapes with a macro assigned, so that they follow the cells and look
+'   like the rest of the workbook.
 '
 ' INPUTS
 '   ws
@@ -1821,7 +1821,7 @@ Private Sub AddButtonRow(ByVal ws As Object)
             End If
         Next ColumnIndex
     'Estimate where the title text ends
-        TitleEnd = ws.Cells(2, 2).Left + 11 * Len(CStr(ws.Cells(2, 2).Value)) + 18
+        TitleEnd = ws.Cells(2, LAYOUT_FIRST_COL).Left + 11 * Len(CStr(ws.Cells(2, LAYOUT_FIRST_COL).Value)) + 18
     'Right-align the row to the bar, but never over the title
         ButtonLeft = BarRight - TotalWidth - 8
         If ButtonLeft < TitleEnd Then ButtonLeft = TitleEnd
@@ -1985,12 +1985,13 @@ Private Sub ApplyWindowSettings()
 '                          APPLY THE WINDOW SETTINGS
 '------------------------------------------------------------------------------
 ' PURPOSE
-'   Hides the gridlines and freezes the panes below the table header on every managed sheet.
+'   Hides the gridlines and freezes the panes below the table header on every managed sheet,
+'   with columns A and B frozen at least, so the navigation bar stays in view.
 '
 ' WHY THIS EXISTS
 '   Needs each sheet to be active once. The wide input, output and Log sheets also keep
-'   their key columns in view; the narrow tables of Results, Control, Test_Expected and the
-'   parameter sheets freeze rows only.
+'   their key columns in view; every other sheet freezes the bar and its gutter (columns A
+'   and B) and the rows above its table.
 '
 ' INPUTS
 '   None
@@ -2003,10 +2004,10 @@ Private Sub ApplyWindowSettings()
 '   new ones:
 '     - In_*, Out_* and Log: the rows above the first data row and the columns up to the
 '       first table column
-'     - Results: the rows above the first data row
+'     - Results: the rows above the first data row and columns A and B
 '     - Control, the test sheet and the P_* sheets: rows 1 to 6, the header row and the row
-'       below it
-'     - any other sheet: rows 1 to 3
+'       below it, and columns A and B
+'     - any other sheet: rows 1 to 3 and columns A and B
 '   Then selects A1.
 '
 ' ERROR POLICY
@@ -2052,14 +2053,14 @@ Private Sub ApplyWindowSettings()
                 CurrentSheet.Cells(LAYOUT_FIRST_DATA_ROW, LAYOUT_FIRST_COL + 1).Select
                 Application.ActiveWindow.FreezePanes = True
             ElseIf CurrentSheet.Name = SH_RESULTS Then
-                CurrentSheet.Cells(LAYOUT_FIRST_DATA_ROW, 1).Select
+                CurrentSheet.Cells(LAYOUT_FIRST_DATA_ROW, LAYOUT_FIRST_COL).Select
                 Application.ActiveWindow.FreezePanes = True
             ElseIf CurrentSheet.Name = SH_CONTROL Or CurrentSheet.Name = SH_TEST Or _
                 Left$(CurrentSheet.Name, 2) = "P_" Then
-                CurrentSheet.Cells(LAYOUT_HEADER_ROW + 2, 1).Select
+                CurrentSheet.Cells(LAYOUT_HEADER_ROW + 2, LAYOUT_FIRST_COL).Select
                 Application.ActiveWindow.FreezePanes = True
             Else
-                CurrentSheet.Cells(4, 1).Select
+                CurrentSheet.Cells(4, LAYOUT_FIRST_COL).Select
                 Application.ActiveWindow.FreezePanes = True
             End If
             CurrentSheet.Cells(1, 1).Select

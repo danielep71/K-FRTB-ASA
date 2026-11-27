@@ -258,7 +258,7 @@ checks that it turns red.
 ### 🧭 Navigation
 
 The workbook opens on `Home`, which lists every sheet once with its role and a
-link to it. On every sheet, column A (22 wide, black) holds a bar of dark
+link to it. On every sheet, column A (18 wide, black) holds a bar of dark
 entries grouped under INPUTS, PARAMETERS, OUTPUTS, TESTS & REFERENCE and START,
 which ends the bar. A strip at the left of each entry has the color of the
 sheet's tab; the current sheet is the blue entry with white bold text and an

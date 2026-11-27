@@ -85,9 +85,11 @@ Option Private Module
     Public Const SH_TEST        As String = "Test_Expected" 'Expected values and tests sheet
 
     'Sheet layout shared by every sheet: brand bar (row 1), title bar (row 2), subtitle (row 3),
-    'spacer (row 4); tables start in column C
+    'spacer (row 4); the product name and the title sit in column C with the subtitle and the
+    'tables, right of the bar (column A) and the gutter (column B)
     Public Const LAYOUT_FIRST_COL       As Long = 3     'Column C
-    Public Const LAYOUT_NAV_WIDTH       As Long = 22    'Column A: the navigation bar sits here (#347)
+    Public Const LAYOUT_NAV_WIDTH       As Long = 18    'Column A: the navigation bar sits here (#347)
+    Public Const LAYOUT_GUTTER_WIDTH    As Long = 2     'Column B: the gutter between the bar and the table
     Public Const LAYOUT_SUBTITLE_ROW    As Long = 3     'Subtitle row
     Public Const LAYOUT_HEADER_ROW      As Long = 5     'Table header on input and output sheets
     Public Const INPUT_ROWS             As Long = 200   'Pre-formatted input rows per input sheet

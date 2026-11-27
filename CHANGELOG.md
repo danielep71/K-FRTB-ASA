@@ -181,8 +181,15 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The sheet frame is narrower on the left. Column A is 18 wide (was 22) and column B a
+  gutter 2 wide (was 4); the product name and the title of the sheet sit in column C, with the
+  subtitle and the tables, where they were in column B. Columns A and B are frozen on every sheet,
+  and columns A to C on the input, output and Log sheets as before, so the navigation bar stays in
+  view when a wide sheet scrolls sideways: the sheets that froze rows only now freeze the two columns
+  as well. The committed template, the acceptance data and the tests follow (#353).
+
 - The sheet command buttons are rounded rectangles with their macro assigned, named `btn_` and the
-  macro, in the style of the shared toolkit's: navy with white text for **Run FRTB-SA**, light blue
+  macro: navy with white text for **Run FRTB-SA**, light blue
   with a navy line and navy text for **Clear outputs** and **Run regression test**, Aptos 11 pt
   bold. They replace the form-control buttons, move with their cells (`xlMove`), and so follow
   column A when the navigation bar is hidden, which `SetNavigationVisible` no longer does by hand.
@@ -190,7 +197,7 @@ Unreleased describe integrated work, not a published version.
 - The write window (`BeginWrite` and `EndWrite`) holds screen updating off from the moment it
   unprotects the sheets to the moment it protects them again, so **Clear outputs**, the navigation
   toggle and every other command that writes no longer flicker. The navigation toggle gives the
-  `Saved` flag of the workbook back, as the shared toolkit's does.
+  `Saved` flag of the workbook back.
 
 - The four test modules follow the house style for VBA, the last steps of #374: `TEST_Numeric` and
   `TEST_Regression`, `TEST_Acceptance` and `TEST_AcceptanceData`. They get the same header and

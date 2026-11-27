@@ -320,7 +320,7 @@ def test_template_differences_are_listed_by_kind(tmp_path):
     assert "Control: 1 values differ" in lines
     assert any(line.startswith("  Control!E7: ") and line.endswith("-> 'changed'") for line in lines)
     assert any(line.startswith("  Control!E: width ") for line in lines)
-    assert "Control: frozen panes 6 rows, 0 columns -> none" in lines
+    assert "Control: frozen panes 6 rows, 2 columns -> none" in lines
 
 
 def test_compare_templates_prints_the_result(tmp_path, capsys):

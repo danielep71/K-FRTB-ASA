@@ -535,9 +535,9 @@ Public Function AcceptancePanes() As Collection
 ' BUILD THE DATA
 '------------------------------------------------------------------------------
     'Add one entry per row of data
-        Items.Add Array("Home", 3, 0)
-        Items.Add Array("Control", 6, 0)
-        Items.Add Array("Results", 5, 0)
+        Items.Add Array("Home", 3, 2)
+        Items.Add Array("Control", 6, 2)
+        Items.Add Array("Results", 5, 2)
         Items.Add Array("In_Delta", 5, 3)
         Items.Add Array("In_Vega", 5, 3)
         Items.Add Array("In_Curvature", 5, 3)
@@ -548,16 +548,16 @@ Public Function AcceptancePanes() As Collection
         Items.Add Array("Out_Buckets", 5, 3)
         Items.Add Array("Out_DRC", 5, 3)
         Items.Add Array("Log", 5, 3)
-        Items.Add Array("P_General", 6, 0)
-        Items.Add Array("P_GIRR", 6, 0)
-        Items.Add Array("P_CSR", 6, 0)
-        Items.Add Array("P_EQ", 6, 0)
-        Items.Add Array("P_COM", 6, 0)
-        Items.Add Array("P_FX", 6, 0)
-        Items.Add Array("P_DRC", 6, 0)
-        Items.Add Array("P_RRAO", 6, 0)
-        Items.Add Array("Test_Expected", 6, 0)
-        Items.Add Array("README", 3, 0)
+        Items.Add Array("P_General", 6, 2)
+        Items.Add Array("P_GIRR", 6, 2)
+        Items.Add Array("P_CSR", 6, 2)
+        Items.Add Array("P_EQ", 6, 2)
+        Items.Add Array("P_COM", 6, 2)
+        Items.Add Array("P_FX", 6, 2)
+        Items.Add Array("P_DRC", 6, 2)
+        Items.Add Array("P_RRAO", 6, 2)
+        Items.Add Array("Test_Expected", 6, 2)
+        Items.Add Array("README", 3, 2)
 
 '------------------------------------------------------------------------------
 ' RETURN VALUE
