@@ -183,10 +183,11 @@ Unreleased describe integrated work, not a published version.
 
 - The sheet frame is narrower on the left. Column A is 18 wide (was 22) and column B a
   gutter 2 wide (was 4); the product name and the title of the sheet sit in column C, with the
-  subtitle and the tables, where they were in column B. Columns A and B are frozen on every sheet,
-  and columns A to C on the input, output and Log sheets as before, so the navigation bar stays in
-  view when a wide sheet scrolls sideways: the sheets that froze rows only now freeze the two columns
-  as well. The committed template, the acceptance data and the tests follow (#353).
+  subtitle and the tables, where they were in column B, flush left with no indent. Columns A and B
+  are frozen on every sheet, and no other column, so the navigation bar stays in view when a sheet
+  scrolls sideways: the input, output and Log sheets no longer freeze column C. On row 2 columns A
+  and B are black and the blue title bar starts in column C. The committed template, the
+  acceptance data and the tests follow (#353).
 
 - The sheet command buttons are rounded rectangles with their macro assigned, named `btn_` and the
   macro: navy with white text for **Run FRTB-SA**, light blue

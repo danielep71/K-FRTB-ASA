@@ -40,8 +40,8 @@ def test_template_saved_presentation():
         assert ws.sheet_properties.tabColor is not None, ws.title
         assert ws.sheet_properties.tabColor.rgb == expected_tab, ws.title
         wide = ws.title.startswith(("In_", "Out_")) or ws.title == "Log"
-        # Columns A and B stay in view on every sheet; the wide tables keep their key columns too
-        expected_freeze = ("C4" if ws.title in ("README", "Home") else "D6" if wide else "C6" if ws.title == "Results"
+        # Columns A and B, and no other, stay in view on every sheet
+        expected_freeze = ("C4" if ws.title in ("README", "Home") else "C6" if wide or ws.title == "Results"
                            else "C7")
         assert ws.freeze_panes == expected_freeze, ws.title
         assert ws.page_setup.orientation == "landscape", ws.title
@@ -117,7 +117,15 @@ def test_every_sheet_leaves_room_for_the_navigation_bar():
         assert ws["C1"].value == "K-FRTB-ASA" and ws["B1"].value is None, ws.title
         assert ws["C2"].value and ws["B2"].value is None, ws.title
         assert ws["A1"].fill.fgColor.rgb == "FF000000", ws.title
-        assert ws["A2"].fill.fgColor.rgb == "FF265A99", ws.title
+        # Row 2 is black in the bar and the gutter, and the title bar starts in column C
+        # A2 has no style of its own, so it takes the black of column A
+        assert ws["A2"].fill.fgColor.rgb == "FF000000" or (
+            not ws["A2"].has_style and ws.column_dimensions["A"].fill.fgColor.rgb == "FF000000"), ws.title
+        assert ws["B2"].fill.fgColor.rgb == "FF000000", ws.title
+        assert ws["C2"].fill.fgColor.rgb == "FF265A99", ws.title
+        # The product name and the title sit flush left in column C, with no indent
+        for address in ("C1", "C2"):
+            assert ws[address].alignment.horizontal == "left" and not ws[address].alignment.indent, (ws.title, address)
 
 
 def header_pixels(text):

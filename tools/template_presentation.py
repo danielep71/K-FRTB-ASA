@@ -140,17 +140,17 @@ def normalize(path: Path) -> None:
         _child(props, "pageSetUpPr", fitToPage="1")
 
         frozen_rows = 3 if name in ("README", "Home") else 6 if name in ("Control", "Test_Expected") or name.startswith("P_") else 5
-        # The wide input, output and Log tables keep their key columns in view;
-        # every other sheet freezes the navigation bar and its gutter (columns
-        # A and B), so the bar stays in view when the sheet scrolls sideways.
-        frozen_cols = 3 if name.startswith(("In_", "Out_")) or name == "Log" else 2
+        # Every sheet freezes the navigation bar and its gutter (columns A and
+        # B), and nothing else, so the bar stays in view when the sheet scrolls
+        # sideways.
+        frozen_cols = 2
         for view in root.findall(f"{_tag('sheetViews')}/{_tag('sheetView')}"):
             view.set("showGridLines", "0")
             view.set("topLeftCell", "A1")
             for old in list(view):
                 if old.tag in (_tag("pane"), _tag("selection")):
                     view.remove(old)
-            pane = ET.Element(_tag("pane"), ySplit=str(frozen_rows), topLeftCell=f"{'D' if frozen_cols == 3 else 'C'}{frozen_rows + 1}", activePane="bottomRight", state="frozen")
+            pane = ET.Element(_tag("pane"), ySplit=str(frozen_rows), topLeftCell=f"C{frozen_rows + 1}", activePane="bottomRight", state="frozen")
             pane.set("xSplit", str(frozen_cols))
             view.insert(0, pane)
             ET.SubElement(view, _tag("selection"), pane=pane.attrib["activePane"], activeCell=pane.attrib["topLeftCell"], sqref=pane.attrib["topLeftCell"])
