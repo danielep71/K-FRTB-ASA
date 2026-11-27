@@ -1947,9 +1947,12 @@ Private Function CheckNavigation(ByRef detail As String) As String
 '   Then, for each sheet, compares the number of button shapes (named btn_) with the number
 '   of buttons SheetButtons defines for it (none when it returns Empty), and requires a
 '   shape named btn_ plus the macro for each of them.
+'   Requires, on each sheet, the two triangles NAV_TOGGLE_HIDE and NAV_TOGGLE_SHOW, and the
+'   Home entry in the rows above the first scrolling row: START stays in view.
 '   Last, calls SetNavigationVisible with True to start from the shown bar, then with
 '   False and with True again, as the ribbon's toggle does, and after each call records a
-'   problem for every sheet whose column A or whose Nav shapes disagree, or whose first
+'   problem for every sheet whose column A or whose Nav shapes disagree (the triangle that
+'   shows the bar takes the opposite state of the others), or whose first
 '   first button is not where it was, moved left by the width of column A while the bar is
 '   hidden, or whose column A is not LAYOUT_NAV_WIDTH wide when the bar is shown again.
 '   The bar is left shown.
@@ -1959,7 +1962,7 @@ Private Function CheckNavigation(ByRef detail As String) As String
 '
 ' DEPENDENCIES
 '   ManagedSheets, GetSheet, ShapeExists, SheetButtons, SetNavigationVisible, SH_HOME,
-'   LAYOUT_NAV_WIDTH, mInExcel.
+'   LAYOUT_NAV_WIDTH, LAYOUT_FIRST_DATA_ROW, NAV_TOGGLE_HIDE, NAV_TOGGLE_SHOW, mInExcel.
 '
 ' NOTES
 '   None
@@ -2015,6 +2018,18 @@ Private Function CheckNavigation(ByRef detail As String) As String
             End If
             If Not ShapeExists(ManagedSheet, "Nav_Current") Then
                 Problems = Problems & ManagedSheet.Name & " has no marker; "
+            End If
+            If Not ShapeExists(ManagedSheet, NAV_TOGGLE_HIDE) Or Not ShapeExists(ManagedSheet, NAV_TOGGLE_SHOW) Then
+                Problems = Problems & ManagedSheet.Name & " lacks a triangle to hide or show the bar; "
+            End If
+            If ManagedSheet.Name = SH_HOME Then
+                If ManagedSheet.Shapes("Nav_Current").Top >= ManagedSheet.Cells(LAYOUT_FIRST_DATA_ROW + 1, 1).Top Then
+                    Problems = Problems & "START is not in the rows that stay in view; "
+                End If
+            ElseIf ShapeExists(ManagedSheet, "Nav_" & SH_HOME) Then
+                If ManagedSheet.Shapes("Nav_" & SH_HOME).Top >= ManagedSheet.Cells(LAYOUT_FIRST_DATA_ROW + 1, 1).Top Then
+                    Problems = Problems & ManagedSheet.Name & " has START below the rows that stay in view; "
+                End If
             End If
             For InnerIndex = LBound(SheetNames) To UBound(SheetNames)
                 If CStr(SheetNames(InnerIndex)) <> ManagedSheet.Name Then
@@ -2095,7 +2110,8 @@ Private Function CheckNavigation(ByRef detail As String) As String
                 End If
                 For ShapeIndex = 1 To ManagedSheet.Shapes.Count
                     If Left$(ManagedSheet.Shapes(ShapeIndex).Name, 3) = "Nav" Then
-                        If ManagedSheet.Shapes(ShapeIndex).Visible <> (ToggleStep = 1) Then
+                        If (ManagedSheet.Shapes(ShapeIndex).Visible <> (ToggleStep = 1)) <> _
+                            (ManagedSheet.Shapes(ShapeIndex).Name = NAV_TOGGLE_SHOW) Then
                             Problems = Problems & ManagedSheet.Name & " keeps " & _
                                 ManagedSheet.Shapes(ShapeIndex).Name & IIf(ToggleStep = 1, " hidden", " shown") & "; "
                             Exit For

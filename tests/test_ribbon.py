@@ -223,3 +223,36 @@ def test_the_write_window_holds_screen_updating_off_and_gives_it_back_once():
     # Given back after the protection returns, only when this window held it
     assert end.index("SetProtection True") < end.index("Application.ScreenUpdating = mScreenBeforeWrite")
     assert "If mScreenHeld Then" in end
+
+
+def test_the_bar_has_start_at_the_top_and_two_triangles_that_toggle_it():
+    setup = SETUP.read_text(encoding="cp1252")
+    bar = setup.split("Private Sub AddNavigationBar", 1)[1].split("End Sub", 1)[0]
+    # START and Home come first, in the rows that stay in view; the rest starts below every frozen row
+    assert "BarTop = ws.Cells(1, 1).Top + 5" in bar
+    assert "If Position = 2 Then BarTop = ws.Cells(LAYOUT_FIRST_DATA_ROW + 1, 1).Top" in bar
+    assert "For Position = 1 To NAV_COUNT" in bar
+    # Two triangles in B1, turned left and right, that follow their cells and run the macro
+    assert "ws.Shapes.AddShape(7," in bar and "ws.Cells(1, 2)" in bar
+    assert "NavShape.Rotation = IIf(ToggleStep = 0, 270, 90)" in bar and "NavShape.Placement = 2" in bar
+    assert 'NavShape.OnAction = "ToggleNavigationBar"' in bar
+    assert "NavShape.Name = IIf(ToggleStep = 0, NAV_TOGGLE_HIDE, NAV_TOGGLE_SHOW)" in bar
+    assert "NavShape.Visible = IIf(ToggleStep = 0, -1, 0)" in bar
+    # The toggle gives the triangle that shows the bar the opposite state
+    toggle = setup.split("Public Sub SetNavigationVisible", 1)[1].split("End Sub", 1)[0]
+    assert "Name = NAV_TOGGLE_SHOW Then" in toggle and ".Visible = Not shown" in toggle
+    # The macro asks for the other state and refreshes the ribbon
+    main = procedure_bodies(MAIN)
+    assert main["ToggleNavigationBar"][:2] == ["If mBusy Then Exit Sub", "SetNavigationVisible Not NavigationVisible()"]
+    assert "mRibbon.Invalidate" in " ".join(main["ToggleNavigationBar"])
+    config = (REPO_ROOT / "src" / "modules" / "CORE_Config.bas").read_text(encoding="cp1252")
+    assert 'NAV_TOGGLE_HIDE As String = "NavToggleHide"' in config and 'NAV_TOGGLE_SHOW As String = "NavToggleShow"' in config
+    # Both names start with Nav, so RemoveNavigation clears them with the bar
+    assert 'Left$(ws.Shapes(Index).Name, 3) = "Nav"' in setup
+
+
+def test_the_title_bar_starts_in_the_gutter_and_column_a_stays_black():
+    setup = SETUP.read_text(encoding="cp1252")
+    frame = setup.split("Private Sub ApplyFrame", 1)[1].split("End Sub", 1)[0]
+    assert "ws.Cells(2, 1).Interior.Color = COLOR_BRAND_BAR" in frame
+    assert "With ws.Range(ws.Cells(2, LAYOUT_FIRST_COL - 1), ws.Cells(2, lastCol))" in frame

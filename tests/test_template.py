@@ -117,11 +117,11 @@ def test_every_sheet_leaves_room_for_the_navigation_bar():
         assert ws["C1"].value == "K-FRTB-ASA" and ws["B1"].value is None, ws.title
         assert ws["C2"].value and ws["B2"].value is None, ws.title
         assert ws["A1"].fill.fgColor.rgb == "FF000000", ws.title
-        # Row 2 is black in the bar and the gutter, and the title bar starts in column C
+        # Row 2 is black in the bar and blue from the gutter on: the title bar starts in column B
         # A2 has no style of its own, so it takes the black of column A
         assert ws["A2"].fill.fgColor.rgb == "FF000000" or (
             not ws["A2"].has_style and ws.column_dimensions["A"].fill.fgColor.rgb == "FF000000"), ws.title
-        assert ws["B2"].fill.fgColor.rgb == "FF000000", ws.title
+        assert ws["B2"].fill.fgColor.rgb == "FF265A99", ws.title
         assert ws["C2"].fill.fgColor.rgb == "FF265A99", ws.title
         # The product name and the title sit flush left in column C, with no indent
         for address in ("C1", "C2"):

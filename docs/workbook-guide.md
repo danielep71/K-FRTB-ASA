@@ -259,8 +259,11 @@ checks that it turns red.
 
 The workbook opens on `Home`, which lists every sheet once with its role and a
 link to it. On every sheet, column A (18 wide, black) holds a bar of dark
-entries grouped under INPUTS, PARAMETERS, OUTPUTS, TESTS & REFERENCE and START,
-which ends the bar. A strip at the left of each entry has the color of the
+entries. START and Home sit at the top, in the rows that stay in view when you
+scroll; below them come INPUTS, PARAMETERS, OUTPUTS and TESTS & REFERENCE. A
+grey triangle at the left of B1 hides the bar (it points left) and, with the bar
+hidden, shows it again (it points right); the **Navigation bar** button of the
+ribbon does the same. A strip at the left of each entry has the color of the
 sheet's tab; the current sheet is the blue entry with white bold text and an
 amber strip, and the others are links. An entry is `262626` with `D9D9D9` Aptos
 9 pt text, a section label is amber 7 pt bold and a strip is 2.25 pt wide. The

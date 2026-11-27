@@ -48,7 +48,11 @@ screen. To change an icon, edit the `.svg` and render it again at 64 px.
   also when it fails, and asks the ribbon to read its states again, so the
   three commands are disabled for the duration of a run.
 - **Navigation bar:** the toggle shows or hides every `Nav*` shape of every
-  sheet and column A with them: column A is the black column the bar sits in,
+  sheet and column A with them, except that the two triangles in B1 take
+  opposite states: `NavToggleHide` (points left) is shown with the bar and
+  `NavToggleShow` (points right) while it is hidden. Both run
+  `M_Main.ToggleNavigationBar`, which asks for the state the bar is not in and
+  refreshes the ribbon, so its toggle follows a click on a triangle. Column A: column A is the black column the bar sits in,
   and hidden it leaves no empty strip. The sheet buttons are rounded
   rectangles that move with their cells, so they follow column A without
   being moved. Its state is read from the marker of

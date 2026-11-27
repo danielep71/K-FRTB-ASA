@@ -775,9 +775,9 @@ Private Sub ApplyFrame( _
 '     - writes the product name, the title and the subtitle
 '     - sets the font, the width of columns A and B and the black fill of column A, where
 '       the navigation bar sits (#347)
-'     - colors and sizes the brand bar (row 1), the title bar (row 2, from column C: columns A
-'       and B stay black) and the subtitle (row 3), and aligns the product name and the title
-'       to the left of column C with no indent
+'     - colors and sizes the brand bar (row 1), the title bar (row 2, from column B: column A
+'       stays black) and the subtitle (row 3), and aligns the product name and the title to
+'       the left of column C with no indent
 '     - sets the heights of rows 1 to 4
 '     - sets the page setup: A4 landscape, one page wide, margins, footer and the title rows
 '       that repeat
@@ -826,9 +826,9 @@ Private Sub ApplyFrame( _
             .Font.Color = COLOR_BRAND_TEXT
         End With
         ws.Cells(1, LAYOUT_FIRST_COL).Font.Size = 14
-    'Keep the bar and the gutter black on the title row, and color the title bar from the first table column
-        ws.Range(ws.Cells(2, 1), ws.Cells(2, LAYOUT_FIRST_COL - 1)).Interior.Color = COLOR_BRAND_BAR
-        With ws.Range(ws.Cells(2, LAYOUT_FIRST_COL), ws.Cells(2, lastCol))
+    'Keep column A black on the title row, and color the title bar from the gutter (column B)
+        ws.Cells(2, 1).Interior.Color = COLOR_BRAND_BAR
+        With ws.Range(ws.Cells(2, LAYOUT_FIRST_COL - 1), ws.Cells(2, lastCol))
             .Interior.Color = COLOR_TITLE_BAR
             .Font.Color = COLOR_WHITE
         End With
@@ -2508,6 +2508,8 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
 '   Opens a write window, then for each managed sheet that exists sets the visibility of
 '   every shape whose name starts with "Nav" and hides column A, or shows it again, with
 '   them; the buttons of a sheet move with their cells (xlMove), so they follow column A.
+'   The two triangles in B1 take opposite states: the one that hides the bar is shown while
+'   the bar is, the one that shows it while the bar is hidden.
 '   Then closes the write window and gives the Saved flag of the workbook back, so that
 '   the toggle of a view is not a change that asks to be saved.
 '
@@ -2556,7 +2558,9 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
             If SheetExists(CStr(SheetNames(Index))) Then
                 Set CurrentSheet = GetSheet(CStr(SheetNames(Index)))
                 For ShapeIndex = 1 To CurrentSheet.Shapes.Count
-                    If Left$(CurrentSheet.Shapes(ShapeIndex).Name, 3) = "Nav" Then
+                    If CurrentSheet.Shapes(ShapeIndex).Name = NAV_TOGGLE_SHOW Then
+                        CurrentSheet.Shapes(ShapeIndex).Visible = Not shown
+                    ElseIf Left$(CurrentSheet.Shapes(ShapeIndex).Name, 3) = "Nav" Then
                         CurrentSheet.Shapes(ShapeIndex).Visible = shown
                     End If
                 Next ShapeIndex
@@ -2791,7 +2795,8 @@ Private Sub AddNavigationBar(ByVal ws As Object)
 '------------------------------------------------------------------------------
 ' PURPOSE
 '   Adds to a sheet the shapes of the navigation bar: a heading for each section, an entry
-'   for each sheet and a strip of the role color at the left edge of each entry.
+'   for each sheet and a strip of the role color at the left edge of each entry, and the two
+'   triangles in B1 that hide and show the bar.
 '
 ' WHY THIS EXISTS
 '   Every sheet shows the same bar; the entry of the sheet itself is the marker
@@ -2805,12 +2810,14 @@ Private Sub AddNavigationBar(ByVal ws As Object)
 '   Nothing
 '
 ' BEHAVIOR
-'   Removes the bar the sheet already has. Starts in column A, below every frozen row, and
-'   walks the entries of NavEntry from the second to the last, then Home, so that the bar
-'   ends on START. For each entry: adds a section heading when the section changes, adds the
-'   entry as a rectangle with its caption and, unless it is the current sheet, a hyperlink
+'   Removes the bar the sheet already has. Puts START and Home at the top of column A, in
+'   the rows that stay in view, then the other sections from below every frozen row, in the
+'   order of NavEntry. For each entry: adds a section heading when the section changes, adds
+'   the entry as a rectangle with its caption and, unless it is the current sheet, a hyperlink
 '   to cell A1 of that sheet, then adds the strip. The current sheet is drawn in the title
-'   bar color with white bold text and an amber strip.
+'   bar color with white bold text and an amber strip. Last adds two triangles at the left of
+'   B1, grey, running ToggleNavigationBar: NAV_TOGGLE_HIDE points left and is shown, and
+'   NAV_TOGGLE_SHOW points right and is hidden. Both follow their cells (xlMove).
 '
 ' ERROR POLICY
 '   Errors are ignored (On Error Resume Next).
@@ -2819,10 +2826,11 @@ Private Sub AddNavigationBar(ByVal ws As Object)
 '   RemoveNavigation, NavEntry, RoleColor; ManagedSheets and the palette (CORE_Config).
 '
 ' NOTES
-'   Shape names: Nav_Current, Nav_<sheet>, Nav_<sheet>_Mark and NavSection_<section>.
+'   Shape names: Nav_Current, Nav_<sheet>, Nav_<sheet>_Mark, NavSection_<section>,
+'   NavToggleHide and NavToggleShow.
 '
 ' UPDATED
-'   2026-11-20
+'   2026-11-27
 '------------------------------------------------------------------------------
 
 '------------------------------------------------------------------------------
@@ -2830,7 +2838,8 @@ Private Sub AddNavigationBar(ByVal ws As Object)
 '------------------------------------------------------------------------------
     Const PROC_NAME             As String = "M_Setup.AddNavigationBar"
 
-    Dim Position                As Long         'Loop position, 2 to NAV_COUNT + 1
+    Dim Position                As Long         'Loop position, 1 to NAV_COUNT
+    Dim ToggleStep              As Long         'Triangle being added: 0 hides the bar, 1 shows it
     Dim EntryNumber             As Long         'Entry of NavEntry
     Dim Entry                   As Variant      'Navigation entry
     Dim SectionName             As String       'Section heading written last
@@ -2851,17 +2860,19 @@ Private Sub AddNavigationBar(ByVal ws As Object)
         RemoveNavigation ws
     'Show column A: a hidden column has no width to place the bar by
         ws.Columns(1).Hidden = False
-    'Place the bar in column A, below every frozen row
+    'Place the bar in column A, START and Home first, in the rows that stay in view
         BarLeft = ws.Cells(1, 1).Left + 6
         BarWidth = ws.Columns(1).Width - 12
-        BarTop = ws.Cells(LAYOUT_FIRST_DATA_ROW + 1, 1).Top  'below every frozen row
+        BarTop = ws.Cells(1, 1).Top + 5
 
 '------------------------------------------------------------------------------
 ' ADD THE ENTRIES
 '------------------------------------------------------------------------------
     'Add one entry per sheet, with a heading where the section changes
-        For Position = 2 To NAV_COUNT + 1  'Home, the first entry, comes last: the bar ends on START
-            EntryNumber = IIf(Position > NAV_COUNT, 1, Position)
+        For Position = 1 To NAV_COUNT
+            EntryNumber = Position
+            'The other sections start below every frozen row
+            If Position = 2 Then BarTop = ws.Cells(LAYOUT_FIRST_DATA_ROW + 1, 1).Top
             Entry = NavEntry(EntryNumber)
             If CStr(Entry(0)) <> SectionName Then
                 SectionName = CStr(Entry(0))
@@ -2911,6 +2922,25 @@ Private Sub AddNavigationBar(ByVal ws As Object)
             StripShape.Line.Visible = 0
             BarTop = BarTop + 17
         Next Position
+
+'------------------------------------------------------------------------------
+' ADD THE TOGGLE TRIANGLES
+'------------------------------------------------------------------------------
+    'Add the triangle that hides the bar (left, shown) and the one that shows it (right, hidden) at the
+    'left of B1: a triangle is drawn pointing up and turned, so its box is 9 wide and 6.75 high before the turn
+        For ToggleStep = 0 To 1
+            Set NavShape = ws.Shapes.AddShape(7, ws.Cells(1, 2).Left + 1.125, _
+                ws.Cells(1, 2).Top + ws.Rows(1).Height / 2 - 3.375, 9, 6.75)  'msoShapeIsoscelesTriangle
+            NavShape.Name = IIf(ToggleStep = 0, NAV_TOGGLE_HIDE, NAV_TOGGLE_SHOW)
+            NavShape.Rotation = IIf(ToggleStep = 0, 270, 90)
+            NavShape.Placement = 2  'xlMove: follows column B when column A is hidden
+            NavShape.Fill.ForeColor.RGB = COLOR_NAV_TEXT
+            NavShape.Line.Visible = 0
+            NavShape.Shadow.Visible = 0
+            NavShape.OnAction = "ToggleNavigationBar"
+            NavShape.AlternativeText = IIf(ToggleStep = 0, "Hide the navigation bar", "Show the navigation bar")
+            NavShape.Visible = IIf(ToggleStep = 0, -1, 0)  'msoTrue, msoFalse
+        Next ToggleStep
     'Restore normal error handling
         On Error GoTo 0
 
