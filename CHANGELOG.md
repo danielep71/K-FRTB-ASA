@@ -181,6 +181,13 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The navigation bar has START and Home at the top of column A, in the rows that stay in view, and
+  the other sections below the frozen rows. A grey triangle at the left of B1 of every sheet hides
+  the bar (it points left) and, with the bar hidden, shows it again (it points right):
+  `NavToggleHide` and `NavToggleShow`, which run `M_Main.ToggleNavigationBar` and refresh the ribbon.
+  The title bar of row 2 starts in column B again, so B2 is blue and A2 stays black. `NAVIGATION`
+  checks the triangles, the place of START and the states of the shapes after the toggle (#353).
+
 - The sheet frame is narrower on the left. Column A is 18 wide (was 22) and column B a
   gutter 2 wide (was 4); the product name and the title of the sheet sit in column C, with the
   subtitle and the tables, where they were in column B, flush left with no indent. Columns A and B

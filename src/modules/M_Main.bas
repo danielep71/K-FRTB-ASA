@@ -65,6 +65,7 @@ Option Explicit
 '   Ribbon_NavShown: the callbacks of the FRTB-ASA ribbon tab
 '   (src/ribbon/customUI14.xml,
 '   docs/ribbon.md). Each calls one procedure and holds no logic.
+'   ToggleNavigationBar: what the two triangles in B1 of every sheet run.
 '
 ' STATE OWNERSHIP
 '   Each run captures the screen updating and calculation mode, changes them
@@ -740,6 +741,56 @@ Public Sub Ribbon_NavShown(ByVal control As Object, ByRef returnedVal As Variant
 '------------------------------------------------------------------------------
     'Do what the command asks
         returnedVal = NavigationVisible()
+
+End Sub
+
+Public Sub ToggleNavigationBar()
+
+'
+'------------------------------------------------------------------------------
+'                     TOGGLE THE NAVIGATION BAR FROM A SHEET
+'------------------------------------------------------------------------------
+' PURPOSE
+'   Shows the navigation bar when it is hidden and hides it when it is shown.
+'
+' WHY THIS EXISTS
+'   The two triangles in B1 of every sheet run it (#353), as the toggle of the ribbon does
+'   through Ribbon_ToggleNav.
+'
+' INPUTS
+'   None
+'
+' RETURNS
+'   Nothing
+'
+' BEHAVIOR
+'   Asks SetNavigationVisible for the state the bar is not in, then asks the ribbon to read
+'   its states again, so that its toggle follows the triangle.
+'
+' ERROR POLICY
+'   The ribbon refresh ignores errors (On Error Resume Next).
+'
+' DEPENDENCIES
+'   SetNavigationVisible, NavigationVisible (M_Setup).
+'
+' NOTES
+'   A run holds the workbook busy: the triangle then does nothing.
+'
+' UPDATED
+'   2026-11-27
+'------------------------------------------------------------------------------
+
+'------------------------------------------------------------------------------
+' TOGGLE
+'------------------------------------------------------------------------------
+    'Do nothing while a run holds the workbook
+        If mBusy Then Exit Sub
+    'Ask for the state the bar is not in
+        SetNavigationVisible Not NavigationVisible()
+    'Refresh the ribbon, ignoring errors
+        On Error Resume Next
+        If Not mRibbon Is Nothing Then mRibbon.Invalidate
+        On Error GoTo 0
 
 End Sub
 

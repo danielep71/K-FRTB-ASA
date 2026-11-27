@@ -95,6 +95,10 @@ Option Private Module
     Public Const INPUT_ROWS             As Long = 200   'Pre-formatted input rows per input sheet
     Public Const LAYOUT_FIRST_DATA_ROW  As Long = 6     'First data row below the header
 
+    'The two triangles in B1 that hide and show the navigation bar (#353)
+    Public Const NAV_TOGGLE_HIDE As String = "NavToggleHide"  'Shown while the bar is shown
+    Public Const NAV_TOGGLE_SHOW As String = "NavToggleShow"  'Shown while the bar is hidden
+
     'Palette (Excel BGR color values; hex RGB in the trailing comments)
     Public Const COLOR_BRAND_BAR        As Long = 0         '000000 brand bar
     Public Const COLOR_BRAND_TEXT       As Long = 49407     'FFC000 product name
