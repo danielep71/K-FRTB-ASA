@@ -62,6 +62,7 @@ Option Explicit
 '   (the window panes, the autofilters, the column widths, the displayed
 '   values, the sheet view, the data validation, the navigation bar, the key
 '   highlights and the protection) SKIPPED; the LibreOffice tests run it.
+'   Test_TimeNavigationToggle: times the navigation bar toggle and shows the times.
 '
 ' STATE OWNERSHIP
 '   Changes inputs, parameters, outputs and the window of the workbook it
@@ -196,6 +197,81 @@ Public Sub Test_RunAcceptance_Silent()
 '------------------------------------------------------------------------------
     'Run the checks, with the Excel-only checks skipped
         RunAll False
+
+End Sub
+
+Public Sub Test_TimeNavigationToggle()
+
+'
+'------------------------------------------------------------------------------
+'                        TIME THE NAVIGATION BAR TOGGLE
+'------------------------------------------------------------------------------
+' PURPOSE
+'   Times an empty write window, the toggle that hides the navigation bar and the one that
+'   shows it, and reports the three times in a message.
+'
+' WHY THIS EXISTS
+'   The toggle takes a moment on 23 sheets. The write window, which unprotects and protects
+'   every sheet, is separate from the shapes and the columns, so the difference between the
+'   toggle and the empty window shows which of the two takes the time (#353).
+'
+' INPUTS
+'   None
+'
+' RETURNS
+'   Nothing. A message gives the three times in seconds.
+'
+' BEHAVIOR
+'   Opens and closes a write window and times it, then calls SetNavigationVisible with False
+'   and with True and times each call. The bar is left shown.
+'
+' ERROR POLICY
+'   None. An error stops the macro.
+'
+' DEPENDENCIES
+'   BeginWrite, EndWrite (CORE_Util); SetNavigationVisible (M_Setup).
+'
+' NOTES
+'   Excel only; the shapes and the columns are the ones of Excel. Run it on the workbook as
+'   it is: it changes only the state of the bar, which it leaves shown.
+'
+' UPDATED
+'   2026-11-27
+'------------------------------------------------------------------------------
+
+'------------------------------------------------------------------------------
+' DECLARE
+'------------------------------------------------------------------------------
+    Const PROC_NAME             As String = "TEST_Acceptance.Test_TimeNavigationToggle"
+
+    Dim Started                 As Double       'Timer when a step started
+    Dim WindowSeconds           As Double       'Seconds of an empty write window
+    Dim HideSeconds             As Double       'Seconds of the toggle that hides the bar
+    Dim ShowSeconds             As Double       'Seconds of the toggle that shows it
+
+'------------------------------------------------------------------------------
+' TIME THE STEPS
+'------------------------------------------------------------------------------
+    'Time an empty write window: the sheets unprotected and protected again, nothing else
+        Started = Timer
+        BeginWrite
+        EndWrite
+        WindowSeconds = Timer - Started
+    'Time the toggle that hides the bar, then the one that shows it
+        Started = Timer
+        SetNavigationVisible False
+        HideSeconds = Timer - Started
+        Started = Timer
+        SetNavigationVisible True
+        ShowSeconds = Timer - Started
+
+'------------------------------------------------------------------------------
+' REPORT
+'------------------------------------------------------------------------------
+    'Report the three times
+        MsgBox "Empty write window: " & Round(WindowSeconds, 2) & " s" & vbCrLf & _
+            "Hide the bar: " & Round(HideSeconds, 2) & " s" & vbCrLf & _
+            "Show the bar: " & Round(ShowSeconds, 2) & " s", vbInformation
 
 End Sub
 

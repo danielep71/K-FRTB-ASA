@@ -181,6 +181,14 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The Normal style of the template is Aptos 11 pt with a 15 pt default row (it was Arial 10 pt and
+  12.8 pt, the headless build's), so an empty cell, a new sheet and a row without a height of its
+  own take the workbook's font. The first row of text of `Home` and `README` is 46 pt
+  (`LAYOUT_LEAD_ROW_HEIGHT`) whatever it wraps to. Row 4, the thin spacer under the subtitle, stays
+  9.95 pt, and the header rows of `Control`, `P_*` and `Test_Expected` stay as they are.
+  `Test_TimeNavigationToggle` times an empty write window and the two toggles of the navigation bar,
+  to show which of the two takes the time (#353).
+
 - The navigation bar closes and opens faster. `SetNavigationVisible` sets the visibility of the bar's
   shapes of a sheet in one call, through a range of their names (`NavigationShapeNames`), instead of
   reading the name of every shape of 23 sheets and setting about fifty of them one by one; a sheet

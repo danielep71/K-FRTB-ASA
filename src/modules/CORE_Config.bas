@@ -94,6 +94,7 @@ Option Private Module
     Public Const LAYOUT_HEADER_ROW      As Long = 5     'Table header on input and output sheets
     Public Const INPUT_ROWS             As Long = 200   'Pre-formatted input rows per input sheet
     Public Const LAYOUT_FIRST_DATA_ROW  As Long = 6     'First data row below the header
+    Public Const LAYOUT_LEAD_ROW_HEIGHT As Double = 46  'Height of the first row of text on Home and README
 
     'The two triangles in B1 that hide and show the navigation bar (#353)
     Public Const NAV_TOGGLE_HIDE As String = "NavToggleHide"  'Shown while the bar is shown
