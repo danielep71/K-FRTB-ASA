@@ -29,9 +29,11 @@ def test_the_window_protects_each_sheet_once_and_leaves_it_alone_afterwards() ->
     # A sheet already protected for the interface only is skipped; the others are opened, unlocked and protected that way
     assert "If Not (TargetSheet.ProtectContents And TargetSheet.ProtectionMode) Then" in protection
     assert protection.index("ProtectSheet TargetSheet") < protection.index("TargetSheet.ProtectionMode Then")
-    # Turning on (the end of a window) touches no sheet in Excel: only the structure is protected again
+    # Closing also protects managed sheets created after the window opened.
     excel_branch = protection.split("If KeepsInterfaceOnly() Then", 1)[1].split("Else\n", 1)[0]
     assert "If Not turnOn Then" in excel_branch and "TargetSheet.Protect " not in excel_branch
+    closing = excel_branch.split("ElseIf Not TargetSheet.ProtectContents Then", 1)[1].split("End If", 1)[0]
+    assert closing.index("UnlockInputCells TargetSheet") < closing.index("ProtectSheet TargetSheet")
     assert "ThisWorkbook.Protect Structure:=True, Windows:=False" in protection
 
 

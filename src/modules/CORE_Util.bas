@@ -3530,7 +3530,7 @@ Private Sub SetProtection(ByVal turnOn As Boolean)
 '   when it is protected for the interface only; otherwise unprotects it, unlocks its input
 '   cells and protects it for the interface only, so that a macro writes to it and the user
 '   interface still cannot. A sheet is protected that way once a session, and turning on
-'   leaves the sheets as they are. Elsewhere, for each sheet:
+'   protects sheets created or left unprotected during the window. Elsewhere, for each sheet:
 '     - unprotects it when protected
 '     - when turning on, unlocks its input cells and protects it
 '     - records the sheet when an error occurred or, when turning off, when it is
@@ -3601,6 +3601,10 @@ Private Sub SetProtection(ByVal turnOn As Boolean)
                                 End If
                             End If
                         End If
+                    ElseIf Not TargetSheet.ProtectContents Then
+                        ' A build can create managed sheets after the outer window opens.
+                        UnlockInputCells TargetSheet
+                        If Err.Number = 0 Then ProtectSheet TargetSheet
                     End If
                     If Err.Number <> 0 Then
                         BlockedNames = BlockedNames & IIf(BlockedNames = vbNullString, "", ", ") & TargetSheet.Name
