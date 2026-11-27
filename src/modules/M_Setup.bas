@@ -703,7 +703,7 @@ Private Sub RemoveDefaultSheets()
 '
 ' BEHAVIOR
 '   Walks the worksheets from the last to the first. A sheet that is not managed and has A1,
-'   A2 and B1 blank is deleted. Sheets with content are never deleted.
+'   A2, B1 and C1 blank is deleted. Sheets with content are never deleted.
 '
 ' ERROR POLICY
 '   A sheet that cannot be deleted is skipped (On Error Resume Next).
@@ -728,7 +728,7 @@ Private Sub RemoveDefaultSheets()
             Set CurrentSheet = ThisWorkbook.Worksheets(Index)
             If Not IsManaged(CurrentSheet.Name) Then
                 If IsBlank(CurrentSheet.Cells(1, 1).Value) And IsBlank(CurrentSheet.Cells(2, 1).Value) And _
-                    IsBlank(CurrentSheet.Cells(1, 2).Value) Then
+                    IsBlank(CurrentSheet.Cells(1, 2).Value) And IsBlank(CurrentSheet.Cells(1, LAYOUT_FIRST_COL).Value) Then
                     On Error Resume Next
                     CurrentSheet.Delete
                     On Error GoTo 0
@@ -1739,8 +1739,8 @@ Private Sub AddButtonRow(ByVal ws As Object)
 '
 ' WHY THIS EXISTS
 '   The buttons of a sheet come from SheetButtons and sit in one row of its title bar
-'   (#347). They are shapes with a macro assigned, as the sheet buttons of the shared
-'   toolkit are, so that they follow the cells and look like the rest of the workbook.
+'   (#347). They are shapes with a macro assigned, so that they follow the cells and look
+'   like the rest of the workbook.
 '
 ' INPUTS
 '   ws
@@ -1991,7 +1991,7 @@ Private Sub ApplyWindowSettings()
 ' WHY THIS EXISTS
 '   Needs each sheet to be active once. The wide input, output and Log sheets also keep
 '   their key columns in view; every other sheet freezes the bar and its gutter (columns A
-'   and B) and the rows above its table, as the shared toolkit's sheets do.
+'   and B) and the rows above its table.
 '
 ' INPUTS
 '   None

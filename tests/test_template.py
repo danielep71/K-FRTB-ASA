@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import zipfile
+from pathlib import Path
 
 import openpyxl
 from openpyxl.styles import Protection
@@ -107,7 +108,7 @@ def test_home_lists_every_sheet_once_and_links_to_it():
 
 
 def test_every_sheet_leaves_room_for_the_navigation_bar():
-    """Column A is 18 wide, as the shared toolkit's, column B is a gutter 2 wide, and the brand and title bars
+    """Column A is 18 wide, column B is a gutter 2 wide, and the brand and title bars
     start in column A (#347). The product name and the title sit in column C with the subtitle and the tables."""
     wb = openpyxl.load_workbook(build_template.TEMPLATE)
     for ws in wb:
@@ -351,3 +352,12 @@ def test_every_sheet_has_a_black_navigation_column():
     for ws in wb:
         fill = ws.column_dimensions["A"].fill
         assert fill.fill_type == "solid" and fill.fgColor.rgb == "FF000000", ws.title
+
+
+def test_a_sheet_the_build_made_is_never_taken_for_a_blank_default_sheet():
+    """RemoveDefaultSheets deletes an unmanaged sheet whose A1, A2, B1 and first table column of row 1 are blank.
+    The product name sits in column C, so a copy of a built sheet must not satisfy that test."""
+    text = (Path(__file__).resolve().parents[1] / "src" / "modules" / "M_Setup.bas").read_text(encoding="cp1252")
+    body = text.split("Private Sub RemoveDefaultSheets", 1)[1].split("End Sub", 1)[0]
+    assert "IsBlank(CurrentSheet.Cells(1, LAYOUT_FIRST_COL).Value)" in body
+    assert "IsBlank(CurrentSheet.Cells(1, 2).Value)" in body
