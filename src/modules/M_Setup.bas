@@ -2506,8 +2506,10 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
 '
 ' BEHAVIOR
 '   Opens a write window, then for each managed sheet that exists sets the visibility of
-'   every shape whose name starts with "Nav" and hides column A, or shows it again, with
-'   them; the buttons of a sheet move with their cells (xlMove), so they follow column A.
+'   the shapes of its bar in one call, through a range of the names NavigationShapeNames
+'   gives, and hides column A, or shows it again, with them; when a name is missing it sets
+'   every shape whose name starts with "Nav" one by one. The buttons of a sheet move with
+'   their cells (xlMove), so they follow column A.
 '   The two triangles in B1 take opposite states: the one that hides the bar is shown while
 '   the bar is, the one that shows it while the bar is hidden.
 '   Then closes the write window and gives the Saved flag of the workbook back, so that
@@ -2517,10 +2519,13 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
 '   Errors are ignored (On Error Resume Next) while the shapes are set.
 '
 ' DEPENDENCIES
-'   BeginWrite, EndWrite, GetSheet, SheetExists (CORE_Util); ManagedSheets (CORE_Config).
+'   BeginWrite, EndWrite, GetSheet, SheetExists (CORE_Util); ManagedSheets (CORE_Config);
+'   NavigationShapeNames.
 '
 ' NOTES
-'   A shape and a column are locked on a protected sheet, hence the write window. Column A
+'   One call for the whole bar, instead of one for each of its shapes and one more to read
+'   each name, is what keeps the toggle quick: a bar has about fifty shapes on each of 23
+'   sheets. A shape and a column are locked on a protected sheet, hence the write window. Column A
 '   is the black column the bar sits in: hidden, the sheet starts at column B and no empty
 '   black strip is left. Showing it again gives back the width it had. The write window
 '   holds screen updating off, so the sheets do not flicker.
@@ -2557,13 +2562,23 @@ Public Sub SetNavigationVisible(ByVal shown As Boolean)
         For Index = LBound(SheetNames) To UBound(SheetNames)
             If SheetExists(CStr(SheetNames(Index))) Then
                 Set CurrentSheet = GetSheet(CStr(SheetNames(Index)))
-                For ShapeIndex = 1 To CurrentSheet.Shapes.Count
-                    If CurrentSheet.Shapes(ShapeIndex).Name = NAV_TOGGLE_SHOW Then
-                        CurrentSheet.Shapes(ShapeIndex).Visible = Not shown
-                    ElseIf Left$(CurrentSheet.Shapes(ShapeIndex).Name, 3) = "Nav" Then
-                        CurrentSheet.Shapes(ShapeIndex).Visible = shown
-                    End If
-                Next ShapeIndex
+                Err.Clear
+                CurrentSheet.Shapes.Range(NavigationShapeNames(CurrentSheet)).Visible = shown
+                If Err.Number = 0 Then
+                    'The bar went in one call; the two triangles take opposite states
+                    CurrentSheet.Shapes(NAV_TOGGLE_HIDE).Visible = shown
+                    CurrentSheet.Shapes(NAV_TOGGLE_SHOW).Visible = Not shown
+                Else
+                    'A name is missing, as on a workbook built before the triangles: go shape by shape
+                    Err.Clear
+                    For ShapeIndex = 1 To CurrentSheet.Shapes.Count
+                        If CurrentSheet.Shapes(ShapeIndex).Name = NAV_TOGGLE_SHOW Then
+                            CurrentSheet.Shapes(ShapeIndex).Visible = Not shown
+                        ElseIf Left$(CurrentSheet.Shapes(ShapeIndex).Name, 3) = "Nav" Then
+                            CurrentSheet.Shapes(ShapeIndex).Visible = shown
+                        End If
+                    Next ShapeIndex
+                End If
                 CurrentSheet.Columns(1).Hidden = Not shown
             End If
         Next Index
@@ -2623,6 +2638,86 @@ Public Function NavigationVisible() As Boolean
         On Error Resume Next
         NavigationVisible = GetSheet(SH_HOME).Shapes("Nav_Current").Visible
         On Error GoTo 0
+
+End Function
+
+Private Function NavigationShapeNames(ByVal ws As Object) As Variant
+
+'
+'------------------------------------------------------------------------------
+'                     NAME THE SHAPES OF A NAVIGATION BAR
+'------------------------------------------------------------------------------
+' PURPOSE
+'   Returns the names of the shapes that AddNavigationBar gives the bar of a sheet, apart
+'   from the two triangles in B1.
+'
+' WHY THIS EXISTS
+'   A range of shapes takes its visibility in one call, so SetNavigationVisible does not
+'   read the name of every shape of a sheet to find the ones of the bar.
+'
+' INPUTS
+'   ws
+'     Sheet whose bar is named
+'
+' RETURNS
+'   A Variant array of Variant names, from index 0: a heading for each section, then for
+'   each entry its shape (Nav_Current for the sheet itself, Nav_<sheet> for the others) and
+'   its strip (Nav_<sheet>_Mark).
+'
+' BEHAVIOR
+'   Walks the entries of NavEntry in order and names the shapes as AddNavigationBar does:
+'   NavSection_ plus the section with its spaces replaced by underscores, when the section
+'   changes, the entry, and its strip.
+'
+' ERROR POLICY
+'   None.
+'
+' DEPENDENCIES
+'   NavEntry, NAV_COUNT.
+'
+' NOTES
+'   The names must follow AddNavigationBar; a test compares the two.
+'
+' UPDATED
+'   2026-11-27
+'------------------------------------------------------------------------------
+
+'------------------------------------------------------------------------------
+' DECLARE
+'------------------------------------------------------------------------------
+    Const PROC_NAME             As String = "M_Setup.NavigationShapeNames"
+
+    Dim Names()                 As Variant      'Names found, from index 0
+    Dim NameCount               As Long         'Names found so far
+    Dim Index                   As Long         'Entry of NavEntry
+    Dim Entry                   As Variant      'Navigation entry
+    Dim SectionName             As String       'Section of the previous entry
+
+'------------------------------------------------------------------------------
+' NAME THE SHAPES
+'------------------------------------------------------------------------------
+    'Room for a heading, an entry and a strip for each entry
+        ReDim Names(0 To 3 * NAV_COUNT - 1)
+    'Name the heading where the section changes, the entry and its strip
+        For Index = 1 To NAV_COUNT
+            Entry = NavEntry(Index)
+            If CStr(Entry(0)) <> SectionName Then
+                SectionName = CStr(Entry(0))
+                Names(NameCount) = "NavSection_" & Replace(SectionName, " ", "_")
+                NameCount = NameCount + 1
+            End If
+            Names(NameCount) = IIf(CStr(Entry(1)) = ws.Name, "Nav_Current", "Nav_" & CStr(Entry(1)))
+            Names(NameCount + 1) = "Nav_" & CStr(Entry(1)) & "_Mark"
+            NameCount = NameCount + 2
+        Next Index
+    'Keep the names found
+        ReDim Preserve Names(0 To NameCount - 1)
+
+'------------------------------------------------------------------------------
+' RETURN VALUE
+'------------------------------------------------------------------------------
+    'Return the names
+        NavigationShapeNames = Names
 
 End Function
 
@@ -2929,7 +3024,7 @@ Private Sub AddNavigationBar(ByVal ws As Object)
     'Add the triangle that hides the bar (left, shown) and the one that shows it (right, hidden) at the
     'left of B1: a triangle is drawn pointing up and turned, so its box is 9 wide and 6.75 high before the turn
         For ToggleStep = 0 To 1
-            Set NavShape = ws.Shapes.AddShape(7, ws.Cells(1, 2).Left + 1.125, _
+            Set NavShape = ws.Shapes.AddShape(7, ws.Cells(1, 2).Left + 2.625, _
                 ws.Cells(1, 2).Top + ws.Rows(1).Height / 2 - 3.375, 9, 6.75)  'msoShapeIsoscelesTriangle
             NavShape.Name = IIf(ToggleStep = 0, NAV_TOGGLE_HIDE, NAV_TOGGLE_SHOW)
             NavShape.Rotation = IIf(ToggleStep = 0, 270, 90)

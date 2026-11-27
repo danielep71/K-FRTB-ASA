@@ -1955,7 +1955,7 @@ Private Function CheckNavigation(ByRef detail As String) As String
 '   shows the bar takes the opposite state of the others), or whose first
 '   first button is not where it was, moved left by the width of column A while the bar is
 '   hidden, or whose column A is not LAYOUT_NAV_WIDTH wide when the bar is shown again.
-'   The bar is left shown.
+'   The bar is left shown. A pass reports how long the two toggles took, with the checks.
 '
 ' ERROR POLICY
 '   None. An error raised by the sheet calls is caught by RunCheck.
@@ -1988,6 +1988,8 @@ Private Function CheckNavigation(ByRef detail As String) As String
     Dim NavWidth()              As Double       'Width of column A of each sheet before the toggle
     Dim ButtonLeft()            As Double       'Left edge of the first button of each sheet before the toggle
     Dim ButtonShapes            As Long         'Shapes named btn_ on the sheet
+    Dim ToggleStart             As Double       'Timer when a toggle started
+    Dim ToggleSeconds           As Double       'Seconds the two toggles took, without the checks
 
 '------------------------------------------------------------------------------
 ' CHECK HOST
@@ -2093,7 +2095,9 @@ Private Function CheckNavigation(ByRef detail As String) As String
             End If
         Next SheetIndex
         For ToggleStep = 0 To 1
+            ToggleStart = Timer
             SetNavigationVisible (ToggleStep = 1)
+            ToggleSeconds = ToggleSeconds + Timer - ToggleStart
             For SheetIndex = LBound(SheetNames) To UBound(SheetNames)
                 Set ManagedSheet = GetSheet(CStr(SheetNames(SheetIndex)))
                 If ManagedSheet.Columns(1).Hidden = (ToggleStep = 1) Then
@@ -2133,7 +2137,7 @@ Private Function CheckNavigation(ByRef detail As String) As String
     'Return the problems, or the description of the bar on a pass
         detail = IIf(Problems = vbNullString, SheetCount & " sheets, each with a marker and " & _
             (SheetCount - 1) & " links, all listed on Home; the buttons as set; " & _
-            "the toggle hides and shows column A and the bar", Problems)
+            "the toggle hides and shows column A and the bar in " & Round(ToggleSeconds, 1) & " s", Problems)
         CheckNavigation = IIf(Problems = vbNullString, "PASS", "FAIL")
 
 End Function

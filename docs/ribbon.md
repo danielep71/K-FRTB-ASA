@@ -58,7 +58,10 @@ screen. To change an icon, edit the `.svg` and render it again at 64 px.
   being moved. Its state is read from the marker of
   `Home`, so a workbook saved with the bar hidden opens with the toggle
   released. The write goes through a write window, because the shapes and the
-  column are locked on a protected sheet (#349). The write window also holds
+  column are locked on a protected sheet (#349). The bar's shapes take their
+  visibility in one call for each sheet, through a range of their names
+  (`NavigationShapeNames`), which keeps the toggle quick; a sheet with a missing
+  name goes shape by shape. The write window also holds
   screen updating off, so the sheets do not flicker, and the toggle gives the
   `Saved` flag of the workbook back, so that it is not a change that asks to be
   saved. The acceptance check

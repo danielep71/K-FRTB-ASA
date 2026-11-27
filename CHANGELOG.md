@@ -181,6 +181,12 @@ Unreleased describe integrated work, not a published version.
 
 ### Changed
 
+- The navigation bar closes and opens faster. `SetNavigationVisible` sets the visibility of the bar's
+  shapes of a sheet in one call, through a range of their names (`NavigationShapeNames`), instead of
+  reading the name of every shape of 23 sheets and setting about fifty of them one by one; a sheet
+  that lacks a name still goes shape by shape. The toggle triangle sits 2 px further right in B1.
+  `NAVIGATION` reports how long the two toggles took (#353).
+
 - The navigation bar has START and Home at the top of column A, in the rows that stay in view, and
   the other sections below the frozen rows. A grey triangle at the left of B1 of every sheet hides
   the bar (it points left) and, with the bar hidden, shows it again (it points right):
