@@ -29,15 +29,15 @@ def test_the_window_protects_each_sheet_once_and_leaves_it_alone_afterwards() ->
     # A sheet already protected for the interface only is skipped; the others are opened, unlocked and protected that way
     assert "If Not (TargetSheet.ProtectContents And TargetSheet.ProtectionMode) Then" in protection
     assert protection.index("ProtectSheet TargetSheet") < protection.index("TargetSheet.ProtectionMode Then")
-    # Turning on (the end of a window) touches no sheet in Excel: only the structure is protected again
+    # Opening and closing a window do the same, so a sheet made inside a window is protected at its end
     excel_branch = protection.split("If KeepsInterfaceOnly() Then", 1)[1].split("Else\n", 1)[0]
-    assert "If Not turnOn Then" in excel_branch and "TargetSheet.Protect " not in excel_branch
+    assert "If Not turnOn Then" not in excel_branch and "TargetSheet.Protect " not in excel_branch
     assert "ThisWorkbook.Protect Structure:=True, Windows:=False" in protection
 
 
 def test_a_host_that_does_not_keep_the_option_falls_back_to_the_old_way() -> None:
     protection = body(UTIL, "Private Sub SetProtection", "End Sub")
-    assert "TargetSheet.Unprotect \"\"\n                                    mUiOnlyRefused = True" in protection
+    assert "TargetSheet.Unprotect \"\"\n                                mUiOnlyRefused = True" in protection
     host = body(UTIL, "Private Function KeepsInterfaceOnly", "End Function")
     assert "ThisWorkbook.Worksheets(1).ProtectionMode" in host and "KeepsInterfaceOnly = mHostKnowsMode And Not mUiOnlyRefused" in host
     # LibreOffice calls itself Excel, so the host is not told by its name

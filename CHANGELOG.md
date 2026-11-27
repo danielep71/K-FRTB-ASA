@@ -185,8 +185,8 @@ Unreleased describe integrated work, not a published version.
   user still cannot change a locked cell, and a macro writes without unprotecting anything. A write
   window used to unprotect and protect 23 sheets, which is most of the time the navigation toggle
   took. The first window of a session protects each sheet that way (Excel does not save the option, so
-  a workbook opens protected as before), and a window after it opens only the workbook structure. A
-  host that does not keep the option, such as LibreOffice, still unprotects and protects around each
+  a workbook opens protected as before), and a window after it opens only the workbook structure; a
+  sheet made inside a window is protected when the window closes. A host that does not keep the option, such as LibreOffice, still unprotects and protects around each
   window: `KeepsInterfaceOnly` tells the host by reading `ProtectionMode` back, not by the name, which
   LibreOffice gives as Excel's. `PROTECTION` now requires `ProtectionMode` on every sheet and a
   script's write to a header to be accepted, where it required it refused, and

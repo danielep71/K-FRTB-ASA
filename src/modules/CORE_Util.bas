@@ -3426,9 +3426,10 @@ Public Sub EndWrite()
 '
 ' BEHAVIOR
 '   Subtracts 1 from the depth of open windows when it is above 0. When the depth is
-'   then 0, closes the way through SetProtection (in Excel only the workbook structure is
-'   protected again: the sheets stay protected for the interface only) and gives screen
-'   updating back the value it had before the window opened.
+'   then 0, closes the way through SetProtection (in Excel the workbook structure is protected
+'   again and so is a sheet that is not yet protected for the interface only, such as one made
+'   inside the window; the others stay as they are) and gives screen updating back the value
+'   it had before the window opened.
 '
 ' ERROR POLICY
 '   Never raises: the errors of SetProtection are ignored (On Error Resume Next).
@@ -3526,11 +3527,11 @@ Private Sub SetProtection(ByVal turnOn As Boolean)
 '   Nothing
 '
 ' BEHAVIOR
-'   In Excel, for each sheet of ManagedSheets that exists, when turning off: leaves it alone
+'   In Excel, for each sheet of ManagedSheets that exists, turning on or off: leaves it alone
 '   when it is protected for the interface only; otherwise unprotects it, unlocks its input
 '   cells and protects it for the interface only, so that a macro writes to it and the user
-'   interface still cannot. A sheet is protected that way once a session, and turning on
-'   leaves the sheets as they are. Elsewhere, for each sheet:
+'   interface still cannot. A sheet is protected that way once a session; a sheet made inside a
+'   window is protected when the window closes. Elsewhere, for each sheet:
 '     - unprotects it when protected
 '     - when turning on, unlocks its input cells and protects it
 '     - records the sheet when an error occurred or, when turning off, when it is
@@ -3584,21 +3585,20 @@ Private Sub SetProtection(ByVal turnOn As Boolean)
                 On Error Resume Next
                 Err.Clear
                 If KeepsInterfaceOnly() Then
-                    ' Protect for the interface only, once: a macro writes to the sheet, the user cannot
-                    If Not turnOn Then
-                        If Not (TargetSheet.ProtectContents And TargetSheet.ProtectionMode) Then
-                            ' An empty password never prompts
-                            If TargetSheet.ProtectContents Then TargetSheet.Unprotect ""
-                            If Err.Number = 0 Then
-                                UnlockInputCells TargetSheet
-                                ProtectSheet TargetSheet
-                            End If
-                            ' A host that takes the option and does not keep it: open the sheet, and use the old way from now on
-                            If Err.Number = 0 Then
-                                If Not TargetSheet.ProtectionMode Then
-                                    TargetSheet.Unprotect ""
-                                    mUiOnlyRefused = True
-                                End If
+                    ' Protect for the interface only, once: a macro writes to the sheet, the user cannot.
+                    ' Opening and closing a window do the same, so a sheet made inside a window is protected at its end
+                    If Not (TargetSheet.ProtectContents And TargetSheet.ProtectionMode) Then
+                        ' An empty password never prompts
+                        If TargetSheet.ProtectContents Then TargetSheet.Unprotect ""
+                        If Err.Number = 0 Then
+                            UnlockInputCells TargetSheet
+                            ProtectSheet TargetSheet
+                        End If
+                        ' A host that takes the option and does not keep it: open the sheet, and use the old way from now on
+                        If Err.Number = 0 Then
+                            If Not TargetSheet.ProtectionMode Then
+                                TargetSheet.Unprotect ""
+                                mUiOnlyRefused = True
                             End If
                         End If
                     End If
